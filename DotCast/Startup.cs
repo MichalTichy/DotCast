@@ -15,14 +15,11 @@ namespace DotCast
         {
             // Configure Web API for self-host. 
             HttpConfiguration config = new HttpConfiguration();
-            config.Routes.MapHttpRoute(
-                name: "PodcastApi",
-                routeTemplate: "{controller}/{id}"
-            );
+
+            config.MapHttpAttributeRoutes();
 
             appBuilder.UseWebApi(config);
-
-            appBuilder.UseStaticFiles(AppConfiguration.BasePath);
+            appBuilder.UseStaticFiles($"/{AppConfiguration.PodcastsLocation}");
         }
     }
 }
