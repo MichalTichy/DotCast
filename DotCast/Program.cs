@@ -24,11 +24,14 @@ namespace DotCast
         static void Main(string[] args)
         {
             LoadConfiguration();
-            RenameFilesToUrlFriendlyNames();
             using (WebApp.Start($"http://*:{AppConfiguration.Port}"))
             {
                 Console.WriteLine("Podcast server started");
-                Thread.Sleep(Timeout.Infinite);
+                while (true)
+                {
+                    RenameFilesToUrlFriendlyNames();
+                    Thread.Sleep(TimeSpan.FromMinutes(5));
+                }
             }
         }
 
