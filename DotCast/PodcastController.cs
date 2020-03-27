@@ -54,7 +54,7 @@ namespace DotCast
             content.AppendLine("<ul>");
             foreach (var podcastsName in podcastsNames)
             {
-                content.AppendLine($"<li><a href=\"{baseUrl}/{ControllerContext.ControllerDescriptor.ControllerName}/{podcastsName}\">{podcastsName}</a></li>");
+                content.AppendLine($"<li><a href=\"{baseUrl}/{ControllerContext.ControllerDescriptor.ControllerName}/{podcastsName}\">{podcastsName.Replace('_', ' ')}</a></li>");
             }
 
             content.AppendLine("</ul>");

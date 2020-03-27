@@ -24,6 +24,7 @@ namespace DotCast
         public Feed GetFeed(string podcastName)
         {
             var podcastPath = Path.Combine(basePath, podcastName);
+            var normalizedPodcastName = podcastName.Replace('_', ' ');
             if (!Directory.Exists(podcastPath))
                 return null;
 
@@ -67,7 +68,7 @@ namespace DotCast
                 var fileInfo = files[index];
                 if (!feedInfoSet)
                 {
-                    feed.Title = fileInfo.metadata.Tag.Album ?? podcastName;
+                    feed.Title = fileInfo.metadata.Tag.Album ?? normalizedPodcastName;
                     feed.AuthorName = string.Join(", ", fileInfo.metadata.Tag.AlbumArtists.Union(fileInfo.metadata.Tag.Artists));
                     feed.ImageUrl = GetFileUrl(podcastName, Path.GetFileName(image));
                     feed.Description = fileInfo.metadata.Tag.Description ?? fileInfo.metadata.Tag.Comment;
@@ -82,7 +83,7 @@ namespace DotCast
                     FileType = info.Extension,
 
                     FileUrl = GetFileUrl(podcastName, Path.GetFileName(fileInfo.path)),
-                    Title = fileInfo.metadata.Tag.Title ?? Path.GetFileNameWithoutExtension(fileInfo.path),
+                    Title = fileInfo.metadata.Tag.Title ?? Path.GetFileNameWithoutExtension(fileInfo.path).Replace('_', ' '),
                     SubTitle = fileInfo.metadata.Tag.Subtitle,
                     PublicationDate = new DateTime((int)(fileInfo.metadata.Tag.Year != default ? fileInfo.metadata.Tag.Year + 1 : 2000), 1, 1).AddMinutes(-index - 1) //this ensures that episodes are in correct order when ordering is by date (latest first)
                 };

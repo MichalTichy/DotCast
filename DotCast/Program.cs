@@ -71,7 +71,7 @@ namespace DotCast
                 }
             }
 
-            return stringBuilder.ToString().Normalize(NormalizationForm.FormC);
+            return stringBuilder.ToString().Normalize(NormalizationForm.FormC).Replace(' ', '_');
         }
 
         private static void LoadConfiguration()
