@@ -1,0 +1,51 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Deploy
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  workflow_run:
+    workflows: ["Publish"]
+    branches: [main]
+    types: 
+      - completed
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  deploy:
+    # The type of runner that the job will run on
+    runs-on: [self-hosted, Raspberry]
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - name: Stop DotCast
+        run: systemctl stop DotCast
+        
+      - uses: actions/download-artifact@v2
+        name: DownloadArtifact
+        with:
+          name: DotCast
+          path: /home/pi/DotCast
+      - uses: microsoft/variable-substitution@v1
+        name: App Settings Variable Substitution
+        with:
+          files: '${{env.DOTNET_ROOT}}/myapp/appsettings.json'
+        env:
+          PodcastProviderSettings.PodcastsLocation: ${{ secrets.PODCASTSLOCATION }}
+          PodcastProviderSettings.PodcastServerUrl: ${{ secrets.PODCASTSERVERURL }}
+          AuthenticationSettings.Username: ${{ secrets.USERNAME }}
+          AuthenticationSettings.Password: ${{ secrets.PASSWORD }}
+      
+      - name: copy service file
+        run: sudo cp /home/pi/DotCast/DotCast.service /etc/systemd/system/DotCast.service
+        
+      - name: refresh servicec
+        run: sudo systemctl daemon-reload
+      
+      - name: start service
+        run: systemctl start DotCast
+
+      - name: enable start after reboot
+        run: sudo systemctl enable DotCast
