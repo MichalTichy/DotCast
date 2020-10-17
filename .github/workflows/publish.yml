@@ -22,7 +22,7 @@ jobs:
     - name: Build
       run: dotnet build --configuration Release --no-restore
     - name: Publish
-      run: dotnet publish
+      run: dotnet publish /p:DefineConstants=LINUX;
     - name: Create Artifact
       uses: actions/upload-artifact@v2
       with:
