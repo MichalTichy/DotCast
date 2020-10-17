@@ -18,6 +18,7 @@ jobs:
     steps:
       - name: Stop DotCast
         run: sudo systemctl stop DotCast
+        continue-on-error: true
         
       - uses: actions/download-artifact@v2
         name: DownloadArtifact
