@@ -28,6 +28,4 @@ jobs:
       with:
         name: DotCast
         path: /home/pi/actions-runner/work/DotCast/DotCast/DotCast.Service/bin/Debug/netcoreapp3.1/publish/
-    - name: Test
-      run: echo ${{ env.SERVER_ROOT_ADDRESS }}
 
