@@ -108,8 +108,9 @@
   <ItemGroup>
     <Compile Include="AppConfiguration.cs" />
     <Compile Include="Feed.cs" />
-    <Compile Include="IPodcastProvider.cs" />
-    <Compile Include="LocalPodcastProvider.cs" />
+    <Compile Include="PodcastProviders\IPodcastProvider.cs" />
+    <Compile Include="PodcastProviders\CombinedPodcastProvider.cs" />
+    <Compile Include="PodcastProviders\LocalPodcastProvider.cs" />
     <Compile Include="PodcastController.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -126,53 +127,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="files\Enigma\01. Hodges Andrew - Alan Turing – Enigma.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="files\Enigma\02. Hodges Andrew - Alan Turing – Enigma.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="files\Enigma\03. Hodges Andrew - Alan Turing – Enigma.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="files\Enigma\04. Hodges Andrew - Alan Turing – Enigma.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="files\Enigma\05. Hodges Andrew - Alan Turing – Enigma.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="files\Enigma\06. Hodges Andrew - Alan Turing – Enigma.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="files\Enigma\07. Hodges Andrew - Alan Turing – Enigma.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="files\Enigma\08. Hodges Andrew - Alan Turing – Enigma.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="files\Enigma\09. Hodges Andrew - Alan Turing – Enigma.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="files\Enigma\10. Hodges Andrew - Alan Turing – Enigma.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="files\Enigma\11. Hodges Andrew - Alan Turing – Enigma.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="files\Enigma\12. Hodges Andrew - Alan Turing – Enigma.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="files\Enigma\13. Hodges Andrew - Alan Turing – Enigma.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="files\Enigma\14. Hodges Andrew - Alan Turing – Enigma.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="files\Enigma\15. Hodges Andrew - Alan Turing – Enigma.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.5.2">
       <Visible>False</Visible>
       <ProductName>Microsoft .NET Framework 4.5.2 %28x86 and x64%29</ProductName>
@@ -184,6 +138,8 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="files\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
