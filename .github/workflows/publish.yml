@@ -1,4 +1,4 @@
-name: .NET Core
+name: Publish
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Raspberry]
 
     steps:
     - uses: actions/checkout@v2
@@ -23,3 +23,9 @@ jobs:
       run: dotnet build --configuration Release --no-restore
     - name: Publish
       run: dotnet publish
+    - name: Create Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: DotCast
+        path: /home/pi/actions-runner/work/DotCast/DotCast/DotCast.Service/bin/Debug/netcoreapp3.1/publish/
+
