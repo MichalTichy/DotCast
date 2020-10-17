@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using DotCast.RssGenerator;
 using DotCast.Service.Controllers;
 using DotCast.Service.Settings;
-using PodcastRssGenerator4DotNet;
 using TagLib;
 using File = TagLib.File;
 

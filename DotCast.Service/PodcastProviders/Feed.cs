@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Text;
 using System.Xml;
-using PodcastRssGenerator4DotNet;
+using DotCast.RssGenerator;
 
 namespace DotCast.Service.PodcastProviders
 {
@@ -54,11 +54,11 @@ namespace DotCast.Service.PodcastProviders
             set => Generator.Description = value;
         }
 
-        protected RssGenerator Generator;
+        protected RssGenerator.RssGenerator Generator;
 
         public Feed()
         {
-            Generator = new RssGenerator()
+            Generator = new RssGenerator.RssGenerator()
             {
                 Episodes = new List<Episode>(),
                 Categories = new List<string>(),

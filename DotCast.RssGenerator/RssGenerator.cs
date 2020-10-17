@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Xml;
 
-namespace PodcastRssGenerator4DotNet
+namespace DotCast.RssGenerator
 {
     public partial class RssGenerator
     {

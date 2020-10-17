@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace PodcastRssGenerator4DotNet
+namespace DotCast.RssGenerator
 {
     public class Episode
     {
