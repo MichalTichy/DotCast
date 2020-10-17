@@ -6,7 +6,7 @@ name: Deploy
 # events but only for the master branch
 on:
   workflow_run:
-    workflows: ["Publish"]
+    workflows: [Publish]
     branches: [main]
     types: 
       - completed
