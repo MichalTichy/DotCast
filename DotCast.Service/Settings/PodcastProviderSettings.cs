@@ -1,4 +1,4 @@
-﻿namespace DotCast.Service.Controllers
+﻿namespace DotCast.Service.Settings
 {
     public class PodcastProviderSettings
     {

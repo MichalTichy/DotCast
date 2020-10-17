@@ -3,7 +3,7 @@ using System.Text;
 using System.Xml;
 using PodcastRssGenerator4DotNet;
 
-namespace DotCast.Service
+namespace DotCast.Service.PodcastProviders
 {
     public class Feed
     {
