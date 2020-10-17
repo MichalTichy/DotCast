@@ -17,7 +17,7 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Stop DotCast
-        run: systemctl stop DotCast
+        run: sudo systemctl stop DotCast
         
       - uses: actions/download-artifact@v2
         name: DownloadArtifact
@@ -41,7 +41,7 @@ jobs:
         run: sudo systemctl daemon-reload
       
       - name: start service
-        run: systemctl start DotCast
+        run: sudo systemctl start DotCast
 
       - name: enable start after reboot
-        run: sudo systemctl enable DotCast
+        run: sudo sudo systemctl enable DotCast
