@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace DotCast
+namespace DotCast.Service.PodcastProviders
 {
     public class CombinedPodcastProvider : IPodcastProvider
     {

@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text;
 using System.Xml;
-using Castle.Core.Internal;
 using PodcastRssGenerator4DotNet;
 
-namespace DotCast
+namespace DotCast.Service
 {
     public class Feed
     {

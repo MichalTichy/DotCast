@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
-namespace DotCast
+namespace DotCast.Service.PodcastProviders
 {
     public interface IPodcastProvider
     {

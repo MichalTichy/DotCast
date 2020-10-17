@@ -2,28 +2,25 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Castle.Core.Internal;
+using DotCast.Service.Controllers;
 using PodcastRssGenerator4DotNet;
 using TagLib;
 using File = TagLib.File;
 
-namespace DotCast
+namespace DotCast.Service.PodcastProviders
 {
     public class LocalPodcastProvider : IPodcastProvider
     {
+        private readonly PodcastProviderSettings settings;
 
-        private readonly string basePath;
-        private string baseUrl;
-
-        public LocalPodcastProvider(string basePath, string baseUrl)
+        public LocalPodcastProvider(PodcastProviderSettings settings)
         {
-            this.basePath = basePath;
-            this.baseUrl = baseUrl;
+            this.settings = settings;
         }
 
         public Feed GetFeed(string podcastName)
         {
-            var podcastPath = Path.Combine(basePath, podcastName);
+            var podcastPath = Path.Combine(settings.PodcastsLocation, podcastName);
             var normalizedPodcastName = podcastName.Replace('_', ' ');
             if (!Directory.Exists(podcastPath))
                 return null;
@@ -57,7 +54,7 @@ namespace DotCast
             {
                 files = files.OrderBy(t => t.metadata.Tag.Track).ToList();
             }
-            else if (files.All(t => !t.metadata.Tag.TitleSort.IsNullOrEmpty()))
+            else if (files.All(t => !string.IsNullOrWhiteSpace(t.metadata.Tag.TitleSort)))
             {
                 files = files.OrderBy(t => t.metadata.Tag.TitleSort).ToList();
             }
@@ -95,16 +92,14 @@ namespace DotCast
 
         private string GetFileUrl(string podcastName, string fileName)
         {
-            if (fileName.IsNullOrEmpty())
-            {
-                return null;
-            }
-            return $"{baseUrl}/{AppConfiguration.PodcastsLocation}/{podcastName}/{fileName}";
+            return string.IsNullOrEmpty(fileName) ?
+                null :
+                $"./{settings.PodcastsLocation}/{podcastName}/{fileName}";
         }
 
         public IEnumerable<string> GetPodcastNames()
         {
-            var baseDirectory = new DirectoryInfo(basePath);
+            var baseDirectory = new DirectoryInfo(settings.PodcastsLocation);
             foreach (var directory in baseDirectory.GetDirectories())
             {
                 yield return directory.Name;
