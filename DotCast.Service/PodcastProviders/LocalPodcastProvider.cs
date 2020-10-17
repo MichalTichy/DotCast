@@ -95,7 +95,7 @@ namespace DotCast.Service.PodcastProviders
         {
             return string.IsNullOrEmpty(fileName) ?
                 null :
-                $"./{settings.PodcastsLocation}/{podcastName}/{fileName}";
+                $"{settings.PodcastServerUrl}/files/{podcastName}/{fileName}";
         }
 
         public IEnumerable<string> GetPodcastNames()

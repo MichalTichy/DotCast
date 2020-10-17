@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using System.Web.Http;
 using DotCast.Service.PodcastProviders;
+using DotCast.Service.Settings;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -10,11 +11,13 @@ namespace DotCast.Service.Controllers
     {
         private IPodcastProvider podcastProvider;
         private readonly ILogger logger;
+        private readonly PodcastProviderSettings settings;
 
-        public PodcastController(IPodcastProvider podcastProvider, ILogger<PodcastController> logger)
+        public PodcastController(IPodcastProvider podcastProvider, ILogger<PodcastController> logger, PodcastProviderSettings settings)
         {
             this.podcastProvider = podcastProvider;
             this.logger = logger;
+            this.settings = settings;
         }
 
         [Microsoft.AspNetCore.Mvc.Route("podcast/{podcastName}")]
@@ -57,7 +60,7 @@ namespace DotCast.Service.Controllers
             content.AppendLine("<ul>");
             foreach (var podcastsName in podcastsNames)
             {
-                content.AppendLine($"<li><a href=\"./podcast/{podcastsName}\">{podcastsName.Replace('_', ' ')}</a></li>");
+                content.AppendLine($"<li><a href=\"{settings.PodcastServerUrl}/podcast/{podcastsName}\">{podcastsName.Replace('_', ' ')}</a></li>");
             }
 
             content.AppendLine("</ul>");
