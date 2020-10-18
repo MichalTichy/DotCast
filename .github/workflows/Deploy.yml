@@ -5,9 +5,7 @@ name: Deploy
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the master branch
 on:
-  release:
-    types: [published]   
-  workflow_dispatch:
+- release
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -22,15 +20,11 @@ jobs:
         run: sudo systemctl stop DotCast
         continue-on-error: true
         
-      - name: Download Release Asset
-        id: download_release_asset
-        uses: i3h/download-release-asset@v1
+      - uses: wyozi/download-gh-release-asset@master
         with:
-          owner: MichalTichy
-          repo: DotCast
-          tag: latest
-          file: release.zip
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          args: release.zip
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       - name: extract-7z-action
         uses: DuckSoft/extract-7z-action@v1.0
         with:
