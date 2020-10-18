@@ -33,7 +33,7 @@ jobs:
     - uses: papeloto/action-zip@v1
       name: Create archive
       with:
-        files: /home/pi/actions-runner/work/DotCast/DotCast/DotCast.Service/bin/Release/netcoreapp3.1/publish/**
+        files: /DotCast.Service/bin/Release/netcoreapp3.1/
         dest: realease.zip
       # Or, if you're on Windows: echo "Build number is ${env:BUILD_NUMBER}"
     - uses: ncipollo/release-action@v1
