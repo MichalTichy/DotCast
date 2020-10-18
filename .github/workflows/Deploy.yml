@@ -6,7 +6,8 @@ name: Deploy
 # events but only for the master branch
 on:
   release:
-    types: [published]
+    types: [published]   
+  workflow_dispatch:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -26,7 +27,7 @@ jobs:
         uses: i3h/download-release-asset@v1
         with:
           owner: MichalTichy
-          repo: MichalTichy/DotCast
+          repo: DotCast
           tag: latest
           file: release.zip
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
