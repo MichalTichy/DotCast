@@ -19,8 +19,6 @@ jobs:
         dotnet-version: 3.1.301
     - name: Install dependencies
       run: dotnet restore
-    - name: Build
-      run: dotnet build --configuration Release --no-restore
     - name: Publish
       run: dotnet publish /p:DefineConstants=LINUX --configuration Release
     
@@ -33,7 +31,7 @@ jobs:
     - uses: papeloto/action-zip@v1
       name: Create archive
       with:
-        files: /DotCast.Service/bin/Release/netcoreapp3.1/
+        files: /DotCast.Service/bin/Release/netcoreapp3.1/publish
         dest: realease.zip
       # Or, if you're on Windows: echo "Build number is ${env:BUILD_NUMBER}"
     - uses: ncipollo/release-action@v1
