@@ -37,6 +37,6 @@ jobs:
       with:
         artifacts: "/home/pi/actions-runner/work/DotCast/DotCast/DotCast.Service/bin/Release/netcoreapp3.1/publish/"
         token: ${{ secrets.GITHUB_TOKEN }}
-        tag: "build-number-${env:BUILD_NUMBER}"
+        tag: release
         commit: master
 
