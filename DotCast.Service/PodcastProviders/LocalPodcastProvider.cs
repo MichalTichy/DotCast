@@ -67,7 +67,11 @@ namespace DotCast.Service.PodcastProviders
                 if (!feedInfoSet)
                 {
                     feed.Title = fileInfo.metadata.Tag.Album ?? normalizedPodcastName;
-                    feed.AuthorName = string.Join(", ", fileInfo.metadata.Tag.AlbumArtists.Union(fileInfo.metadata.Tag.Artists));
+#pragma warning disable 618
+                    if (fileInfo.metadata.Tag.Artists != null)
+                        feed.AuthorName = string.Join(", ",
+                            fileInfo.metadata.Tag.AlbumArtists.Union(fileInfo.metadata.Tag.Artists));
+#pragma warning restore 618
                     feed.ImageUrl = GetFileUrl(podcastName, Path.GetFileName(image));
                     feed.Description = fileInfo.metadata.Tag.Description ?? fileInfo.metadata.Tag.Comment;
                     feedInfoSet = true;
@@ -76,7 +80,7 @@ namespace DotCast.Service.PodcastProviders
                 var info = new FileInfo(fileInfo.path);
                 var episode = new Episode()
                 {
-                    Duration = fileInfo.metadata.Properties.Duration.ToString("g"),
+                    Duration = fileInfo.metadata.Properties.Duration.ToString("0:c"),
                     FileLength = (int)info.Length,
                     FileType = info.Extension,
 

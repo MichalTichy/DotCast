@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Net;
+using System.Text;
 using System.Web.Http;
 using DotCast.Service.PodcastProviders;
 using DotCast.Service.Settings;
@@ -22,7 +23,7 @@ namespace DotCast.Service.Controllers
 
         [Microsoft.AspNetCore.Mvc.Route("podcast/{podcastName}")]
         [Microsoft.AspNetCore.Authorization.Authorize]
-        public ContentResult Get(string podcastName)
+        public ActionResult<string> Get(string podcastName)
         {
             
             logger.LogInformation($"Serving podcast: {podcastName}");
@@ -42,7 +43,7 @@ namespace DotCast.Service.Controllers
             {
                 StatusCode = 200,
                 Content = feed.Generate(),
-                ContentType = "application/xml"
+                ContentType = "application/xml; charset=utf-16"
             };
 
         }

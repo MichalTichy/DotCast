@@ -1,11 +1,5 @@
-using System.Collections.Generic;
-using System.Linq;
-using DotCast.Service.Controllers;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
-using Microsoft.VisualBasic;
 
 namespace DotCast.Service
 {
@@ -18,9 +12,13 @@ namespace DotCast.Service
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
+#if LINUX
+                .UseSystemd()
+#endif
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.UseStartup<Startup>();
+                    webBuilder.UseStartup<Startup>()
+                        .UseUrls($"http://*:9876");
                 });
     }
 }

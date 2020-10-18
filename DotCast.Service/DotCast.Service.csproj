@@ -20,4 +20,13 @@
   <ItemGroup>
     <ProjectReference Include="..\DotCast.RssGenerator\DotCast.RssGenerator.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Update="DotCastService.service">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="install.sh">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>
