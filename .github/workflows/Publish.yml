@@ -32,12 +32,12 @@ jobs:
       name: Create archive
       with:
         files: /DotCast.Service/bin/Release/netcoreapp3.1/publish
-        dest: realease.zip
+        dest: release.zip
       # Or, if you're on Windows: echo "Build number is ${env:BUILD_NUMBER}"
     - uses: ncipollo/release-action@v1
       name: Create release
       with:
-        artifacts: realease.zip
+        artifacts: release.zip
         token: ${{ secrets.GITHUB_TOKEN }}
         tag: release${{env.BUILD_NUMBER}}
         commit: master
