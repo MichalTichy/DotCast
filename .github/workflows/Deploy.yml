@@ -20,11 +20,15 @@ jobs:
         run: sudo systemctl stop DotCast
         continue-on-error: true
         
-      - uses: actions/download-artifact@v2
-        name: DownloadArtifact
+      - name: Download Release Asset
+        id: download_release_asset
+        uses: i3h/download-release-asset@v1
         with:
-          name: DotCast
-          path: /home/pi/DotCast
+          owner: MichalTichy
+          repo: MichalTichy/DotCast
+          tag: latest
+          file: release.zip
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
       - uses: microsoft/variable-substitution@v1
         name: App Settings Variable Substitution
         with:
