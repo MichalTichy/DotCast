@@ -22,10 +22,10 @@ jobs:
     - name: Build
       run: dotnet build --configuration Release --no-restore
     - name: Publish
-      run: dotnet publish /p:DefineConstants=LINUX;
-    - name: Create Artifact
-      uses: actions/upload-artifact@v2
+      run: dotnet publish /p:DefineConstants=LINUX --configuration Release
+    - uses: ncipollo/release-action@v1
+      name: Create release
       with:
-        name: DotCast
-        path: /home/pi/actions-runner/work/DotCast/DotCast/DotCast.Service/bin/Debug/netcoreapp3.1/publish/
+        artifacts: /home/pi/actions-runner/work/DotCast/DotCast/DotCast.Service/bin/Debug/netcoreapp3.1/publish/"
+        token: ${{ secrets.GITHUB_TOKEN }}
 
