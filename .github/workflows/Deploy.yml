@@ -5,7 +5,8 @@ name: Deploy
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the master branch
 on:
-  workflow_dispatch:
+  release:
+    types: [published]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -29,10 +30,14 @@ jobs:
           tag: latest
           file: release.zip
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+      - name: Decompress
+        uses: TonyBogdanov/zip@1.0
+        with:
+          args: unzip -qq ./release.zip -d /home/pi/DotCast
       - uses: microsoft/variable-substitution@v1
         name: App Settings Variable Substitution
         with:
-          files: '${{env.DOTNET_ROOT}}/myapp/appsettings.json'
+          files: '/home/pi/DotCast/appsettings.json'
         env:
           PodcastProviderSettings.PodcastsLocation: ${{ secrets.PODCASTSLOCATION }}
           PodcastProviderSettings.PodcastServerUrl: ${{ secrets.PODCASTSERVERURL }}
