@@ -31,10 +31,13 @@ jobs:
           tag: latest
           file: release.zip
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-      - name: Decompress
-        uses: TonyBogdanov/zip@1.0
+      - name: extract-7z-action
+        uses: DuckSoft/extract-7z-action@v1.0
         with:
-          args: unzip -qq ./release.zip -d /home/pi/DotCast
+    # archive path to extract
+          pathSource: release.zip
+    # path to place the extract
+          pathTarget: /home/pi/DotCast/
       - uses: microsoft/variable-substitution@v1
         name: App Settings Variable Substitution
         with:
