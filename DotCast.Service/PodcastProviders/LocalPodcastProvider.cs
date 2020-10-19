@@ -80,7 +80,7 @@ namespace DotCast.Service.PodcastProviders
                 var info = new FileInfo(fileInfo.path);
                 var episode = new Episode()
                 {
-                    Duration = fileInfo.metadata.Properties.Duration.ToString("0:c"),
+                    Duration = fileInfo.metadata.Properties.Duration.ToString("g"),
                     FileLength = (int)info.Length,
                     FileType = info.Extension,
 
