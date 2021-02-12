@@ -39,6 +39,10 @@ namespace DotCast.Service.PodcastProviders
                 catch (UnsupportedFormatException)
                 {
                     continue;
+                }                
+                catch (CorruptFileException)
+                {
+                    continue;
                 }
                 if (metadata.Properties.MediaTypes == MediaTypes.Audio || metadata.Properties.MediaTypes == MediaTypes.Video)
                 {
