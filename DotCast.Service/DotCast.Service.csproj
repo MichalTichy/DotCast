@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DotCast.FileManager\DotCast.FileManager.csproj" />
     <ProjectReference Include="..\DotCast.RssGenerator\DotCast.RssGenerator.csproj" />
   </ItemGroup>
 

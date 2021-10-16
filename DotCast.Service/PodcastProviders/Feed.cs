@@ -33,12 +33,14 @@ namespace DotCast.Service.PodcastProviders
             get => Generator.ImageUrl;
             set => Generator.ImageUrl = value;
         }
-        public string iTunesCategory
+
+        public string ITunesCategory
         {
             get => Generator.iTunesCategory;
             set => Generator.iTunesCategory = value;
         }
-        public string iTunesSubCategory
+
+        public string ITunesSubCategory
         {
             get => Generator.iTunesSubCategory;
             set => Generator.iTunesSubCategory = value;

@@ -1,5 +1,6 @@
 using System.IO;
 using System.Net;
+using DotCast.FileManager;
 using DotCast.Service.Auth;
 using DotCast.Service.PodcastProviders;
 using DotCast.Service.Services;
@@ -40,6 +41,7 @@ namespace DotCast.Service
                 .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication", null);
             services.AddSingleton<IAuthenticationManager, SimpleAuthenticationManager>();
 
+            services.AddSingleton<IPodcastFileNameManager, PodcastFileNameManager>();
 
             services.AddHostedService<DotCastFileManager>();
             services.AddControllers();
