@@ -5,6 +5,6 @@ namespace DotCast.Service.PodcastProviders
     public interface IPodcastProvider
     {
         Feed GetFeed(string podcastName);
-        IEnumerable<string> GetPodcastNames();
+        IEnumerable<PodcastInfo> GetPodcastInfo();
     }
 }

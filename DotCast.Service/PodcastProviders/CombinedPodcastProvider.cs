@@ -17,9 +17,9 @@ namespace DotCast.Service.PodcastProviders
             return providers.Select(t => t.GetFeed(podcastName)).SingleOrDefault(t => t != null);
         }
 
-        public IEnumerable<string> GetPodcastNames()
+        public IEnumerable<PodcastInfo> GetPodcastInfo()
         {
-            var podcastNames = providers.SelectMany(t=>t.GetPodcastNames()).ToArray();
+            var podcastNames = providers.SelectMany(t=>t.GetPodcastInfo()).ToArray();
             if (podcastNames.Length != podcastNames.Distinct().Count())
             {
                 throw new ArgumentException("Two podcast with the same name exist in multiple sources.");

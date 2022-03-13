@@ -1,8 +1,9 @@
-﻿using System.Net;
+﻿using System.Linq;
 using System.Text;
 using System.Web.Http;
 using DotCast.Service.PodcastProviders;
 using DotCast.Service.Settings;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -21,8 +22,8 @@ namespace DotCast.Service.Controllers
             this.settings = settings;
         }
 
-        [Microsoft.AspNetCore.Mvc.Route("podcast/{podcastName}")]
-        [Microsoft.AspNetCore.Authorization.Authorize]
+        [Route("podcast/{podcastName}")]
+        [Authorize]
         public ActionResult<string> Get(string podcastName)
         {
             
@@ -48,10 +49,10 @@ namespace DotCast.Service.Controllers
 
         }
         
-        [Microsoft.AspNetCore.Mvc.Route("podcasts")]
+        [Route("podcasts")]
         public ContentResult Get()
         {
-            var podcastsNames = podcastProvider.GetPodcastNames();
+            var podcastsNames = podcastProvider.GetPodcastInfo();
 
             var content = new StringBuilder();
 
@@ -59,9 +60,17 @@ namespace DotCast.Service.Controllers
             content.AppendLine("<html>");
             content.AppendLine("<body>");
             content.AppendLine("<ul>");
-            foreach (var podcastsName in podcastsNames)
+            foreach (var byAuthor in podcastsNames.GroupBy(t => t.AuthorName))
             {
-                content.AppendLine($"<li><a href=\"{settings.PodcastServerUrl}/podcast/{podcastsName}\">{podcastsName.Replace('_', ' ')}</a></li>");
+                content.AppendLine($"<li>{byAuthor.Key}</li>");
+                content.AppendLine("<ul>");
+
+                foreach (var podcastInfo in byAuthor.OrderBy(t => t.Name))
+                {
+                    content.AppendLine($"<li><a href=\"{podcastInfo.Url}</a></li>");
+                }
+
+                content.AppendLine("</ul>");
             }
 
             content.AppendLine("</ul>");

@@ -106,12 +106,18 @@ namespace DotCast.Service.PodcastProviders
                 $"{settings.PodcastServerUrl}/files/{podcastName}/{fileName}";
         }
 
-        public IEnumerable<string> GetPodcastNames()
+        public IEnumerable<PodcastInfo> GetPodcastInfo()
         {
             var baseDirectory = new DirectoryInfo(settings.PodcastsLocation);
             foreach (var directory in baseDirectory.GetDirectories())
             {
-                yield return directory.Name;
+                var feed = GetFeed(directory.Name);
+                yield return new PodcastInfo()
+                {
+                    AuthorName = feed.AuthorName,
+                    Name = feed.Title,
+                    Url = $"{settings.PodcastServerUrl}/podcast/{directory.Name}"
+                };
             }
         }
     }
