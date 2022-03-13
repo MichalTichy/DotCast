@@ -62,15 +62,17 @@ namespace DotCast.Service.Controllers
             content.AppendLine("<ul>");
             foreach (var byAuthor in podcastsNames.GroupBy(t => t.AuthorName))
             {
-                content.AppendLine($"<li>{byAuthor.Key}</li>");
+                content.AppendLine("<li>");
+                content.AppendLine($"{byAuthor.Key}");
                 content.AppendLine("<ul>");
 
                 foreach (var podcastInfo in byAuthor.OrderBy(t => t.Name))
                 {
-                    content.AppendLine($"<li><a href=\"{podcastInfo.Url}</a></li>");
+                    content.AppendLine($"<li><a href=\"{podcastInfo.Url}>{podcastInfo.Name}</a></li>");
                 }
 
                 content.AppendLine("</ul>");
+                content.AppendLine("</li>");
             }
 
             content.AppendLine("</ul>");
