@@ -68,7 +68,7 @@ namespace DotCast.Service.Controllers
 
                 foreach (var podcastInfo in byAuthor.OrderBy(t => t.Name))
                 {
-                    content.AppendLine($"<li><a href=\"{podcastInfo.Url}>{podcastInfo.Name}</a></li>");
+                    content.AppendLine($"<li><a href=\"{podcastInfo.Url}\">{podcastInfo.Name}</a></li>");
                 }
 
                 content.AppendLine("</ul>");
