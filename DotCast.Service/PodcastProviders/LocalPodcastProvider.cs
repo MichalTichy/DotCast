@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using DotCast.RssGenerator;
-using DotCast.Service.Controllers;
 using DotCast.Service.Settings;
 using TagLib;
 using File = TagLib.File;
@@ -63,6 +62,10 @@ namespace DotCast.Service.PodcastProviders
             {
                 files = files.OrderBy(t => t.metadata.Tag.TitleSort).ToList();
             }
+            else
+            {
+                files = files.OrderBy(t => t.path).ToList();
+            }
 
             bool feedInfoSet = false;
             for (var index = 0; index < files.Count; index++)
@@ -112,7 +115,7 @@ namespace DotCast.Service.PodcastProviders
             foreach (var directory in baseDirectory.GetDirectories())
             {
                 var feed = GetFeed(directory.Name);
-                yield return new PodcastInfo()
+                yield return new PodcastInfo
                 {
                     AuthorName = feed.AuthorName,
                     Name = feed.Title,
