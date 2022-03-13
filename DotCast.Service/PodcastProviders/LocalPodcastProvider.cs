@@ -118,7 +118,7 @@ namespace DotCast.Service.PodcastProviders
                 yield return new PodcastInfo
                 {
                     AuthorName = feed.AuthorName,
-                    Name = feed.Title,
+                    Name = directory.Name.Replace("_", " "),
                     Url = $"{settings.PodcastServerUrl}/podcast/{directory.Name}"
                 };
             }
