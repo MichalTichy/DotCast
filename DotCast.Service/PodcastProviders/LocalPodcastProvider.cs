@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using DotCast.RssGenerator;
 using DotCast.Service.Settings;
 using TagLib;
@@ -24,7 +25,8 @@ namespace DotCast.Service.PodcastProviders
             var normalizedPodcastName = podcastName.Replace('_', ' ');
             if (!Directory.Exists(podcastPath))
                 return null;
-
+            var cultureInfo = Thread.CurrentThread.CurrentCulture;
+            var textInfo = cultureInfo.TextInfo;
             var feed = new Feed();
             string image = null;
             IList<(string path, File metadata)> files = new List<(string path, File file)>();
@@ -75,9 +77,18 @@ namespace DotCast.Service.PodcastProviders
                 {
                     feed.Title = fileInfo.metadata.Tag.Album ?? normalizedPodcastName;
 #pragma warning disable 618
-                    if (fileInfo.metadata.Tag.Artists != null)
+                    if (!string.IsNullOrWhiteSpace(fileInfo.metadata.Tag.FirstArtist))
+                    {
+                        feed.AuthorName = fileInfo.metadata.Tag.FirstArtist;
+                    }
+                    else if (fileInfo.metadata.Tag.Artists != null)
+                    {
                         feed.AuthorName = string.Join(", ",
                             fileInfo.metadata.Tag.AlbumArtists.Union(fileInfo.metadata.Tag.Artists));
+                    }
+
+                    feed.AuthorName = textInfo.ToTitleCase(feed.AuthorName.ToLower(
+                    ));
 #pragma warning restore 618
                     feed.ImageUrl = GetFileUrl(podcastName, Path.GetFileName(image));
                     feed.Description = fileInfo.metadata.Tag.Description ?? fileInfo.metadata.Tag.Comment;
@@ -118,7 +129,7 @@ namespace DotCast.Service.PodcastProviders
                 yield return new PodcastInfo
                 {
                     AuthorName = feed.AuthorName,
-                    Name = directory.Name.Replace("_", " "),
+                    Name = feed.Title,
                     Url = $"{settings.PodcastServerUrl}/podcast/{directory.Name}"
                 };
             }

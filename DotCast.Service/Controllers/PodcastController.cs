@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Globalization;
+using System.Linq;
 using System.Text;
 using System.Web.Http;
 using DotCast.Service.PodcastProviders;
@@ -63,12 +64,12 @@ namespace DotCast.Service.Controllers
             foreach (var byAuthor in podcastsNames.GroupBy(t => t.AuthorName))
             {
                 content.AppendLine("<li>");
-                content.AppendLine($"{byAuthor.Key}");
+                content.AppendLine($"{RemoveDiacritics(byAuthor.Key)}");
                 content.AppendLine("<ul>");
 
                 foreach (var podcastInfo in byAuthor.OrderBy(t => t.Name))
                 {
-                    content.AppendLine($"<li><a href=\"{podcastInfo.Url}\">{podcastInfo.Name}</a></li>");
+                    content.AppendLine($"<li><a href=\"{podcastInfo.Url}\">{RemoveDiacritics(podcastInfo.Name)}</a></li>");
                 }
 
                 content.AppendLine("</ul>");
@@ -86,6 +87,26 @@ namespace DotCast.Service.Controllers
             };
 
 
+        }
+
+        private static string RemoveDiacritics(string text)
+        {
+            var normalizedString = text.Normalize(NormalizationForm.FormD);
+            var stringBuilder = new StringBuilder(normalizedString.Length);
+
+            for (var i = 0; i < normalizedString.Length; i++)
+            {
+                var c = normalizedString[i];
+                var unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c);
+                if (unicodeCategory != UnicodeCategory.NonSpacingMark)
+                {
+                    stringBuilder.Append(c);
+                }
+            }
+
+            return stringBuilder
+                .ToString()
+                .Normalize(NormalizationForm.FormC);
         }
     }
 }
