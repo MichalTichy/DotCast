@@ -1,0 +1,43 @@
+﻿@page "/"
+
+<Layout Sider>
+    <LayoutSider>
+        <div class="authors">
+            @foreach (var authorName in Data.Select(t => t.AuthorName).Distinct().OrderBy(t => t))
+            {
+                <a class="authorLink" onclick="@($"document.getElementById('{authorName.Replace(" ","")}').scrollIntoView({{behavior:'smooth'}})")"><div>@authorName</div></a>
+            }
+        </div>
+    </LayoutSider>
+    <LayoutContent>
+        @foreach (var author in Data.GroupBy(t=>t.AuthorName).OrderBy(t=>t.Key))
+        {
+            <a id="@author.Key.Replace(" ", "")">
+            </a>
+                <Divider DividerType="DividerType.TextContent" Text="@author.Key"></Divider>
+            <div class="card-columns podcasts">
+
+                @foreach (var podcast in author.OrderBy(t => t.Name))
+                {
+                    <a href="@podcast.Url">
+                        <Card class="podcastTile">
+                            <CardImage Source="@podcast.ImageUrl"/>
+                            <CardBody>
+                                <CardTitle Size="5">@podcast.Name</CardTitle>
+                                <CardText>@podcast.AuthorName</CardText> 
+                            </CardBody>
+                            @if (podcast.Duration != null)
+                            {
+                                <CardFooter>
+                                    <span>
+                                        <Icon Name="IconName.Clock"/> @podcast.Duration.Value.ToString(@"hh\:mm")
+                                    </span>
+                                </CardFooter>
+                            }
+                        </Card>
+                    </a>
+                }
+            </div>
+        }
+    </LayoutContent>
+</Layout>

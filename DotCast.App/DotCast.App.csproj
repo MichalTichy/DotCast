@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Ardalis.ApiEndpoints" Version="4.0.1" />
+    <PackageReference Include="Blazorise.Bootstrap" Version="1.0.5" />
+    <PackageReference Include="Blazorise.Icons.FontAwesome" Version="1.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DotCast.PodcastProvider.CachedProvider\DotCast.PodcastProvider.CachedProvider.csproj" />
+    <ProjectReference Include="..\DotCast.PodcastProvider.FakeProvider\DotCast.PodcastProvider.FakeProvider.csproj" />
+    <ProjectReference Include="..\DotCast.PodcastProvider.FileSystem\DotCast.PodcastProvider.FileSystem.csproj" />
+  </ItemGroup>
+</Project>
