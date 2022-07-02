@@ -3,15 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31612.314
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotCast.FileManager", "DotCast.FileManager\DotCast.FileManager.csproj", "{2EDE4F63-8ACB-4494-AA9D-45169F52D3CC}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotCast.FileManager.App", "DotCast.FileManager.App\DotCast.FileManager.App.csproj", "{AA3725B7-D5C8-4B11-B0F1-41FC6FDE222F}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotCast.App", "DotCast.App\DotCast.App.csproj", "{FF8F5857-C734-4D96-9D81-6CB2197E4C4E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotCast.PodcastProvider.Base", "DotCast.PodcastProvider.Base\DotCast.PodcastProvider.Base.csproj", "{B485C607-F30A-4314-99AB-BE9A9F76E58B}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Legacy", "Legacy", "{78E01C81-F251-4E6D-82E7-477884122A22}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotCast.PodcastProvider.FakeProvider", "DotCast.PodcastProvider.FakeProvider\DotCast.PodcastProvider.FakeProvider.csproj", "{D6E16DC5-C68A-4C29-8D6A-B8E84EB597D1}"
 EndProject
@@ -21,7 +15,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotCast.RssGenerator.FromFi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotCast.RssGenerator.Base", "DotCast.RssGenerator.Base\DotCast.RssGenerator.Base.csproj", "{CFF4FDB3-8B3F-417D-A80D-4DB680F660D2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotCast.PodcastProvider.CachedProvider", "DotCast.PodcastProvider.CachedProvider\DotCast.PodcastProvider.CachedProvider.csproj", "{E6D4A594-8AA6-4616-81A8-72B016F6F7F2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotCast.PodcastProvider.CachedProvider", "DotCast.PodcastProvider.CachedProvider\DotCast.PodcastProvider.CachedProvider.csproj", "{E6D4A594-8AA6-4616-81A8-72B016F6F7F2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,14 +23,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{2EDE4F63-8ACB-4494-AA9D-45169F52D3CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2EDE4F63-8ACB-4494-AA9D-45169F52D3CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2EDE4F63-8ACB-4494-AA9D-45169F52D3CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2EDE4F63-8ACB-4494-AA9D-45169F52D3CC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AA3725B7-D5C8-4B11-B0F1-41FC6FDE222F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AA3725B7-D5C8-4B11-B0F1-41FC6FDE222F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AA3725B7-D5C8-4B11-B0F1-41FC6FDE222F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AA3725B7-D5C8-4B11-B0F1-41FC6FDE222F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FF8F5857-C734-4D96-9D81-6CB2197E4C4E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{FF8F5857-C734-4D96-9D81-6CB2197E4C4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FF8F5857-C734-4D96-9D81-6CB2197E4C4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -68,10 +54,6 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{2EDE4F63-8ACB-4494-AA9D-45169F52D3CC} = {78E01C81-F251-4E6D-82E7-477884122A22}
-		{AA3725B7-D5C8-4B11-B0F1-41FC6FDE222F} = {78E01C81-F251-4E6D-82E7-477884122A22}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FAF44170-540B-4E5C-B308-6D8775C657F1}
