@@ -2,6 +2,8 @@
 {
     public interface IPodcastDownloader
     {
-        string GetZipDownloadUrl(string podcastName);
+        bool IsDownloadSupported(string podcastId);
+        Task<string> GetZipDownloadUrl(string podcastId);
+        Task GenerateZip(string podcastId, bool replace = false);
     }
 }

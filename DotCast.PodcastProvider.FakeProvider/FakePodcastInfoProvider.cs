@@ -9,7 +9,7 @@ namespace DotCast.PodcastProvider.FakeProvider
         {
             var podcastInfos = new List<PodcastInfo>();
             var faker = new Faker<PodcastInfo>().CustomInstantiator(faker =>
-                new PodcastInfo(faker.Company.CompanyName(0), faker.Person.FullName, faker.Internet.Url(), faker.Image.PlaceholderUrl(500, 500),
+                new PodcastInfo(faker.Random.Hash(), faker.Company.CompanyName(0), faker.Person.FullName, faker.Internet.Url(), faker.Image.PlaceholderUrl(500, 500),
                     TimeSpan.FromMinutes(faker.Random.Double(20, 400))));
             for (var i = 0; i < 50; i++)
             {

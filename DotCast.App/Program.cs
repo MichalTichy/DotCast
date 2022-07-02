@@ -3,6 +3,7 @@ using Blazorise;
 using Blazorise.Bootstrap;
 using Blazorise.Icons.FontAwesome;
 using DotCast.App.Auth;
+using DotCast.PodcastProvider.Base;
 using DotCast.PodcastProvider.FileSystem;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -64,10 +65,10 @@ namespace DotCast.App
                 endpoints.MapFallbackToPage("/_Host");
             });
 
-            var fileLocation = app.Services.GetRequiredService<IOptions<FileSystemPodcastProviderOptions>>().Value.PodcastsLocation;
+            var fileSystemOptions = app.Services.GetRequiredService<IOptions<FileSystemPodcastProviderOptions>>().Value;
             app.UseStaticFiles(new StaticFileOptions
             {
-                FileProvider = new PhysicalFileProvider(Path.GetFullPath(fileLocation, Directory.GetCurrentDirectory())),
+                FileProvider = new PhysicalFileProvider(Path.GetFullPath(fileSystemOptions.PodcastsLocation, Directory.GetCurrentDirectory())),
                 RequestPath = "/files",
                 OnPrepareResponse = async ctx =>
                 {
@@ -88,6 +89,39 @@ namespace DotCast.App
                     }
                 }
             });
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new PhysicalFileProvider(Path.GetFullPath(fileSystemOptions.ZippedPodcastsLocation, Directory.GetCurrentDirectory())),
+                RequestPath = "/zip",
+                OnPrepareResponse = async ctx =>
+                {
+                    var result = await ctx.Context.AuthenticateAsync();
+                    if (!result.Succeeded)
+                    {
+                        await ctx.Context.ChallengeAsync();
+                        ctx.Context.Response.StatusCode = 401;
+
+                        ctx.Context.Response.StatusCode = (int) HttpStatusCode.Unauthorized;
+                        ctx.Context.Response.ContentLength = 0;
+                        ctx.Context.Response.Body = Stream.Null;
+                    }
+                }
+            });
+
+
+            _ = Task.Run(async () =>
+            {
+                var logger = app.Services.GetRequiredService<ILogger<Program>>();
+                var podcastInfoProvider = app.Services.GetRequiredService<IPodcastInfoProvider>();
+                var podcastDownloader = app.Services.GetRequiredService<IPodcastDownloader>();
+
+                foreach (var podcastInfo in podcastInfoProvider.GetPodcasts())
+                {
+                    logger.LogInformation("Ensuring that podcast {podcastName} has ZIP version.", podcastInfo.Id);
+                    await podcastDownloader.GenerateZip(podcastInfo.Id);
+                }
+            });
+
             app.Run();
         }
     }

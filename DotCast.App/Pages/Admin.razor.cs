@@ -9,15 +9,14 @@ namespace DotCast.App.Pages
     [Authorize(Roles = "Admin")]
     public partial class Admin
     {
+        [CascadingParameter]
+        private Task<AuthenticationState> AuthenticationStateTask { get; set; }
+
         [Inject]
         public IPodcastUploader Uploader { get; set; } = null!;
 
         public List<UploadedFileInfo> Files { get; set; } = new();
-        public string PodcastName { get; set; }
-
-        [CascadingParameter]
-        private Task<AuthenticationState> AuthenticationStateTask { get; set; }
-
+        public string PodcastName { get; set; } = null!;
 
         private async Task UploadFiles(InputFileChangeEventArgs e)
         {
@@ -27,7 +26,7 @@ namespace DotCast.App.Pages
             {
                 var file = fileInfo.File;
 
-                await using var writeStream = Uploader.GetWriteStream(PodcastName, fileInfo.File.Name, fileInfo.File.ContentType);
+                await using var writeStream = Uploader.GetPodcastWriteStream(PodcastName, fileInfo.File.Name, fileInfo.File.ContentType);
                 await using var readStream = file.OpenReadStream(int.MaxValue);
                 var bytesRead = 0;
                 double totalRead = 0;

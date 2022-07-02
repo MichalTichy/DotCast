@@ -43,7 +43,7 @@ namespace DotCast.PodcastProvider.FileSystem
 
                 var feed = rssGenerator.BuildFeed(rssGeneratorParams);
 
-                yield return new PodcastInfo(feed.Title, feed.AuthorName ?? "Unknown author", $"{settings.PodcastServerUrl}/podcast/{directory.Name}", feed.ImageUrl, feed.Duration);
+                yield return new PodcastInfo(directory.Name, feed.Title, feed.AuthorName ?? "Unknown author", $"{settings.PodcastServerUrl}/podcast/{directory.Name}", feed.ImageUrl, feed.Duration);
             }
         }
 
@@ -52,16 +52,77 @@ namespace DotCast.PodcastProvider.FileSystem
             return directory.Replace("_", " ");
         }
 
+        private static string GetEscapedName(string directory)
+        {
+            return directory.Replace(" ", "_");
+        }
+
         private string GetFileUrl(string directoryName, string fileName)
         {
             return $"{settings.PodcastServerUrl}/files/{directoryName}/{fileName}";
         }
 
-        public FileStream GetWriteStream(string podcastName, string fileName, string fileContentType)
+        private string GetZipUrl(string fileName)
         {
-            var targetDirectoryName = GetNormalizedName(podcastName);
-            var targetFileName = GetNormalizedName(fileName);
-            var finalDirectoryPath = Path.Combine(options.Value.PodcastsLocation, targetDirectoryName);
+            return $"{settings.PodcastServerUrl}/zip/{fileName}";
+        }
+
+
+        public async Task GenerateZip(string podcastId, bool replace = false)
+        {
+            var path = GetPodcastZipPath(podcastId);
+            if (!replace && File.Exists(path))
+            {
+                return;
+            }
+
+            var podcastDirectory = GetPodcastDirectory(podcastId);
+            var files = Directory.GetFiles(podcastDirectory);
+
+            var tmpSuffix = ".tmp";
+
+            var tmpPath = $"{path}{tmpSuffix}";
+            await using (var zipFileStream = GetPodcastZipWriteStream(tmpPath))
+            {
+                using var archive = new ZipArchive(zipFileStream, ZipArchiveMode.Update, true);
+
+                foreach (var botFilePath in files)
+                {
+                    var name = Path.GetFileName(botFilePath);
+                    var entry = archive.CreateEntry(name);
+                    await using var entryStream = entry.Open();
+                    await using var fileStream = File.OpenRead(botFilePath);
+                    await fileStream.CopyToAsync(entryStream);
+                }
+            }
+
+            File.Move(tmpPath, path);
+        }
+
+
+        public bool IsDownloadSupported(string podcastId)
+        {
+            return File.Exists(GetPodcastZipPath(podcastId));
+        }
+
+        public Task<string> GetZipDownloadUrl(string podcastId)
+        {
+            var podcastZipPath = GetPodcastZipPath(podcastId);
+
+            if (!File.Exists(podcastZipPath))
+            {
+                throw new ArgumentException("Unable to find requested zip");
+            }
+
+            var fileName = Path.GetFileName(podcastZipPath);
+            return Task.FromResult(GetZipUrl(fileName));
+        }
+
+        public FileStream GetPodcastWriteStream(string podcastName, string fileName, string fileContentType)
+        {
+            var finalDirectoryPath = GetPodcastDirectory(podcastName);
+
+            var targetFileName = GetEscapedName(fileName);
             var fileFilePath = Path.Combine(finalDirectoryPath, targetFileName);
             if (!Directory.Exists(finalDirectoryPath))
             {
@@ -71,38 +132,28 @@ namespace DotCast.PodcastProvider.FileSystem
             return new FileStream(fileFilePath, FileMode.Create);
         }
 
-        private async Task<Stream> GenerateZip(string podcastName)
+        private string GetPodcastDirectory(string podcastId)
         {
-            var targetDirectoryName = GetNormalizedName(podcastName);
+            var targetDirectoryName = podcastId;
             var finalDirectoryPath = Path.Combine(options.Value.PodcastsLocation, targetDirectoryName);
-            if (!Directory.Exists(finalDirectoryPath))
-            {
-                throw new ArgumentException("Could not find requested podcast.", nameof(podcastName));
-            }
-
-            var botFilePaths = Directory.GetFiles("/path/to/bots");
-            var zipFileMemoryStream = new MemoryStream();
-
-            using (var archive = new ZipArchive(zipFileMemoryStream, ZipArchiveMode.Update, true))
-            {
-                foreach (var botFilePath in botFilePaths)
-                {
-                    var botFileName = Path.GetFileName(botFilePath);
-                    var entry = archive.CreateEntry(botFileName);
-                    await using var entryStream = entry.Open();
-                    await using var fileStream = File.OpenRead(botFilePath);
-                    await fileStream.CopyToAsync(entryStream);
-                }
-            }
-
-            zipFileMemoryStream.Seek(0, SeekOrigin.Begin);
-            return zipFileMemoryStream;
+            return finalDirectoryPath;
         }
 
-
-        public string GetZipDownloadUrl(string podcastName)
+        public FileStream GetPodcastZipWriteStream(string filePath)
         {
-            throw new NotImplementedException();
+            if (!Directory.Exists(options.Value.ZippedPodcastsLocation))
+            {
+                Directory.CreateDirectory(options.Value.ZippedPodcastsLocation);
+            }
+
+            return new FileStream(filePath, FileMode.Create);
+        }
+
+        private string GetPodcastZipPath(string podcastId)
+        {
+            var targetFileName = podcastId;
+            var fileFilePath = Path.Combine(options.Value.ZippedPodcastsLocation, targetFileName);
+            return $"{fileFilePath}.zip";
         }
     }
 }
