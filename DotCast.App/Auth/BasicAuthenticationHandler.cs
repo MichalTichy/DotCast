@@ -26,13 +26,15 @@ namespace DotCast.App.Auth
             this.authenticationManager = authenticationManager;
         }
 
-
         protected override Task<AuthenticateResult> HandleAuthenticateAsync()
         {
             AuthenticationResult result;
 
             if (!Request.Headers.ContainsKey("Authorization"))
+            {
                 return Task.FromResult(AuthenticateResult.Fail("Missing Authorization Header"));
+            }
+
             try
             {
                 var authHeader = AuthenticationHeaderValue.Parse(Request.Headers["Authorization"]);

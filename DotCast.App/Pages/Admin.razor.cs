@@ -1,9 +1,12 @@
 ﻿using DotCast.PodcastProvider.Base;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
 
 namespace DotCast.App.Pages
 {
+    [Authorize(Roles = "Admin")]
     public partial class Admin
     {
         [Inject]
@@ -11,6 +14,10 @@ namespace DotCast.App.Pages
 
         public List<UploadedFileInfo> Files { get; set; } = new();
         public string PodcastName { get; set; }
+
+        [CascadingParameter]
+        private Task<AuthenticationState> AuthenticationStateTask { get; set; }
+
 
         private async Task UploadFiles(InputFileChangeEventArgs e)
         {

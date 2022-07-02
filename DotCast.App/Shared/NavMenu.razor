@@ -1,7 +1,9 @@
-﻿<Bar
+﻿@using Microsoft.AspNetCore.Mvc.Routing
+@using System.Text.Encodings.Web
+<Bar
     Background="Background.Dark" TextColor="TextColor.Light" ThemeContrast="ThemeContrast.Dark"
     Breakpoint="Breakpoint.Desktop"
-    >
+>
     <BarBrand>DotCast - Podcast server</BarBrand>
     <BarToggler />
     <BarMenu>
@@ -12,6 +14,7 @@
         </BarStart>
         <BarEnd>
             <BarLink To="/Admin">Admin</BarLink>
+            <BarLink To="/Login">Login</BarLink>
         </BarEnd>
     </BarMenu>
 </Bar>

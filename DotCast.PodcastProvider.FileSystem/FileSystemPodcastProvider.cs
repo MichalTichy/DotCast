@@ -1,10 +1,11 @@
-﻿using DotCast.PodcastProvider.Base;
+﻿using System.IO.Compression;
+using DotCast.PodcastProvider.Base;
 using DotCast.RssGenerator.FromFiles;
 using Microsoft.Extensions.Options;
 
 namespace DotCast.PodcastProvider.FileSystem
 {
-    public class FileSystemPodcastProvider : IPodcastInfoProvider, IPodcastFeedProvider, IPodcastUploader
+    public class FileSystemPodcastProvider : IPodcastInfoProvider, IPodcastFeedProvider, IPodcastUploader, IPodcastDownloader
     {
         private readonly IOptions<FileSystemPodcastProviderOptions> options;
         private readonly FromFileRssGenerator rssGenerator;
@@ -68,6 +69,40 @@ namespace DotCast.PodcastProvider.FileSystem
             }
 
             return new FileStream(fileFilePath, FileMode.Create);
+        }
+
+        private async Task<Stream> GenerateZip(string podcastName)
+        {
+            var targetDirectoryName = GetNormalizedName(podcastName);
+            var finalDirectoryPath = Path.Combine(options.Value.PodcastsLocation, targetDirectoryName);
+            if (!Directory.Exists(finalDirectoryPath))
+            {
+                throw new ArgumentException("Could not find requested podcast.", nameof(podcastName));
+            }
+
+            var botFilePaths = Directory.GetFiles("/path/to/bots");
+            var zipFileMemoryStream = new MemoryStream();
+
+            using (var archive = new ZipArchive(zipFileMemoryStream, ZipArchiveMode.Update, true))
+            {
+                foreach (var botFilePath in botFilePaths)
+                {
+                    var botFileName = Path.GetFileName(botFilePath);
+                    var entry = archive.CreateEntry(botFileName);
+                    await using var entryStream = entry.Open();
+                    await using var fileStream = File.OpenRead(botFilePath);
+                    await fileStream.CopyToAsync(entryStream);
+                }
+            }
+
+            zipFileMemoryStream.Seek(0, SeekOrigin.Begin);
+            return zipFileMemoryStream;
+        }
+
+
+        public string GetZipDownloadUrl(string podcastName)
+        {
+            throw new NotImplementedException();
         }
     }
 }

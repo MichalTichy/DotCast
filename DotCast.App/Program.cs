@@ -5,6 +5,8 @@ using Blazorise.Icons.FontAwesome;
 using DotCast.App.Auth;
 using DotCast.PodcastProvider.FileSystem;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Server;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
 
@@ -26,6 +28,8 @@ namespace DotCast.App
             builder.Services.AddAuthentication("BasicAuthentication")
                 .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication", null);
             builder.Services.AddSingleton<IAuthenticationManager, SimpleAuthenticationManager>();
+            builder.Services.AddScoped<AuthenticationStateProvider, ServerAuthenticationStateProvider>();
+
             builder.Services
                 .AddBlazorise(options => { options.Immediate = true; })
                 .AddBootstrapProviders()

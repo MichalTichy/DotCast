@@ -12,6 +12,7 @@ namespace DotCast.App
             serviceCollection.AddSingleton<FileSystemPodcastProvider>();
             serviceCollection.AddSingleton<IPodcastInfoProvider, CachedPodcastProvider<FileSystemPodcastProvider>>();
             serviceCollection.AddSingleton<IPodcastFeedProvider, CachedPodcastProvider<FileSystemPodcastProvider>>();
+            serviceCollection.AddSingleton<IPodcastDownloader, FileSystemPodcastProvider>();
             serviceCollection.AddSingleton<IPodcastUploader, FileSystemPodcastProvider>();
             serviceCollection.AddSingleton<FromFileRssGenerator>();
 
