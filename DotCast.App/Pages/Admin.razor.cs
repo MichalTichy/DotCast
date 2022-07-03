@@ -10,7 +10,7 @@ namespace DotCast.App.Pages
     public partial class Admin
     {
         [CascadingParameter]
-        private Task<AuthenticationState> AuthenticationStateTask { get; set; }
+        private Task<AuthenticationState> AuthenticationStateTask { get; set; } = null!;
 
         [Inject]
         public IPodcastUploader Uploader { get; set; } = null!;

@@ -7,7 +7,7 @@ namespace DotCast.App.Pages
     public partial class Podcasts
     {
         [Inject]
-        public IJSRuntime Js { get; set; }
+        public IJSRuntime Js { get; set; } = null!;
 
         [Inject]
         public IPodcastInfoProvider PodcastInfoProvider { get; set; } = null!;
