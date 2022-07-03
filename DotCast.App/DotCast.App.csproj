@@ -17,4 +17,10 @@
     <ProjectReference Include="..\DotCast.PodcastProvider.FakeProvider\DotCast.PodcastProvider.FakeProvider.csproj" />
     <ProjectReference Include="..\DotCast.PodcastProvider.FileSystem\DotCast.PodcastProvider.FileSystem.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Update="DotCast.App.service">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>
