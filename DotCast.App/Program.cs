@@ -107,20 +107,18 @@ namespace DotCast.App
                     }
                 }
             });
+            var logger = app.Services.GetRequiredService<ILogger<Program>>();
+            var podcastInfoProvider = app.Services.GetRequiredService<IPodcastInfoProvider>();
+            var podcastDownloader = app.Services.GetRequiredService<IPodcastDownloader>();
 
+            var podcastInfos = podcastInfoProvider.GetPodcasts();
 
-            _ = Task.Run(async () =>
+            _ = Parallel.ForEachAsync(podcastInfos, new ParallelOptions {MaxDegreeOfParallelism = 5}, async (podcastInfo, token) =>
             {
-                var logger = app.Services.GetRequiredService<ILogger<Program>>();
-                var podcastInfoProvider = app.Services.GetRequiredService<IPodcastInfoProvider>();
-                var podcastDownloader = app.Services.GetRequiredService<IPodcastDownloader>();
-
-                foreach (var podcastInfo in podcastInfoProvider.GetPodcasts())
-                {
-                    logger.LogInformation("Ensuring that podcast {podcastName} has ZIP version.", podcastInfo.Id);
-                    await podcastDownloader.GenerateZip(podcastInfo.Id);
-                }
+                logger.LogInformation("Ensuring that podcast {podcastName} has ZIP version.", podcastInfo.Id);
+                await podcastDownloader.GenerateZip(podcastInfo.Id);
             });
+
 
             app.Run();
         }
