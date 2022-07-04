@@ -15,7 +15,7 @@ namespace DotCast.App
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -113,14 +113,14 @@ namespace DotCast.App
 
             var podcastInfos = podcastInfoProvider.GetPodcasts();
 
-            _ = Parallel.ForEachAsync(podcastInfos, new ParallelOptions {MaxDegreeOfParallelism = 5}, async (podcastInfo, token) =>
+            foreach (var podcastInfo in podcastInfos)
             {
                 logger.LogInformation("Ensuring that podcast {podcastName} has ZIP version.", podcastInfo.Id);
                 await podcastDownloader.GenerateZip(podcastInfo.Id);
-            });
+            }
 
 
-            app.Run();
+            await app.RunAsync();
         }
     }
 }
