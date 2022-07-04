@@ -147,7 +147,7 @@ namespace DotCast.PodcastProvider.FileSystem
                 Directory.CreateDirectory(options.Value.ZippedPodcastsLocation);
             }
 
-            return new FileStream(filePath, FileMode.Create,);
+            return new FileStream(filePath, FileMode.Create);
         }
 
         private string GetPodcastZipPath(string podcastId)
