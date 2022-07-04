@@ -118,9 +118,10 @@ namespace DotCast.PodcastProvider.FileSystem
             return Task.FromResult(GetZipUrl(fileName));
         }
 
-        public FileStream GetPodcastWriteStream(string podcastName, string fileName, string fileContentType)
+        public FileStream GetPodcastWriteStream(string podcastName, string fileName, string fileContentType, out string podcastId)
         {
-            var finalDirectoryPath = GetPodcastDirectory(podcastName);
+            podcastId = GetEscapedName(podcastName);
+            var finalDirectoryPath = GetPodcastDirectory(podcastId);
 
             var targetFileName = GetEscapedName(fileName);
             var fileFilePath = Path.Combine(finalDirectoryPath, targetFileName);

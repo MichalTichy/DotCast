@@ -15,6 +15,9 @@ namespace DotCast.App.Pages
         [Inject]
         public IPodcastUploader Uploader { get; set; } = null!;
 
+        [Inject]
+        public IPodcastDownloader Downloader { get; set; } = null!;
+
         public List<UploadedFileInfo> Files { get; set; } = new();
         public string PodcastName { get; set; } = null!;
 
@@ -22,11 +25,17 @@ namespace DotCast.App.Pages
         {
             Files = e.GetMultipleFiles(int.MaxValue).Select(t => new UploadedFileInfo(t)).ToList();
 
+            if (!Files.Any())
+            {
+                return;
+            }
+
+            var id = string.Empty;
             foreach (var fileInfo in Files)
             {
                 var file = fileInfo.File;
 
-                await using var writeStream = Uploader.GetPodcastWriteStream(PodcastName, fileInfo.File.Name, fileInfo.File.ContentType);
+                await using var writeStream = Uploader.GetPodcastWriteStream(PodcastName, fileInfo.File.Name, fileInfo.File.ContentType, out id);
                 await using var readStream = file.OpenReadStream(int.MaxValue);
                 var bytesRead = 0;
                 double totalRead = 0;
@@ -43,13 +52,8 @@ namespace DotCast.App.Pages
                     StateHasChanged();
                 }
             }
-        }
 
-        private static string GetFilePath(UploadedFileInfo fileInfo)
-        {
-            var trustedFileName = Path.GetRandomFileName();
-            var path = Path.Combine(@"C:\TMP\tst", trustedFileName);
-            return path;
+            _ = Downloader.GenerateZip(id, true);
         }
     }
 
