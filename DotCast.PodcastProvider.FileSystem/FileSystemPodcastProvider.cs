@@ -67,7 +67,6 @@ namespace DotCast.PodcastProvider.FileSystem
             return $"{settings.PodcastServerUrl}/zip/{fileName}";
         }
 
-        int bufferSize = 1096;
 
         public async Task GenerateZip(string podcastId, bool replace = false)
         {
@@ -93,7 +92,9 @@ namespace DotCast.PodcastProvider.FileSystem
                     var entry = archive.CreateEntry(name, CompressionLevel.NoCompression);
                     await using var entryStream = entry.Open();
                     await using var fileStream = File.OpenRead(botFilePath);
-                    await fileStream.CopyToAsync(entryStream, bufferSize);
+                    await fileStream.CopyToAsync(entryStream);
+                    await entryStream.FlushAsync();
+                    await zipFileStream.FlushAsync();
                 }
             }
 
