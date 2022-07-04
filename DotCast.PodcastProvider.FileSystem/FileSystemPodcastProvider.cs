@@ -89,7 +89,7 @@ namespace DotCast.PodcastProvider.FileSystem
                 foreach (var botFilePath in files)
                 {
                     var name = Path.GetFileName(botFilePath);
-                    var entry = archive.CreateEntry(name, CompressionLevel.SmallestSize);
+                    var entry = archive.CreateEntry(name, CompressionLevel.NoCompression);
                     await using var entryStream = entry.Open();
                     await using var fileStream = File.OpenRead(botFilePath);
                     await fileStream.CopyToAsync(entryStream);
