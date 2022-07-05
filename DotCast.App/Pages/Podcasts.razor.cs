@@ -25,7 +25,10 @@ namespace DotCast.App.Pages
             var url = await PodcastDownloader.GetZipDownloadUrl(info.Id);
             await Js.InvokeAsync<object>("open", url, "_blank");
         }
-
+        private async Task CopyTextToClipboard(string Text)
+        {
+            await Js.InvokeVoidAsync("clipboardCopy.copyText", Text);
+        }
         protected override async Task OnInitializedAsync()
         {
             Data = PodcastInfoProvider.GetPodcasts();

@@ -43,6 +43,10 @@
                                     <Icon Name="IconName.Download"></Icon>
                                 </Button>
                             }
+                            
+                            <Button Clicked="() => CopyTextToClipboard(podcast.Url)">
+                                <Icon Name="IconName.Rss"></Icon>
+                            </Button>
                         </CardFooter>
                     </Card>
                 }
