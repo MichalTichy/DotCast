@@ -25,6 +25,10 @@ namespace DotCast.RssGenerator.FromFiles
                 {
                     continue;
                 }
+                catch (CorruptFileException)
+                {
+                    continue;
+                }
 
                 if (metadata.Properties.MediaTypes == MediaTypes.Audio || metadata.Properties.MediaTypes == MediaTypes.Video)
                 {
