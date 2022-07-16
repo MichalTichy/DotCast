@@ -3,7 +3,6 @@ using Blazorise;
 using Blazorise.Bootstrap;
 using Blazorise.Icons.FontAwesome;
 using DotCast.App.Auth;
-using DotCast.PodcastProvider.Base;
 using DotCast.PodcastProvider.FileSystem;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -36,8 +35,15 @@ namespace DotCast.App
                 .AddBootstrapProviders()
                 .AddFontAwesomeIcons();
 
+            builder.Services.AddLogging(loggingBuilder =>
+            {
+                loggingBuilder.AddConsole();
+                loggingBuilder.AddSystemdConsole();
+            });
+
             builder.Services.InstallApp(builder.Configuration);
 
+            builder.Host.UseSystemd();
 
             var app = builder.Build();
 
