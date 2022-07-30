@@ -5,7 +5,7 @@ namespace DotCast.PodcastProvider.FakeProvider
 {
     public class FakePodcastInfoProvider : IPodcastInfoProvider
     {
-        public IEnumerable<PodcastInfo> GetPodcasts()
+        public IEnumerable<PodcastInfo> GetPodcasts(string? searchText = null)
         {
             var podcastInfos = new List<PodcastInfo>();
             var faker = new Faker<PodcastInfo>().CustomInstantiator(faker =>

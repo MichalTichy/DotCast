@@ -3,14 +3,19 @@
 <Layout Sider>
     <LayoutSider>
         <div class="authors">
+            <span>Authors</span>
             @foreach (var authorName in Data.Select(t => t.AuthorName).Distinct().OrderBy(t => t))
             {
-                <a class="authorLink" onclick="@($"document.getElementById('{authorName.Replace(" ","")}').scrollIntoView({{behavior:'smooth'}})")"><div>@authorName</div></a>
+                <a class="authorLink" onclick="@($"document.getElementById('{authorName.Replace(" ", "")}').scrollIntoView({{behavior:'smooth'}})")">
+                    <div>@authorName</div></a>
             }
         </div>
     </LayoutSider>
     <LayoutContent>
-        
+        <Field>
+            <TextEdit Placeholder="Search" TextChanged="SearchTextChanged" />
+        </Field>
+
         @foreach (var author in Data.GroupBy(t => t.AuthorName).OrderBy(t => t.Key))
         {
             <a id="@author.Key.Replace(" ", "")">
@@ -23,11 +28,11 @@
                     <Card class="podcastTile">
                         <a href="@podcast.Url">
 
-                        <CardImage Source="@podcast.ImageUrl"/>
-                        <CardBody>
-                            <CardTitle Size="5">@podcast.Name</CardTitle>
-                            <CardText>@podcast.AuthorName</CardText>
-                        </CardBody>
+                            <CardImage Source="@podcast.ImageUrl"/>
+                            <CardBody>
+                                <CardTitle Size="5">@podcast.Name</CardTitle>
+                                <CardText>@podcast.AuthorName</CardText>
+                            </CardBody>
                         </a>
 
                         <CardFooter>
@@ -43,10 +48,6 @@
                                     <Icon Name="IconName.Download"></Icon>
                                 </Button>
                             }
-                            
-                            <Button Clicked="() => CopyTextToClipboard(podcast.Url)">
-                                <Icon Name="IconName.Rss"></Icon>
-                            </Button>
                         </CardFooter>
                     </Card>
                 }

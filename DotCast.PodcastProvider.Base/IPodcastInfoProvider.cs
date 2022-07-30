@@ -2,6 +2,6 @@
 {
     public interface IPodcastInfoProvider
     {
-        IEnumerable<PodcastInfo> GetPodcasts();
+        IEnumerable<PodcastInfo> GetPodcasts(string? searchText = null);
     }
 }

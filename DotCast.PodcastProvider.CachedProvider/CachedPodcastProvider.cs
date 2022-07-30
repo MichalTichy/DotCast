@@ -23,12 +23,12 @@ namespace DotCast.PodcastProvider.CachedProvider
             });
         }
 
-        public IEnumerable<PodcastInfo> GetPodcasts()
+        public IEnumerable<PodcastInfo> GetPodcasts(string? searchText = null)
         {
-            return cache.GetOrCreate<ICollection<PodcastInfo>>("podcasts", entry =>
+            return cache.GetOrCreate<ICollection<PodcastInfo>>($"podcasts-{searchText ?? string.Empty}", entry =>
             {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
-                return provider.GetPodcasts().ToArray();
+                return provider.GetPodcasts(searchText).ToArray();
             });
         }
     }

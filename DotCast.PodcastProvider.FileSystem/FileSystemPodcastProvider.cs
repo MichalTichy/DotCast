@@ -1,5 +1,8 @@
-﻿using System.IO.Compression;
+﻿using System.Globalization;
+using System.IO.Compression;
+using System.Text;
 using DotCast.PodcastProvider.Base;
+using DotCast.RssGenerator.Base;
 using DotCast.RssGenerator.FromFiles;
 using Microsoft.Extensions.Options;
 
@@ -30,7 +33,7 @@ namespace DotCast.PodcastProvider.FileSystem
             return rssGenerator.GenerateRss(rssGeneratorParams);
         }
 
-        public IEnumerable<PodcastInfo> GetPodcasts()
+        public IEnumerable<PodcastInfo> GetPodcasts(string? searchText = null)
         {
             var baseDirectory = new DirectoryInfo(settings.PodcastsLocation);
             foreach (var directory in baseDirectory.GetDirectories())
@@ -42,9 +45,56 @@ namespace DotCast.PodcastProvider.FileSystem
                 var rssGeneratorParams = new RssFromFileParams(podcastName, filePaths);
 
                 var feed = rssGenerator.BuildFeed(rssGeneratorParams);
-
-                yield return new PodcastInfo(directory.Name, feed.Title, feed.AuthorName ?? "Unknown author", $"{settings.PodcastServerUrl}/podcast/{directory.Name}", feed.ImageUrl, feed.Duration);
+                if (DoesMatchSearchedText(feed, searchText))
+                {
+                    yield return new PodcastInfo(directory.Name, feed.Title, feed.AuthorName ?? "Unknown author", $"{settings.PodcastServerUrl}/podcast/{directory.Name}", feed.ImageUrl,
+                        feed.Duration);
+                }
             }
+        }
+
+        private bool DoesMatchSearchedText(Feed feed, string? searchText)
+        {
+            if (string.IsNullOrWhiteSpace(searchText))
+            {
+                return true;
+            }
+
+            var normalizedSearchText = RemoveDiacritics(searchText.Trim());
+
+            var normalizedTitle = RemoveDiacritics(feed.Title);
+            if (normalizedTitle.Contains(normalizedSearchText))
+            {
+                return true;
+            }
+
+            var normalizedAuthorName = RemoveDiacritics(feed.AuthorName ?? string.Empty);
+            if (normalizedAuthorName.Contains(normalizedSearchText))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private static string RemoveDiacritics(string text)
+        {
+            var normalizedString = text.Normalize(NormalizationForm.FormD);
+            var stringBuilder = new StringBuilder(normalizedString.Length);
+
+            for (var i = 0; i < normalizedString.Length; i++)
+            {
+                var c = normalizedString[i];
+                var unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c);
+                if (unicodeCategory != UnicodeCategory.NonSpacingMark)
+                {
+                    stringBuilder.Append(c);
+                }
+            }
+
+            return stringBuilder
+                .ToString()
+                .Normalize(NormalizationForm.FormC);
         }
 
         private static string GetNormalizedName(string directory)
