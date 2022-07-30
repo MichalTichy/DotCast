@@ -4,9 +4,9 @@ Description=Podcast server
 [Service]
 Type=notify
 # will set the Current Working Directory (CWD)
-WorkingDirectory=/home/pi/DotCast
+WorkingDirectory=~/DotCast
 # systemd will run this executable to start the service
-ExecStart=/home/pi/DotCast/DotCast.App
+ExecStart=~/DotCast/DotCast.App
 
 # to query logs using journalctl, set a logical name here  
 SyslogIdentifier=DotCast.App
