@@ -3,6 +3,7 @@ using Blazorise;
 using Blazorise.Bootstrap;
 using Blazorise.Icons.FontAwesome;
 using DotCast.App.Auth;
+using DotCast.PodcastProvider.Base;
 using DotCast.PodcastProvider.FileSystem;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -114,6 +115,18 @@ namespace DotCast.App
                 }
             });
 
+            _ = Task.Run(async () =>
+            {
+                var infoProvider = app.Services.GetRequiredService<IPodcastInfoProvider>();
+                var downloader = app.Services.GetRequiredService<IPodcastDownloader>();
+                foreach (var podcastInfo in infoProvider.GetPodcasts())
+                {
+                    Console.WriteLine($"Generating zip for {podcastInfo.Name}");
+                    await downloader.GenerateZip(podcastInfo.Id);
+                }
+
+                Console.WriteLine("All zips generated");
+            });
             await app.RunAsync();
         }
     }
