@@ -11,7 +11,7 @@ ExecStart=/home/mtichy/DotCast/DotCast.App
 # to query logs using journalctl, set a logical name here  
 SyslogIdentifier=DotCast.App
 
-User=pi
+User=mtichy
 
 # ensure the service restarts after crashing
 Restart=always
