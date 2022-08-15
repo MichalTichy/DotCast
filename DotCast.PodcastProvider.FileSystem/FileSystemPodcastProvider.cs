@@ -219,10 +219,13 @@ namespace DotCast.PodcastProvider.FileSystem
                 }
 
                 var podcastDirectory = GetPodcastDirectory(podcastId);
-                if (!Directory.Exists(podcastDirectory))
+                if (Directory.Exists(podcastDirectory))
                 {
-                    Directory.CreateDirectory(podcastDirectory);
+                    Directory.Delete(podcastZipPath, true);
                 }
+
+                Directory.CreateDirectory(podcastDirectory);
+
 
                 var zipStream = GetPodcastZipStream(podcastZipPath, FileMode.Open);
                 using var archive = new ZipArchive(zipStream, ZipArchiveMode.Read);
