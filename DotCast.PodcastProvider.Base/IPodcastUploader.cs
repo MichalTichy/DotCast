@@ -2,6 +2,8 @@
 {
     public interface IPodcastUploader
     {
-        FileStream GetPodcastWriteStream(string podcastName, string fileName, string fileContentType, out string podcastId);
+        FileStream GetPodcastFileWriteStream(string podcastName, string fileName, string fileContentType, out string podcastId);
+        FileStream GetPodcastZipWriteStream(string podcastName, out string podcastId);
+        Task UnzipPodcast(string podcastId);
     }
 }

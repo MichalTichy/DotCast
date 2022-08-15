@@ -25,6 +25,7 @@ namespace DotCast.App.Pages
             var url = await PodcastDownloader.GetZipDownloadUrl(info.Id);
             await Js.InvokeAsync<object>("open", url, "_blank");
         }
+
         protected override async Task OnInitializedAsync()
         {
             LoadData();
