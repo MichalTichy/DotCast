@@ -102,9 +102,10 @@ namespace DotCast.PodcastProvider.FileSystem
             return directory.Replace("_", " ");
         }
 
-        private static string GetEscapedName(string directory)
+        private static string GetEscapedName(string name)
         {
-            return directory.Replace(" ", "_");
+            var noSpaces = name;
+            return RemoveDiacritics(noSpaces);
         }
 
         private string GetFileUrl(string directoryName, string fileName)

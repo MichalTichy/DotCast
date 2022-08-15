@@ -16,6 +16,9 @@ namespace DotCast.App.Pages
         public IPodcastUploader Uploader { get; set; } = null!;
 
         [Inject]
+        public IPodcastInfoProvider InfoProvider { get; set; } = null!;
+
+        [Inject]
         public IPodcastDownloader Downloader { get; set; } = null!;
 
         public List<UploadedFileInfo> Files { get; set; } = new();
@@ -102,6 +105,34 @@ namespace DotCast.App.Pages
             }
 
             _ = Downloader.GenerateZip(id, true);
+        }
+
+        private void UnzipAll()
+        {
+            _ = Task.Run(async () =>
+            {
+                foreach (var podcastInfo in InfoProvider.GetPodcasts())
+                {
+                    Console.WriteLine($"Unziping {podcastInfo.Name}");
+                    await Uploader.UnzipPodcast(podcastInfo.Id);
+                }
+
+                Console.WriteLine("All zips unziped");
+            });
+        }
+
+        private void ZipAll()
+        {
+            _ = Task.Run(async () =>
+            {
+                foreach (var podcastInfo in InfoProvider.GetPodcasts())
+                {
+                    Console.WriteLine($"Generating zip for {podcastInfo.Name}");
+                    await Downloader.GenerateZip(podcastInfo.Id);
+                }
+
+                Console.WriteLine("All zips generated");
+            });
         }
     }
 
