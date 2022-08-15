@@ -111,10 +111,10 @@ namespace DotCast.App.Pages
         {
             _ = Task.Run(async () =>
             {
-                foreach (var podcastInfo in InfoProvider.GetPodcasts())
+                foreach (var podcastId in InfoProvider.GetPodcastIdsAvailableForDownload())
                 {
-                    Console.WriteLine($"Unziping {podcastInfo.Name}");
-                    await Uploader.UnzipPodcast(podcastInfo.Id);
+                    Console.WriteLine($"Unziping {podcastId}");
+                    await Uploader.UnzipPodcast(podcastId);
                 }
 
                 Console.WriteLine("All zips unziped");

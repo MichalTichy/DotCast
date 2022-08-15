@@ -31,5 +31,14 @@ namespace DotCast.PodcastProvider.CachedProvider
                 return provider.GetPodcasts(searchText).ToArray();
             });
         }
+
+        public IEnumerable<string> GetPodcastIdsAvailableForDownload()
+        {
+            return cache.GetOrCreate<ICollection<string>>("podcastZips", entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
+                return provider.GetPodcastIdsAvailableForDownload().ToArray();
+            });
+        }
     }
 }

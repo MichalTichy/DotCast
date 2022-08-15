@@ -18,5 +18,10 @@ namespace DotCast.PodcastProvider.FakeProvider
 
             return podcastInfos;
         }
+
+        public IEnumerable<string> GetPodcastIdsAvailableForDownload()
+        {
+            yield break;
+        }
     }
 }

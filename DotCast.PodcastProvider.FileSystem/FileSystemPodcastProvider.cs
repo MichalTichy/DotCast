@@ -53,6 +53,11 @@ namespace DotCast.PodcastProvider.FileSystem
             }
         }
 
+        public IEnumerable<string> GetPodcastIdsAvailableForDownload()
+        {
+            return Directory.GetFiles(options.Value.ZippedPodcastsLocation).Select(Path.GetFileNameWithoutExtension).Where(t => t != null).Select(t => t!);
+        }
+
         private bool DoesMatchSearchedText(Feed feed, string? searchText)
         {
             if (string.IsNullOrWhiteSpace(searchText))

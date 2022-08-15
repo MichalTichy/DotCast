@@ -20,9 +20,9 @@
     <Progress Value="@file.UploadPercentage"> </Progress>
 }
 <hr />
-<Button Clicked="UnzipAll">
+<Button Clicked="() => UnzipAll()" Color="Color.Danger">
     Unzip all podcasts.
 </Button>
-<Button Clicked="ZipAll">
+<Button Clicked="ZipAll" Color="Color.Danger">
     Ensure all podcasts have zip versions.
 </Button>
