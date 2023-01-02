@@ -132,8 +132,6 @@ namespace DotCast.Infrastructure.Persistence.Marten
                     .As(typeof(IReadEventRepository<>))
                     .WithScopedLifetime());
 
-            services.AddScoped<IWriteEventRepository, MartenWriteEventRepository>();
-
             return services;
         }
     }
