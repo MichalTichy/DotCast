@@ -6,7 +6,7 @@ namespace Microsoft.Extensions.DependencyInjection
     public static class ServiceCollectionExtensions
     {
         public static void AddAllInitializers(this IServiceCollection serviceCollection,
-            string dllPrefix = "ProductivityStation")
+            string dllPrefix = "DotCast")
         {
             var type = typeof(IInitializer);
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();

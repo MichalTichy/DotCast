@@ -1,12 +1,8 @@
 using System.Net;
-using Blazorise;
-using Blazorise.Bootstrap;
-using Blazorise.Icons.FontAwesome;
-using DotCast.App.Auth;
+using DotCast.Infrastructure.Initializer;
+using DotCast.Infrastructure.IoC;
 using DotCast.PodcastProvider.FileSystem;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Components.Server;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
 
@@ -18,30 +14,10 @@ namespace DotCast.App
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-            builder.Services.AddRazorPages();
-            builder.Services.AddServerSideBlazor();
+            var isProduction = IsProduction();
 
-
-            builder.Services.AddTransient(provider => provider.GetRequiredService<IOptions<AuthenticationSettings>>().Value);
-
-            builder.Services.AddAuthentication("BasicAuthentication")
-                .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication", null);
-            builder.Services.AddSingleton<IAuthenticationManager, SimpleAuthenticationManager>();
-            builder.Services.AddScoped<AuthenticationStateProvider, ServerAuthenticationStateProvider>();
-
-            builder.Services
-                .AddBlazorise(options => { options.Immediate = true; })
-                .AddBootstrapProviders()
-                .AddFontAwesomeIcons();
-
-            builder.Services.AddLogging(loggingBuilder =>
-            {
-                loggingBuilder.AddConsole();
-                loggingBuilder.AddSystemdConsole();
-            });
-
-            builder.Services.InstallApp(builder.Configuration);
+            InstallerDiscovery.RunInstallersFromAllReferencedAssemblies(builder.Services, builder.Configuration, isProduction);
+            builder.Services.AddAllInitializers();
 
             builder.Host.UseSystemd();
 
@@ -114,7 +90,19 @@ namespace DotCast.App
                 }
             });
 
+            var initializerManager = app.Services.GetRequiredService<InitializerManager>();
+            await initializerManager.RunAllInitializersAsync();
+
             await app.RunAsync();
+        }
+
+        private static bool IsProduction()
+        {
+            var isProduction = true;
+#if DEBUG
+            isProduction = false;
+#endif
+            return isProduction;
         }
     }
 }

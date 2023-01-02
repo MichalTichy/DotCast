@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using DotCast.Infrastructure.Persistence.Base;
 using DotCast.Infrastructure.Persistence.Base.Repositories;
 using DotCast.Infrastructure.Persistence.Base.Specifications;
 using Marten;
@@ -11,14 +10,14 @@ using Microsoft.Extensions.Logging;
 
 namespace DotCast.Infrastructure.Persistence.Marten
 {
-    public class MartenRepository<T, TId> : IRepository<T, TId> where T : IItemWithId<TId>
+    public class MartenRepository<T> : IRepository<T> where T : notnull
     {
-        protected readonly ILogger<MartenRepository<T, TId>> Logger;
+        protected readonly ILogger<MartenRepository<T>> Logger;
         protected readonly ISessionFactoryWithAlternateTenantSettings SessionFactory;
 
         public MartenRepository(
             ISessionFactoryWithAlternateTenantSettings sessionFactory,
-            ILogger<MartenRepository<T, TId>> logger)
+            ILogger<MartenRepository<T>> logger)
         {
             SessionFactory = sessionFactory;
             Logger = logger;

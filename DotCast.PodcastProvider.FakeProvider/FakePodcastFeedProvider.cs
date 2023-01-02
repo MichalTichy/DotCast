@@ -4,9 +4,10 @@ namespace DotCast.PodcastProvider.FakeProvider
 {
     public class FakePodcastFeedProvider : IPodcastFeedProvider
     {
-        public string GetRss(string name)
+        public Task<string> GetRss(string name)
         {
-            return "<?xml version=\"1.0\" encoding=\"UTF - 8\"?>";
+            var result = "<?xml version=\"1.0\" encoding=\"UTF - 8\"?>";
+            return Task.FromResult(result);
         }
     }
 }

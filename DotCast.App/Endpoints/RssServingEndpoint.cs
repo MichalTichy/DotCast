@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DotCast.App.Endpoints
 {
-    public class RssServingEndpoint : EndpointBaseSync.WithoutRequest.WithActionResult<string>
+    public class RssServingEndpoint : EndpointBaseAsync.WithoutRequest.WithActionResult<string>
     {
         private readonly IPodcastFeedProvider feedProvider;
 
@@ -21,9 +21,9 @@ namespace DotCast.App.Endpoints
 
         [HttpGet("/podcast/{PodcastName}")]
         [Authorize]
-        public override ActionResult<string> Handle()
+        public override async Task<ActionResult<string>> HandleAsync(CancellationToken cancellationToken = new())
         {
-            var rss = feedProvider.GetRss(PodcastName);
+            var rss = await feedProvider.GetRss(PodcastName);
 
 
             return new ContentResult

@@ -34,7 +34,7 @@ namespace DotCast.App.Pages
 
         private void LoadData(string? filter = null)
         {
-            Data = PodcastInfoProvider.GetPodcasts(filter);
+            Data = PodcastInfoProvider.GetPodcasts(filter).ToBlockingEnumerable();
         }
 
         private void SearchTextChanged(string text)

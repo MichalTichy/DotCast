@@ -120,9 +120,9 @@ namespace DotCast.Infrastructure.Persistence.Marten
             services.Scan(
                 selector => selector.FromCallingAssembly()
                     .AddClasses(filter =>
-                        filter.AssignableTo(typeof(MartenRepository<,>)))
-                    .As(typeof(IRepository<,>))
-                    .As(typeof(IReadOnlyRepository<,>))
+                        filter.AssignableTo(typeof(MartenRepository<>)))
+                    .As(typeof(IRepository<>))
+                    .As(typeof(IReadOnlyRepository<>))
                     .WithScopedLifetime());
 
             services.Scan(

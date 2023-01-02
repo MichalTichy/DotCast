@@ -10,7 +10,7 @@ namespace DotCast.Infrastructure.IoC
             IConfiguration configuration,
             bool isProduction,
             bool forceLoadAssemblies = true,
-            string dllPrefix = "ProductivityStation")
+            string dllPrefix = "DotCast")
         {
             if (forceLoadAssemblies)
             {

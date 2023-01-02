@@ -20,7 +20,7 @@ namespace DotCast.PodcastProvider.FileSystem
             this.rssGenerator = rssGenerator;
         }
 
-        public string GetRss(string name)
+        public async Task<string> GetRss(string name)
         {
             var podcastName = GetNormalizedName(name);
 
@@ -30,27 +30,36 @@ namespace DotCast.PodcastProvider.FileSystem
 
             var rssGeneratorParams = new RssFromFileParams(podcastName, filePaths);
 
-            return rssGenerator.GenerateRss(rssGeneratorParams);
+            return await rssGenerator.GenerateRss(rssGeneratorParams);
         }
 
-        public IEnumerable<PodcastInfo> GetPodcasts(string? searchText = null)
+        public async IAsyncEnumerable<PodcastInfo> GetPodcasts(string? searchText = null)
         {
             var baseDirectory = new DirectoryInfo(settings.PodcastsLocation);
             foreach (var directory in baseDirectory.GetDirectories())
             {
                 var podcastName = GetNormalizedName(directory.Name);
-
-                var filePaths = directory.GetFiles().Select(t => new LocalFileInfo(t.FullName, GetFileUrl(t.Directory!.Name, t.Name))).ToArray();
-
-                var rssGeneratorParams = new RssFromFileParams(podcastName, filePaths);
-
-                var feed = rssGenerator.BuildFeed(rssGeneratorParams);
-                if (DoesMatchSearchedText(feed, searchText))
-                {
-                    yield return new PodcastInfo(directory.Name, feed.Title, feed.AuthorName ?? "Unknown author", $"{settings.PodcastServerUrl}/podcast/{directory.Name}", feed.ImageUrl,
-                        feed.Duration);
-                }
+                yield return await Get(podcastName);
             }
+        }
+
+        public Task UpdatePodcastInfo(PodcastInfo podcastInfo)
+        {
+            throw new NotSupportedException();
+        }
+
+        public async Task<PodcastInfo> Get(string id)
+        {
+            var path = Path.Combine(settings.PodcastsLocation, id);
+            var directory = new DirectoryInfo(path);
+            var filePaths = directory.GetFiles().Select(t => new LocalFileInfo(t.FullName, GetFileUrl(t.Directory!.Name, t.Name))).ToArray();
+
+            var rssGeneratorParams = new RssFromFileParams(id, filePaths);
+
+            var feed = await rssGenerator.BuildFeed(rssGeneratorParams);
+
+            return new PodcastInfo(directory.Name, feed.Title, feed.AuthorName ?? "Unknown author", $"{settings.PodcastServerUrl}/podcast/{directory.Name}", feed.ImageUrl,
+                feed.Duration);
         }
 
         public IEnumerable<string> GetPodcastIdsAvailableForDownload()

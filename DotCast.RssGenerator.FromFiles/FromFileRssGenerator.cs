@@ -6,7 +6,7 @@ namespace DotCast.RssGenerator.FromFiles
 {
     public class FromFileRssGenerator : RssGenerator<RssFromFileParams>
     {
-        public override Feed BuildFeed(RssFromFileParams param)
+        public override Task<Feed> BuildFeed(RssFromFileParams param)
         {
             var feed = new Feed(param.PodcastName);
             string? image = null;
@@ -95,7 +95,7 @@ namespace DotCast.RssGenerator.FromFiles
                 feed.Episodes.Add(episode);
             }
 
-            return feed;
+            return Task.FromResult(feed);
         }
     }
 }

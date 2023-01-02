@@ -111,7 +111,7 @@ namespace DotCast.App.Pages
         {
             _ = Task.Run(async () =>
             {
-                foreach (var podcastId in InfoProvider.GetPodcastIdsAvailableForDownload())
+                foreach (var podcastId in Downloader.GetPodcastIdsAvailableForDownload())
                 {
                     Console.WriteLine($"Unziping {podcastId}");
                     await Uploader.UnzipPodcast(podcastId);
@@ -125,7 +125,9 @@ namespace DotCast.App.Pages
         {
             _ = Task.Run(async () =>
             {
-                foreach (var podcastInfo in InfoProvider.GetPodcasts())
+                var podcastInfos = InfoProvider.GetPodcasts();
+
+                await foreach (var podcastInfo in podcastInfos)
                 {
                     Console.WriteLine($"Generating zip for {podcastInfo.Name}");
                     await Downloader.GenerateZip(podcastInfo.Id);

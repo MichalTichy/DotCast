@@ -2,7 +2,8 @@
 {
     public interface IPodcastInfoProvider
     {
-        IEnumerable<PodcastInfo> GetPodcasts(string? searchText = null);
-        IEnumerable<string> GetPodcastIdsAvailableForDownload();
+        IAsyncEnumerable<PodcastInfo> GetPodcasts(string? searchText = null);
+        Task UpdatePodcastInfo(PodcastInfo podcastInfo);
+        Task<PodcastInfo> Get(string id);
     }
 }

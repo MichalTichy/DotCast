@@ -1,6 +1,6 @@
 ﻿namespace DotCast.Infrastructure.Persistence.Base.Repositories
 {
-    public interface IRepository<T, TId> : IReadOnlyRepository<T, TId> where T : IItemWithId<TId>
+    public interface IRepository<T> : IReadOnlyRepository<T>
     {
         Task AddAsync(ICollection<T> entities, CancellationToken cancellationToken = default, string? tenantId = null);
         Task<T> AddAsync(T entity, CancellationToken cancellationToken = default, string? tenantId = null);

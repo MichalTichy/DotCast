@@ -2,6 +2,6 @@
 {
     public interface IPodcastFeedProvider
     {
-        string GetRss(string name);
+        Task<string> GetRss(string name);
     }
 }

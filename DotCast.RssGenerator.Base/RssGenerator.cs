@@ -5,11 +5,11 @@ namespace DotCast.RssGenerator.Base
 {
     public abstract class RssGenerator<TParam>
     {
-        public abstract Feed BuildFeed(TParam param);
+        public abstract Task<Feed> BuildFeed(TParam param);
 
-        public string GenerateRss(TParam param)
+        public async Task<string> GenerateRss(TParam param)
         {
-            var feed = BuildFeed(param);
+            var feed = await BuildFeed(param);
 
             var sb = new StringBuilder();
             using (var xmlWriter = XmlWriter.Create(sb))

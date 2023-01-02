@@ -7,7 +7,7 @@ namespace DotCast.Infrastructure.Persistence.Marten
 {
     public class MartenDatabaseInstaller : ILowPriorityInstaller
     {
-        public const string ConnectionStringName = "ProductivityStation";
+        public const string ConnectionStringName = "DotCast";
 
         public void Install(IServiceCollection services, IConfiguration configuration, bool isProduction)
         {
