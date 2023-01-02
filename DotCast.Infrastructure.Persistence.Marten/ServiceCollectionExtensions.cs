@@ -125,14 +125,6 @@ namespace DotCast.Infrastructure.Persistence.Marten
                     .As(typeof(IReadOnlyRepository<>))
                     .WithScopedLifetime());
 
-            services.Scan(
-                selector => selector.FromCallingAssembly()
-                    .AddClasses(filter =>
-                        filter.AssignableTo(typeof(MartenReadEventRepository<>)))
-                    .As(typeof(IReadEventRepository<>))
-                    .WithScopedLifetime());
-
-            services.AddScoped<IWriteEventRepository, MartenWriteEventRepository>();
 
             return services;
         }
