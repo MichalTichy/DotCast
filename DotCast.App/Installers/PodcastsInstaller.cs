@@ -1,6 +1,8 @@
 using DotCast.Infrastructure.IoC;
 using DotCast.PodcastProvider.Base;
+using DotCast.PodcastProvider.Combined;
 using DotCast.PodcastProvider.FileSystem;
+using DotCast.PodcastProvider.Postgre;
 using DotCast.RssGenerator.FromFiles;
 
 namespace DotCast.App.Installers
@@ -10,6 +12,16 @@ namespace DotCast.App.Installers
         public void Install(IServiceCollection services, IConfiguration configuration, bool isProduction)
         {
             services.AddSingleton<FileSystemPodcastProvider>();
+            services.AddSingleton<PostgrePodcastInfoProvider>();
+
+            services.AddSingleton(provider =>
+            {
+                var combinedProvider = new CombinedPodcastProvider();
+                combinedProvider.AddProvider(provider.GetRequiredService<PostgrePodcastInfoProvider>());
+                combinedProvider.AddProvider(provider.GetRequiredService<FileSystemPodcastProvider>());
+
+                return combinedProvider;
+            });
 
             services.AddSingleton<IPodcastInfoProvider, FileSystemPodcastProvider>();
             services.AddSingleton<IPodcastFeedProvider, FileSystemPodcastProvider>();

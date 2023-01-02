@@ -13,12 +13,12 @@ namespace DotCast.Infrastructure.Persistence.Marten
     public class DatabaseMigrator : IDatabaseMigrator
     {
         private readonly IServiceProvider serviceProvider;
-        private readonly INoTenancyByDefaultSessionFactory sessionFactory;
+        private readonly IAsyncSessionFactory sessionFactory;
         private readonly ILogger<DatabaseMigrator> logger;
 
         public DatabaseMigrator(
             IServiceProvider serviceProvider,
-            INoTenancyByDefaultSessionFactory sessionFactory,
+            IAsyncSessionFactory sessionFactory,
             ILogger<DatabaseMigrator> logger)
         {
             this.serviceProvider = serviceProvider;

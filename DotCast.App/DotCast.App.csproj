@@ -18,8 +18,10 @@
   <ItemGroup>
     <ProjectReference Include="..\DotCast.Infrastructure.Initializer\DotCast.Infrastructure.Initializer.csproj" />
     <ProjectReference Include="..\DotCast.Infrastructure.IoC\DotCast.Infrastructure.IoC.csproj" />
+    <ProjectReference Include="..\DotCast.PodcastProvider.Combined\DotCast.PodcastProvider.Combined.csproj" />
     <ProjectReference Include="..\DotCast.PodcastProvider.FakeProvider\DotCast.PodcastProvider.FakeProvider.csproj" />
     <ProjectReference Include="..\DotCast.PodcastProvider.FileSystem\DotCast.PodcastProvider.FileSystem.csproj" />
+    <ProjectReference Include="..\DotCast.PodcastProvider.Postgre\DotCast.PodcastProvider.Postgre.csproj" />
   </ItemGroup>
 
   <ItemGroup>

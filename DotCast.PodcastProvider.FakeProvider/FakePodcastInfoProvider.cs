@@ -25,10 +25,10 @@ namespace DotCast.PodcastProvider.FakeProvider
 
         public Task UpdatePodcastInfo(PodcastInfo podcastInfo)
         {
-            return Task.CompletedTask;
+            return Task.FromResult(false);
         }
 
-        public Task<PodcastInfo> Get(string id)
+        public Task<PodcastInfo?> Get(string id)
         {
             var faker = GetFaker();
             faker.RuleFor(info => info.Id, () => id);

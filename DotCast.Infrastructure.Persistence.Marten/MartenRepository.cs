@@ -13,27 +13,27 @@ namespace DotCast.Infrastructure.Persistence.Marten
     public class MartenRepository<T> : IRepository<T> where T : notnull
     {
         protected readonly ILogger<MartenRepository<T>> Logger;
-        protected readonly ISessionFactoryWithAlternateTenantSettings SessionFactory;
+        protected readonly IAsyncSessionFactory SessionFactory;
 
         public MartenRepository(
-            ISessionFactoryWithAlternateTenantSettings sessionFactory,
-            ILogger<MartenRepository<T>> logger)
+            ILogger<MartenRepository<T>> logger,
+            IAsyncSessionFactory sessionFactory)
         {
-            SessionFactory = sessionFactory;
             Logger = logger;
+            SessionFactory = sessionFactory;
         }
 
-        public virtual async Task AddAsync(ICollection<T> entities, CancellationToken cancellationToken = default, string? tenantId = null)
+        public virtual async Task AddAsync(ICollection<T> entities, CancellationToken cancellationToken = default)
         {
-            await using var session = await SessionFactory.OpenSessionAsync(tenantId);
+            await using var session = await SessionFactory.OpenSessionAsync();
             session.Insert(entities.AsEnumerable());
 
             await SaveChangesAsync(session, cancellationToken: cancellationToken);
         }
 
-        public virtual async Task<T> AddAsync(T entity, CancellationToken cancellationToken = default, string? tenantId = null)
+        public virtual async Task<T> AddAsync(T entity, CancellationToken cancellationToken = default)
         {
-            await using var session = await SessionFactory.OpenSessionAsync(tenantId);
+            await using var session = await SessionFactory.OpenSessionAsync();
 
             session.Insert(entity);
 
@@ -42,18 +42,29 @@ namespace DotCast.Infrastructure.Persistence.Marten
             return entity;
         }
 
-        public virtual async Task UpdateAsync(T entity, CancellationToken cancellationToken = default, string? tenantId = null)
+        public async Task<T> StoreAsync(T entity, CancellationToken cancellationToken = default)
         {
-            await using var session = await SessionFactory.OpenSessionAsync(tenantId);
+            await using var session = await SessionFactory.OpenSessionAsync();
+
+            session.Store(entity);
+
+            await SaveChangesAsync(session, cancellationToken: cancellationToken);
+
+            return entity;
+        }
+
+        public virtual async Task UpdateAsync(T entity, CancellationToken cancellationToken = default)
+        {
+            await using var session = await SessionFactory.OpenSessionAsync();
 
             session.Update(entity);
 
             await SaveChangesAsync(session, cancellationToken: cancellationToken);
         }
 
-        public virtual async Task ForceUpdateAsync(T entity, CancellationToken cancellationToken = default, string? tenantId = null)
+        public virtual async Task ForceUpdateAsync(T entity, CancellationToken cancellationToken = default)
         {
-            await using var session = await SessionFactory.OpenSessionAsync(tenantId);
+            await using var session = await SessionFactory.OpenSessionAsync();
 
             session.Delete(entity);
             session.Insert(entity);
@@ -61,7 +72,7 @@ namespace DotCast.Infrastructure.Persistence.Marten
             await SaveChangesAsync(session, true, cancellationToken);
         }
 
-        public virtual async Task DeleteAsync(T entity, CancellationToken cancellationToken = default, string? tenantId = null)
+        public virtual async Task DeleteAsync(T entity, CancellationToken cancellationToken = default)
         {
             await using var session = await SessionFactory.OpenSessionAsync();
             session.Delete(entity);
@@ -70,10 +81,9 @@ namespace DotCast.Infrastructure.Persistence.Marten
         }
 
         public virtual async Task DeleteRangeAsync(IEnumerable<T> entities,
-            CancellationToken cancellationToken = default,
-            string? tenantId = null)
+            CancellationToken cancellationToken = default)
         {
-            await using var session = await SessionFactory.OpenSessionAsync(tenantId);
+            await using var session = await SessionFactory.OpenSessionAsync();
 
             foreach (var entity in entities)
             {
@@ -83,16 +93,16 @@ namespace DotCast.Infrastructure.Persistence.Marten
             await SaveChangesAsync(session, cancellationToken: cancellationToken);
         }
 
-        public virtual async Task<T?> GetByIdAsync(string id, CancellationToken cancellationToken = default, string? tenantId = null)
+        public virtual async Task<T?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
         {
-            await using var session = await SessionFactory.QuerySessionAsync(tenantId);
+            await using var session = await SessionFactory.QuerySessionAsync();
 
             return await session.LoadAsync<T>(id, cancellationToken);
         }
 
-        public virtual async Task<T?> GetBySpecAsync(ISpecification<T> specification, CancellationToken cancellationToken = default, string? tenantId = null)
+        public virtual async Task<T?> GetBySpecAsync(ISpecification<T> specification, CancellationToken cancellationToken = default)
         {
-            await using var session = await SessionFactory.QuerySessionAsync(tenantId);
+            await using var session = await SessionFactory.QuerySessionAsync();
 
             var queryable = session.Query<T>();
             queryable = PreprocessQuery(queryable);
@@ -100,9 +110,9 @@ namespace DotCast.Infrastructure.Persistence.Marten
             return await specification.ApplyAsync(queryable, cancellationToken);
         }
 
-        public virtual async Task<TResult?> GetBySpecAsync<TResult>(ISpecification<T, TResult> specification, CancellationToken cancellationToken = default, string? tenantId = null)
+        public virtual async Task<TResult?> GetBySpecAsync<TResult>(ISpecification<T, TResult> specification, CancellationToken cancellationToken = default)
         {
-            await using var session = await SessionFactory.QuerySessionAsync(tenantId);
+            await using var session = await SessionFactory.QuerySessionAsync();
 
 
             var queryable = session.Query<T>();
@@ -111,15 +121,15 @@ namespace DotCast.Infrastructure.Persistence.Marten
             return await specification.ApplyAsync(queryable, cancellationToken);
         }
 
-        public virtual async Task<IReadOnlyList<T>> ListAsync(CancellationToken cancellationToken = default, string? tenantId = null)
+        public virtual async Task<IReadOnlyList<T>> ListAsync(CancellationToken cancellationToken = default)
         {
-            await using var session = await SessionFactory.QuerySessionAsync(tenantId);
+            await using var session = await SessionFactory.QuerySessionAsync();
             return await session.Query<T>().ToListAsync(cancellationToken);
         }
 
-        public virtual async Task<IReadOnlyList<T>> ListAsync(IListSpecification<T> specification, CancellationToken cancellationToken = default, string? tenantId = null)
+        public virtual async Task<IReadOnlyList<T>> ListAsync(IListSpecification<T> specification, CancellationToken cancellationToken = default)
         {
-            await using var session = await SessionFactory.QuerySessionAsync(tenantId);
+            await using var session = await SessionFactory.QuerySessionAsync();
 
             var queryable = session.Query<T>();
             queryable = PreprocessQuery(queryable);
@@ -130,9 +140,9 @@ namespace DotCast.Infrastructure.Persistence.Marten
             return aggregates;
         }
 
-        public virtual async Task<IReadOnlyList<TResult>> ListAsync<TResult>(IListSpecification<T, TResult> specification, CancellationToken cancellationToken = default, string? tenantId = null)
+        public virtual async Task<IReadOnlyList<TResult>> ListAsync<TResult>(IListSpecification<T, TResult> specification, CancellationToken cancellationToken = default)
         {
-            await using var session = await SessionFactory.QuerySessionAsync(tenantId);
+            await using var session = await SessionFactory.QuerySessionAsync();
 
             var queryable = session.Query<T>();
             queryable = PreprocessQuery(queryable);
@@ -140,9 +150,9 @@ namespace DotCast.Infrastructure.Persistence.Marten
             return await specification.ApplyAsync(queryable, cancellationToken);
         }
 
-        public virtual async Task<int> CountAsync(CancellationToken cancellationToken = default, string? tenantId = null)
+        public virtual async Task<int> CountAsync(CancellationToken cancellationToken = default)
         {
-            await using var session = await SessionFactory.QuerySessionAsync(tenantId);
+            await using var session = await SessionFactory.QuerySessionAsync();
 
             var queryable = session.Query<T>();
             queryable = PreprocessQuery(queryable);

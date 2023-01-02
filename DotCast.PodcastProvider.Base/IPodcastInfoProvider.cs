@@ -4,6 +4,6 @@
     {
         IAsyncEnumerable<PodcastInfo> GetPodcasts(string? searchText = null);
         Task UpdatePodcastInfo(PodcastInfo podcastInfo);
-        Task<PodcastInfo> Get(string id);
+        Task<PodcastInfo?> Get(string id);
     }
 }

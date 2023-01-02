@@ -2,10 +2,11 @@
 {
     public interface IRepository<T> : IReadOnlyRepository<T>
     {
-        Task AddAsync(ICollection<T> entities, CancellationToken cancellationToken = default, string? tenantId = null);
-        Task<T> AddAsync(T entity, CancellationToken cancellationToken = default, string? tenantId = null);
-        Task UpdateAsync(T entity, CancellationToken cancellationToken = default, string? tenantId = null);
-        Task ForceUpdateAsync(T entity, CancellationToken cancellationToken = default, string? tenantId = null);
-        Task DeleteAsync(T entity, CancellationToken cancellationToken = default, string? tenantId = null);
+        Task AddAsync(ICollection<T> entities, CancellationToken cancellationToken = default);
+        Task<T> AddAsync(T entity, CancellationToken cancellationToken = default);
+        Task<T> StoreAsync(T entity, CancellationToken cancellationToken = default);
+        Task UpdateAsync(T entity, CancellationToken cancellationToken = default);
+        Task ForceUpdateAsync(T entity, CancellationToken cancellationToken = default);
+        Task DeleteAsync(T entity, CancellationToken cancellationToken = default);
     }
 }

@@ -1,30 +1,51 @@
 ﻿using DotCast.Infrastructure.Persistence.Base.Repositories;
+using DotCast.Infrastructure.Persistence.Base.Specifications;
 using DotCast.PodcastProvider.Base;
+using Marten;
 
 namespace DotCast.PodcastProvider.Postgre
 {
+    public record GetFilteredPodcasts(string? SearchedText) : IListSpecification<PodcastInfo>
+    {
+        public Task<IReadOnlyList<PodcastInfo>> ApplyAsync(IQueryable<PodcastInfo> queryable, CancellationToken cancellationToken = default)
+        {
+            if (SearchedText == null)
+            {
+                return queryable.ToListAsync(cancellationToken);
+            }
+
+            var normalizedSearchedText = SearchedText.ToLower();
+            return queryable.Where(t => PodcastFilter.Matches(t, normalizedSearchedText)).ToListAsync(cancellationToken);
+        }
+    }
+
     public class PostgrePodcastInfoProvider : IPodcastInfoProvider
     {
-        private readonly object repository;
+        private readonly IRepository<PodcastInfo> repository;
 
         public PostgrePodcastInfoProvider(IRepository<PodcastInfo> repository)
         {
             this.repository = repository;
         }
 
-        public IAsyncEnumerable<PodcastInfo> GetPodcasts(string? searchText = null)
+        public async IAsyncEnumerable<PodcastInfo> GetPodcasts(string? searchText = null)
         {
-            throw new NotImplementedException();
+            var spec = new GetFilteredPodcasts(searchText);
+            var result = await repository.ListAsync(spec);
+            foreach (var podcastInfo in result)
+            {
+                yield return podcastInfo;
+            }
         }
 
-        public Task UpdatePodcastInfo(PodcastInfo podcastInfo)
+        public async Task UpdatePodcastInfo(PodcastInfo podcastInfo)
         {
-            throw new NotImplementedException();
+            await repository.StoreAsync(podcastInfo);
         }
 
-        public Task<PodcastInfo> Get(string id)
+        public async Task<PodcastInfo?> Get(string id)
         {
-            throw new NotImplementedException();
+            return await repository.GetByIdAsync(id);
         }
     }
 }

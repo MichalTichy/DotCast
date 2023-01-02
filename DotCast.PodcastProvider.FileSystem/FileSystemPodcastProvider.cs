@@ -39,16 +39,23 @@ namespace DotCast.PodcastProvider.FileSystem
             foreach (var directory in baseDirectory.GetDirectories())
             {
                 var podcastName = GetNormalizedName(directory.Name);
-                yield return await Get(podcastName);
+
+                var podcastInfo = await Get(podcastName);
+                if (podcastInfo == null || (searchText != null && !PodcastFilter.Matches(podcastInfo, searchText)))
+                {
+                    continue;
+                }
+
+                yield return podcastInfo;
             }
         }
 
         public Task UpdatePodcastInfo(PodcastInfo podcastInfo)
         {
-            throw new NotSupportedException();
+            return Task.FromResult(true);
         }
 
-        public async Task<PodcastInfo> Get(string id)
+        public async Task<PodcastInfo?> Get(string id)
         {
             var path = Path.Combine(settings.PodcastsLocation, id);
             var directory = new DirectoryInfo(path);
