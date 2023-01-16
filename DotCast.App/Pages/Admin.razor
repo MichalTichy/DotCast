@@ -3,8 +3,7 @@
 
 <h3>Upload Podcast</h3>
 <p>Enter podcast name</p>
-<input @bind="PodcastName" />
-
+<Text @bind="PodcastName" />
 @if (!string.IsNullOrWhiteSpace(PodcastName))
 {
     <p>
@@ -20,7 +19,7 @@
     <Progress Value="@file.UploadPercentage"> </Progress>
 }
 <hr />
-<Button Clicked="() => UnzipAll()" Color="Color.Danger">
+<Button Clicked="UnzipAll" Color="Color.Danger">
     Unzip all podcasts.
 </Button>
 <Button Clicked="ZipAll" Color="Color.Danger">

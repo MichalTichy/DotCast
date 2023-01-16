@@ -28,18 +28,23 @@ namespace DotCast.App.Pages
 
         protected override async Task OnInitializedAsync()
         {
-            LoadData();
+            await LoadData();
             await base.OnInitializedAsync();
         }
 
-        private void LoadData(string? filter = null)
+        private async Task LoadData(string? filter = null)
         {
-            Data = PodcastInfoProvider.GetPodcasts(filter).ToBlockingEnumerable();
+            Data = await PodcastInfoProvider.GetPodcasts(filter).ToListAsync();
         }
 
-        private void SearchTextChanged(string text)
+        private async Task SearchTextChanged(string text)
         {
-            LoadData(text);
+            await LoadData(text);
+        }
+
+        private void Edit(PodcastInfo podcast)
+        {
+            NavigationManager.NavigateTo($"/podcast/{podcast.Id}/edit");
         }
     }
 }

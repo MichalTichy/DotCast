@@ -2,9 +2,9 @@
 using System.IO.Compression;
 using System.Text;
 using DotCast.PodcastProvider.Base;
-using DotCast.RssGenerator.Base;
 using DotCast.RssGenerator.FromFiles;
 using Microsoft.Extensions.Options;
+using File = TagLib.File;
 
 namespace DotCast.PodcastProvider.FileSystem
 {
@@ -20,17 +20,30 @@ namespace DotCast.PodcastProvider.FileSystem
             this.rssGenerator = rssGenerator;
         }
 
-        public async Task<string> GetRss(string name)
+        public async Task<string> GetRss(string id)
         {
-            var podcastName = GetNormalizedName(name);
+            var rssGeneratorParams = GetFeedParams(id);
 
-            var podcastPath = Path.Combine(settings.PodcastsLocation, name);
+            return await rssGenerator.GenerateRss(rssGeneratorParams);
+        }
+
+        private RssFromFileParams GetFeedParams(string id)
+        {
+            var podcastName = GetNormalizedName(id);
+
+            var podcastPath = Path.Combine(settings.PodcastsLocation, id);
             var directory = new DirectoryInfo(podcastPath);
             var filePaths = directory.GetFiles().Select(t => new LocalFileInfo(t.FullName, GetFileUrl(t.Directory!.Name, t.Name))).ToArray();
 
             var rssGeneratorParams = new RssFromFileParams(podcastName, filePaths);
+            return rssGeneratorParams;
+        }
 
-            return await rssGenerator.GenerateRss(rssGeneratorParams);
+        public async Task<string?> GetFeedCover(string id)
+        {
+            var rssFromFileParams = GetFeedParams(id);
+            var feed = await rssGenerator.BuildFeed(rssFromFileParams);
+            return feed.ImageUrl;
         }
 
         public async IAsyncEnumerable<PodcastInfo> GetPodcasts(string? searchText = null)
@@ -38,9 +51,7 @@ namespace DotCast.PodcastProvider.FileSystem
             var baseDirectory = new DirectoryInfo(settings.PodcastsLocation);
             foreach (var directory in baseDirectory.GetDirectories())
             {
-                var podcastName = GetNormalizedName(directory.Name);
-
-                var podcastInfo = await Get(podcastName);
+                var podcastInfo = await Get(directory.Name);
                 if (podcastInfo == null || (searchText != null && !PodcastFilter.Matches(podcastInfo, searchText)))
                 {
                     continue;
@@ -52,50 +63,57 @@ namespace DotCast.PodcastProvider.FileSystem
 
         public Task UpdatePodcastInfo(PodcastInfo podcastInfo)
         {
-            return Task.FromResult(true);
+            _ = Task.Run(() =>
+            {
+                var localFileInfos = GetFiles(podcastInfo.Id, out _);
+                foreach (var localFileInfo in localFileInfos)
+                {
+                    try
+                    {
+                        var file = File.Create(localFileInfo.LocalPath);
+                        file.Tag.Album = podcastInfo.Name;
+                        file.Tag.Performers = new[] {podcastInfo.AuthorName};
+
+                        file.Tag.Grouping = podcastInfo.SeriesName;
+                        file.Tag.TitleSort = podcastInfo.OrderInSeries.ToString();
+
+                        file.Tag.Description = podcastInfo.Description;
+
+                        file.Save();
+                    }
+                    catch (Exception)
+                    {
+                        // ignored
+                    }
+                }
+            });
+
+            return Task.CompletedTask;
         }
 
         public async Task<PodcastInfo?> Get(string id)
         {
-            var path = Path.Combine(settings.PodcastsLocation, id);
-            var directory = new DirectoryInfo(path);
-            var filePaths = directory.GetFiles().Select(t => new LocalFileInfo(t.FullName, GetFileUrl(t.Directory!.Name, t.Name))).ToArray();
+            var filePaths = GetFiles(id, out var directory);
 
             var rssGeneratorParams = new RssFromFileParams(id, filePaths);
 
             var feed = await rssGenerator.BuildFeed(rssGeneratorParams);
 
-            return new PodcastInfo(directory.Name, feed.Title, feed.AuthorName ?? "Unknown author", $"{settings.PodcastServerUrl}/podcast/{directory.Name}", feed.ImageUrl,
+            return new PodcastInfo(directory.Name, feed.Title, feed.AuthorName ?? "Unknown author", null, 0, feed.Description, $"{settings.PodcastServerUrl}/podcast/{directory.Name}", feed.ImageUrl,
                 feed.Duration);
+        }
+
+        private ICollection<LocalFileInfo> GetFiles(string id, out DirectoryInfo directory)
+        {
+            var path = Path.Combine(settings.PodcastsLocation, id);
+            directory = new DirectoryInfo(path);
+            var filePaths = directory.GetFiles().Select(t => new LocalFileInfo(t.FullName, GetFileUrl(t.Directory!.Name, t.Name))).ToArray();
+            return filePaths;
         }
 
         public IEnumerable<string> GetPodcastIdsAvailableForDownload()
         {
             return Directory.GetFiles(options.Value.ZippedPodcastsLocation).Select(Path.GetFileNameWithoutExtension).Where(t => t != null).Select(t => t!);
-        }
-
-        private bool DoesMatchSearchedText(Feed feed, string? searchText)
-        {
-            if (string.IsNullOrWhiteSpace(searchText))
-            {
-                return true;
-            }
-
-            var normalizedSearchText = RemoveDiacritics(searchText.Trim());
-
-            var normalizedTitle = RemoveDiacritics(feed.Title);
-            if (normalizedTitle.Contains(normalizedSearchText))
-            {
-                return true;
-            }
-
-            var normalizedAuthorName = RemoveDiacritics(feed.AuthorName ?? string.Empty);
-            if (normalizedAuthorName.Contains(normalizedSearchText))
-            {
-                return true;
-            }
-
-            return false;
         }
 
         private static string RemoveDiacritics(string text)
@@ -143,7 +161,7 @@ namespace DotCast.PodcastProvider.FileSystem
         public async Task GenerateZip(string podcastId, bool replace = false)
         {
             var path = GetPodcastZipPath(podcastId);
-            if (!replace && File.Exists(path))
+            if (!replace && System.IO.File.Exists(path))
             {
                 return;
             }
@@ -163,25 +181,25 @@ namespace DotCast.PodcastProvider.FileSystem
                     var name = Path.GetFileName(botFilePath);
                     var entry = archive.CreateEntry(name, CompressionLevel.SmallestSize);
                     await using var entryStream = entry.Open();
-                    await using var fileStream = File.OpenRead(botFilePath);
+                    await using var fileStream = System.IO.File.OpenRead(botFilePath);
                     await fileStream.CopyToAsync(entryStream);
                 }
             }
 
-            File.Move(tmpPath, path);
+            System.IO.File.Move(tmpPath, path);
         }
 
 
         public bool IsDownloadSupported(string podcastId)
         {
-            return File.Exists(GetPodcastZipPath(podcastId));
+            return System.IO.File.Exists(GetPodcastZipPath(podcastId));
         }
 
         public Task<string> GetZipDownloadUrl(string podcastId)
         {
             var podcastZipPath = GetPodcastZipPath(podcastId);
 
-            if (!File.Exists(podcastZipPath))
+            if (!System.IO.File.Exists(podcastZipPath))
             {
                 throw new ArgumentException("Unable to find requested zip");
             }
@@ -234,7 +252,7 @@ namespace DotCast.PodcastProvider.FileSystem
             try
             {
                 var podcastZipPath = GetPodcastZipPath(podcastId);
-                if (!File.Exists(podcastZipPath))
+                if (!System.IO.File.Exists(podcastZipPath))
                 {
                     throw new ArgumentException("Provided zip could not be found!");
                 }

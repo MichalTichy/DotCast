@@ -10,9 +10,10 @@
   <ItemGroup>
     <PackageReference Include="Ardalis.ApiEndpoints" Version="4.0.1" />
     <PackageReference Include="Blazorise.Bootstrap" Version="1.1.5" />
-    <PackageReference Include="Blazorise.Icons.FontAwesome" Version="1.0.5" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="6.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="6.0.0" />
+    <PackageReference Include="Blazorise.Icons.FontAwesome" Version="1.1.5" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="7.0.0" />
   </ItemGroup>
 
   <ItemGroup>

@@ -2,6 +2,8 @@
 using TagLib;
 using File = TagLib.File;
 
+#pragma warning disable CS0618
+
 namespace DotCast.RssGenerator.FromFiles
 {
     public class FromFileRssGenerator : RssGenerator<RssFromFileParams>
@@ -10,6 +12,7 @@ namespace DotCast.RssGenerator.FromFiles
         {
             var feed = new Feed(param.PodcastName);
             string? image = null;
+            var imageIsDesignatedCover = false;
             var cultureInfo = Thread.CurrentThread.CurrentCulture;
             var textInfo = cultureInfo.TextInfo;
 
@@ -37,7 +40,13 @@ namespace DotCast.RssGenerator.FromFiles
 
                 if (metadata.Properties.MediaTypes == MediaTypes.Photo)
                 {
+                    if (imageIsDesignatedCover)
+                    {
+                        continue;
+                    }
+
                     image = file.RemotePath;
+                    imageIsDesignatedCover = Path.GetFileNameWithoutExtension(metadata.Name).ToLower() == "cover";
                 }
             }
 
@@ -61,8 +70,11 @@ namespace DotCast.RssGenerator.FromFiles
                 if (!feedInfoSet)
                 {
                     feed.Title = fileInfo.metadata.Tag.Album ?? feed.Title;
-#pragma warning disable 618
-                    if (!string.IsNullOrWhiteSpace(fileInfo.metadata.Tag.FirstArtist))
+                    if (!string.IsNullOrWhiteSpace(fileInfo.metadata.Tag.FirstPerformer))
+                    {
+                        feed.AuthorName = fileInfo.metadata.Tag.FirstArtist;
+                    }
+                    else if (!string.IsNullOrWhiteSpace(fileInfo.metadata.Tag.FirstArtist))
                     {
                         feed.AuthorName = fileInfo.metadata.Tag.FirstArtist;
                     }
@@ -73,9 +85,9 @@ namespace DotCast.RssGenerator.FromFiles
                     }
 
                     feed.AuthorName = textInfo.ToTitleCase(feed.AuthorName?.ToLower() ?? string.Empty);
-#pragma warning restore 618
                     feed.ImageUrl = image;
                     feed.Description = fileInfo.metadata.Tag.Description ?? fileInfo.metadata.Tag.Comment;
+
                     feedInfoSet = true;
                 }
 

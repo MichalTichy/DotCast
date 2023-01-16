@@ -19,7 +19,8 @@ namespace DotCast.PodcastProvider.FakeProvider
         private static Faker<PodcastInfo> GetFaker()
         {
             return new Faker<PodcastInfo>().CustomInstantiator(faker =>
-                new PodcastInfo(faker.Random.Hash(), faker.Company.CompanyName(0), faker.Person.FullName, faker.Internet.Url(), faker.Image.PlaceholderUrl(500, 500),
+                new PodcastInfo(faker.Random.Hash(), faker.Company.CompanyName(0), faker.Person.FullName, null, 0, faker.Company.CatchPhrase(), faker.Internet.Url(),
+                    faker.Image.PlaceholderUrl(500, 500),
                     TimeSpan.FromMinutes(faker.Random.Double(20, 400))));
         }
 

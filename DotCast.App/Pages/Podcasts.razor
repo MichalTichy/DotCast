@@ -13,7 +13,7 @@
     </LayoutSider>
     <LayoutContent>
         <Field>
-            <TextEdit Placeholder="Search" TextChanged="SearchTextChanged" />
+            <TextEdit Placeholder="Search" TextChanged="async (t) => await SearchTextChanged(t)" />
         </Field>
 
         @foreach (var author in Data.GroupBy(t => t.AuthorName).OrderBy(t => t.Key))
@@ -21,37 +21,61 @@
             <a id="@author.Key.Replace(" ", "")">
             </a>
             <Divider DividerType="DividerType.TextContent" Text="@author.Key"></Divider>
-            <div class="card-columns podcasts">
-
-                @foreach (var podcast in author.OrderBy(t => t.Name))
+                @foreach (var series in author.GroupBy(info => info.SeriesName?.ToLower().Trim()))
                 {
-                    <Card class="podcastTile">
-                        <a href="@podcast.Url">
-
-                            <CardImage Source="@podcast.ImageUrl"/>
-                            <CardBody>
-                                <CardTitle Size="5">@podcast.Name</CardTitle>
-                                <CardText>@podcast.AuthorName</CardText>
-                            </CardBody>
-                        </a>
-
-                        <CardFooter>
-                            @if (podcast.Duration != null)
-                            {
-                                <span>
-                                    <Icon Name="IconName.Clock"/> @podcast.Duration.Value.ToString(@"hh\:mm")
-                                </span>
-                            }
-                            @if (PodcastDownloader.IsDownloadSupported(podcast.Id))
-                            {
-                                <Button Clicked="() => Download(podcast)">
-                                    <Icon Name="IconName.Download"></Icon>
-                                </Button>
-                            }
-                        </CardFooter>
-                    </Card>
+                    @if (!string.IsNullOrWhiteSpace(series.Key))
+                {
+                    <div class="seriesDivider">@series.Key</div>
                 }
-            </div>
+                <div class="c-container">
+
+                    @foreach (var podcast in series.OrderBy(info => info.OrderInSeries).ThenBy(info => info.Name))
+                    {
+                        <div class="c-card">
+                            <div class="c-card-header">
+                                <img src="@podcast.ImageUrl"/>
+                            </div>
+                            <div class="c-card-body">
+                            
+                                <h3>@podcast.Name</h3>
+
+                                <div class="user">
+                                    <b>@author.Key</b>
+                                </div>
+                                @if (!string.IsNullOrWhiteSpace(@podcast.SeriesName))
+                                {
+                                    <b>@podcast.SeriesName - @podcast.OrderInSeries</b>
+                                }
+                            
+                                <p>
+                                    @podcast.Description
+                                </p>
+                            </div>
+                            <div class="c-card-footer">
+                                @if (podcast.Duration != null)
+                                {
+                                    <span>
+                                        <Icon Name="IconName.Clock"/> @podcast.Duration.Value.ToString(@"hh\:mm")
+                                    </span>
+                                }
+                                @if (PodcastDownloader.IsDownloadSupported(podcast.Id))
+                                {
+                                    <Button Clicked="async () => await Download(podcast)">
+                                        <Icon Name="IconName.Download"></Icon>
+                                    </Button>
+                                }
+                                <Button Clicked="() => NavigationManager.NavigateTo(podcast.Url,true)">
+                                    <Icon Name="IconName.Rss"></Icon>
+                                </Button>
+                                <Button Clicked="() => Edit(podcast)">
+                                    <Icon Name="IconName.Edit"></Icon>
+                                </Button>
+                            </div>
+                        </div>
+                    }
+                    </div>
+
+                }
         }
     </LayoutContent>
 </Layout>

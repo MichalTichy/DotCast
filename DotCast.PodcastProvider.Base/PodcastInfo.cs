@@ -4,6 +4,9 @@
         string Id,
         string Name,
         string AuthorName,
+        string? SeriesName,
+        int OrderInSeries,
+        string? Description,
         string Url,
         string? ImageUrl,
         TimeSpan? Duration);

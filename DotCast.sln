@@ -31,7 +31,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotCast.Infrastructure.Init
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotCast.PodcastProvider.Postgre", "DotCast.PodcastProvider.Postgre\DotCast.PodcastProvider.Postgre.csproj", "{19546253-BD0F-47FD-8FB7-B3B326FAF611}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotCast.PodcastProvider.Combined", "DotCast.PodcastProvider.Combined\DotCast.PodcastProvider.Combined.csproj", "{D256DC08-E898-4761-B2E9-B89929FF54BD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotCast.PodcastProvider.Combined", "DotCast.PodcastProvider.Combined\DotCast.PodcastProvider.Combined.csproj", "{D256DC08-E898-4761-B2E9-B89929FF54BD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

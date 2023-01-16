@@ -12,9 +12,9 @@ namespace DotCast.App.Installers
         public void Install(IServiceCollection services, IConfiguration configuration, bool isProduction)
         {
             services.AddSingleton<FileSystemPodcastProvider>();
-            services.AddSingleton<PostgrePodcastInfoProvider>();
+            services.AddScoped<PostgrePodcastInfoProvider>();
 
-            services.AddSingleton(provider =>
+            services.AddScoped<IPodcastInfoProvider>(provider =>
             {
                 var combinedProvider = new CombinedPodcastProvider();
                 combinedProvider.AddProvider(provider.GetRequiredService<PostgrePodcastInfoProvider>());
@@ -23,7 +23,6 @@ namespace DotCast.App.Installers
                 return combinedProvider;
             });
 
-            services.AddSingleton<IPodcastInfoProvider, FileSystemPodcastProvider>();
             services.AddSingleton<IPodcastFeedProvider, FileSystemPodcastProvider>();
             services.AddSingleton<IPodcastDownloader, FileSystemPodcastProvider>();
             services.AddSingleton<IPodcastUploader, FileSystemPodcastProvider>();

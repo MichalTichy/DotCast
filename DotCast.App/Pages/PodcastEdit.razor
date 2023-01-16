@@ -1,0 +1,74 @@
+﻿@page "/podcast/{Id}/edit"
+
+<Image Class="CoverImage" src="@Image" />
+
+
+<Row>
+    <Column ColumnSize="ColumnSize.IsHalf">
+    <Field >
+        <FieldLabel>Name</FieldLabel>
+        <FieldBody>
+            <TextEdit @bind-Text="@Name"/>
+        </FieldBody>
+    </Field>
+    </Column>
+    <Column ColumnSize="ColumnSize.IsHalf">
+        <Field >
+            <FieldLabel>Author</FieldLabel>
+            <FieldBody>
+                <TextEdit @bind-Text="@AuthorName">
+                </TextEdit>
+            </FieldBody>
+        </Field>
+    </Column>
+</Row>
+<Row>
+    <Column ColumnSize="ColumnSize.IsHalf">
+        <Field >
+            <FieldLabel>Series Name</FieldLabel>
+            <FieldBody>
+                <TextEdit @bind-Text="@SeriesName"/>
+            </FieldBody>
+        </Field>
+    </Column>
+    <Column ColumnSize="ColumnSize.IsHalf">
+        <Field >
+            <FieldLabel>Order in series</FieldLabel>
+            <FieldBody>
+                <NumericPicker @bind-Value="OrderInSeries" Min="0" />
+            </FieldBody>
+        </Field>
+    </Column>
+</Row>
+<Row>
+    <Column ColumnSize="ColumnSize.IsFull">
+
+        <Field>
+            <FieldLabel>Description</FieldLabel>
+            <FieldBody>
+                <TextEdit @bind-Value="Description"/>
+            </FieldBody>
+        </Field>
+    </Column>
+</Row>
+<Row>
+    <Column ColumnSize="ColumnSize.IsFull">
+        <Field >
+            <FieldLabel>Upload files</FieldLabel>
+            <FieldBody>                
+                <FileEdit Changed="FilesSelected"></FileEdit>
+            </FieldBody>
+        </Field>
+    </Column>
+
+</Row>
+<Row>
+    <Column>
+
+        <Button Color="Color.Primary" Clicked="@SaveAndExit">
+            Save
+        </Button>
+
+    </Column>
+
+</Row>
