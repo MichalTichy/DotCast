@@ -3,7 +3,7 @@
 
 <h3>Upload Podcast</h3>
 <p>Enter podcast name</p>
-<TextEdit @bind-Value="PodcastName" />
+<TextEdit @bind-Text="PodcastName" />
 @if (!string.IsNullOrWhiteSpace(PodcastName))
 {
     <p>
