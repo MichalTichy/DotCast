@@ -68,7 +68,6 @@ namespace DotCast.App.Pages
         public async Task Save(PodcastInfo podcastInfo)
         {
             await PodcastInfoProvider.UpdatePodcastInfo(podcastInfo);
-            _ = PodcastDownloader.GenerateZip(Id, true);
         }
 
         private PodcastInfo BuildUpdatedData()
