@@ -23,6 +23,9 @@
     margin-left: auto;
     margin-right: auto;
     display: block;
+    max-width: 25%;
+    border: 2px solid black;
+    border-radius: 20px;
 }
 
 
@@ -30,6 +33,13 @@
     margin-right: auto;
     text-align: center;
     margin-left: auto;
+}
+
+.button {
+    color: black;
+}
+.button :hover {
+    color: #0000cd;
 }
 
 /*CARDS*/
@@ -70,7 +80,6 @@
     background-color: lightgrey;
     padding: 5px;
 }
-
 
 .card-body p {
     font-size: 13px;
