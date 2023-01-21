@@ -28,6 +28,17 @@
     border-radius: 20px;
 }
 
+.header {
+    font-size: 2em;
+    background-color: lightgrey;
+    padding: 5px 10px;
+}
+
+.header > div.stat {
+    width: 30%;
+    display: inline-block;
+    text-align: center;
+}
 
 .seriesDivider {
     margin-right: auto;

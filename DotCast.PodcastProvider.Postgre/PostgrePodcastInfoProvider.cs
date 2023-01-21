@@ -47,5 +47,11 @@ namespace DotCast.PodcastProvider.Postgre
         {
             return await repository.GetByIdAsync(id);
         }
+
+        public async Task<PodcastsStatistics> GetStatistics()
+        {
+            var podcasts = await GetPodcasts().ToListAsync();
+            return PodcastsStatistics.Create(podcasts);
+        }
     }
 }

@@ -6,11 +6,6 @@ namespace DotCast.PodcastProvider.Combined
     {
         private readonly List<IPodcastInfoProvider> providers = new();
 
-        public void AddProvider(IPodcastInfoProvider provider)
-        {
-            providers.Add(provider);
-        }
-
         public async IAsyncEnumerable<PodcastInfo> GetPodcasts(string? searchText = null)
         {
             var returnedIds = new List<string>();
@@ -49,6 +44,33 @@ namespace DotCast.PodcastProvider.Combined
             }
 
             return null;
+        }
+
+        public async Task<PodcastsStatistics> GetStatistics()
+        {
+            var tasks = providers.Select(t => t.GetStatistics()).ToArray();
+            await Task.WhenAll(tasks);
+
+            var max = 0;
+            PodcastsStatistics finalResult = null!;
+            foreach (var task in tasks)
+            {
+                var result = await task;
+                if (result.TotalCount <= max)
+                {
+                    continue;
+                }
+
+                max = result.TotalCount;
+                finalResult = result;
+            }
+
+            return finalResult;
+        }
+
+        public void AddProvider(IPodcastInfoProvider provider)
+        {
+            providers.Add(provider);
         }
     }
 }

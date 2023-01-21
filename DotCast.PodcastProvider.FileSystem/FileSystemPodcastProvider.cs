@@ -2,6 +2,7 @@
 using System.IO.Compression;
 using System.Text;
 using DotCast.PodcastProvider.Base;
+using DotCast.PodcastProvider.Postgre;
 using DotCast.RssGenerator.FromFiles;
 using Microsoft.Extensions.Options;
 using File = TagLib.File;
@@ -101,6 +102,12 @@ namespace DotCast.PodcastProvider.FileSystem
 
             return new PodcastInfo(directory.Name, feed.Title, feed.AuthorName ?? "Unknown author", null, 0, feed.Description, $"{settings.PodcastServerUrl}/podcast/{directory.Name}", feed.ImageUrl,
                 feed.Duration);
+        }
+
+        public async Task<PodcastsStatistics> GetStatistics()
+        {
+            var podcasts = await GetPodcasts().ToListAsync();
+            return PodcastsStatistics.Create(podcasts);
         }
 
         private ICollection<LocalFileInfo> GetFiles(string id, out DirectoryInfo directory)

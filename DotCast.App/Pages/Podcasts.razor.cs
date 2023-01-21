@@ -20,6 +20,8 @@ namespace DotCast.App.Pages
         [Inject]
         public NavigationManager NavigationManager { get; set; } = null!;
 
+        public PodcastsStatistics PodcastsStatistics { get; set; } = null!;
+
         public async Task Download(PodcastInfo info)
         {
             var url = await PodcastDownloader.GetZipDownloadUrl(info.Id);
@@ -35,16 +37,12 @@ namespace DotCast.App.Pages
         private async Task LoadData(string? filter = null)
         {
             Data = await PodcastInfoProvider.GetPodcasts(filter).ToListAsync();
+            PodcastsStatistics = await PodcastInfoProvider.GetStatistics();
         }
 
         private async Task SearchTextChanged(string text)
         {
             await LoadData(text);
-        }
-
-        private void Edit(PodcastInfo podcast)
-        {
-            NavigationManager.NavigateTo($"/podcast/{podcast.Id}/edit");
         }
     }
 }

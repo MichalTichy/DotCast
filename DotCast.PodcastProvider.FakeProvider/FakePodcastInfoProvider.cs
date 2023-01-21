@@ -1,5 +1,6 @@
 ﻿using Bogus;
 using DotCast.PodcastProvider.Base;
+using DotCast.PodcastProvider.Postgre;
 
 namespace DotCast.PodcastProvider.FakeProvider
 {
@@ -35,6 +36,12 @@ namespace DotCast.PodcastProvider.FakeProvider
             faker.RuleFor(info => info.Id, () => id);
             var result = faker.Generate();
             return Task.FromResult(result);
+        }
+
+        public async Task<PodcastsStatistics> GetStatistics()
+        {
+            var podcasts = await GetPodcasts().ToListAsync();
+            return PodcastsStatistics.Create(podcasts);
         }
     }
 }
