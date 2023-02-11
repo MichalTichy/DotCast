@@ -1,9 +1,11 @@
 ﻿using DotCast.PodcastProvider.Base;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 
 namespace DotCast.App.Pages
 {
+    [Authorize()]
     public partial class Podcasts
     {
         [Inject]
