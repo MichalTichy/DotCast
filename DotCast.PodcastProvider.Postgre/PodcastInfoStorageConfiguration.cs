@@ -8,7 +8,7 @@ namespace DotCast.PodcastProvider.Postgre
     {
         public void Configure(StoreOptions options)
         {
-            options.Schema.For<PodcastInfo>();
+            options.Schema.For<PodcastInfo>().FullTextIndex(info => info.Name, info => info.AuthorName, info => info.SeriesName!);
         }
     }
 }

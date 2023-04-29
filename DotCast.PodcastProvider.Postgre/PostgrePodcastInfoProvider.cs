@@ -15,7 +15,7 @@ namespace DotCast.PodcastProvider.Postgre
             }
 
             var normalizedSearchedText = SearchedText.ToLower();
-            return queryable.Where(t => PodcastFilter.Matches(t, normalizedSearchedText)).ToListAsync(cancellationToken);
+            return queryable.Where(t => t.PlainTextSearch(normalizedSearchedText)).ToListAsync(cancellationToken);
         }
     }
 
@@ -30,6 +30,7 @@ namespace DotCast.PodcastProvider.Postgre
 
         public async IAsyncEnumerable<PodcastInfo> GetPodcasts(string? searchText = null)
         {
+            searchText = string.IsNullOrWhiteSpace(searchText) ? null : searchText;
             var spec = new GetFilteredPodcasts(searchText);
             var result = await repository.ListAsync(spec);
             foreach (var podcastInfo in result)

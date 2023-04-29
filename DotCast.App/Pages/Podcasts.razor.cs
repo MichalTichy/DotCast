@@ -5,7 +5,7 @@ using Microsoft.JSInterop;
 
 namespace DotCast.App.Pages
 {
-    [Authorize()]
+    [Authorize]
     public partial class Podcasts
     {
         [Inject]
@@ -17,7 +17,7 @@ namespace DotCast.App.Pages
         [Inject]
         public IPodcastDownloader PodcastDownloader { get; set; } = null!;
 
-        public IEnumerable<PodcastInfo> Data { get; set; } = Array.Empty<PodcastInfo>();
+        public List<PodcastInfo> Data { get; set; } = new();
 
         [Inject]
         public NavigationManager NavigationManager { get; set; } = null!;
@@ -32,19 +32,29 @@ namespace DotCast.App.Pages
 
         protected override async Task OnInitializedAsync()
         {
-            await LoadData();
+            _ = Task.Run(async () =>
+            {
+                PodcastsStatistics = await PodcastInfoProvider.GetStatistics();
+                await LoadData();
+            });
             await base.OnInitializedAsync();
         }
 
         private async Task LoadData(string? filter = null)
         {
-            Data = await PodcastInfoProvider.GetPodcasts(filter).ToListAsync();
-            PodcastsStatistics = await PodcastInfoProvider.GetStatistics();
+            await foreach (var podcastInfo in PodcastInfoProvider.GetPodcasts(filter))
+            {
+                Data.Add(podcastInfo);
+                await InvokeAsync(StateHasChanged);
+            }
         }
 
-        private async Task SearchTextChanged(string text)
+        private Task SearchTextChanged(string text)
         {
-            await LoadData(text);
+            Data.Clear();
+            StateHasChanged();
+            _ = Task.Run(async () => await LoadData(text));
+            return Task.CompletedTask;
         }
     }
 }

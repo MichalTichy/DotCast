@@ -53,7 +53,16 @@ namespace DotCast.PodcastProvider.FileSystem
             foreach (var directory in baseDirectory.GetDirectories())
             {
                 var podcastInfo = await Get(directory.Name);
-                if (podcastInfo == null || (searchText != null && !PodcastFilter.Matches(podcastInfo, searchText)))
+                if (podcastInfo == null)
+                {
+                    continue;
+                }
+
+                var matchesSearchText = searchText == null ||
+                                        podcastInfo.Name.Contains(searchText) ||
+                                        podcastInfo.AuthorName.Contains(searchText) ||
+                                        (podcastInfo.SeriesName?.Contains(searchText) ?? false);
+                if (!matchesSearchText)
                 {
                     continue;
                 }

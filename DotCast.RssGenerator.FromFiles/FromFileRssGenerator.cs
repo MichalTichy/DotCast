@@ -24,6 +24,10 @@ namespace DotCast.RssGenerator.FromFiles
                 {
                     metadata = File.Create(file.LocalPath);
                 }
+                catch (KeyNotFoundException)
+                {
+                    continue;
+                }
                 catch (UnsupportedFormatException)
                 {
                     continue;
