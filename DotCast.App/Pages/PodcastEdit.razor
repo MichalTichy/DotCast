@@ -2,7 +2,7 @@
 
 <Image Class="CoverImage" src="@Image" />
 <Row>
-    <Rating ReadOnly="true" SelectedValue="@(Rating/20)" /> <br />
+    <Rating ReadOnly="true" SelectedValue="@((int)Math.Round(Rating / 20.0))" />
 </Row>
 
 <Row>
@@ -94,7 +94,7 @@
                         <div><span>@suggestion.SeriesName</span> - <span>@suggestion.OrderInSeries</span></div>
                     }
                     <p>@suggestion.Description</p>
-                    <Rating ReadOnly="true" SelectedValue="@(suggestion.PercentageRating/20)" /> <br />
+                    <Rating ReadOnly="true" SelectedValue="@((int)Math.Round(Rating / 20.0))" /> <br />
                     <Button Color="Color.Link" Clicked="@(() => Prefill(suggestion))">Select</Button>
                 </CardBody>
             </Card>

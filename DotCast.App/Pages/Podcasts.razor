@@ -55,8 +55,9 @@
                                 <p class="description" title="@podcast.Description">
                                     @podcast.Description
                                 </p>
-                                <Rating ReadOnly="true" SelectedValue="@(podcast.Rating/20)" />
-
+                                <div>
+                                    <Rating ReadOnly="true" SelectedValue="@((int)Math.Round(podcast.Rating / 20.0))"/> <span>@podcast.Rating %</span>
+                                </div>
                             </div>
                             <div class="c-card-footer">
                                 @if (podcast.Duration != null)
