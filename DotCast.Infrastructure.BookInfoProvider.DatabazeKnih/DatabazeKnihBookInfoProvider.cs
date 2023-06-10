@@ -20,7 +20,7 @@ namespace DotCast.Infrastructure.BookInfoProvider.DatabazeKnih
         {
             var page = await LoadPageAsync(bookSearchResult.Url);
             var title = page.QuerySelector("h1[itemprop=\"name\"]")?.TextContent;
-            var author = page.QuerySelector("#left_less > div > h2.jmenaautoru > span")?.TextContent;
+            var author = page.QuerySelector("#left_less > div > h2.jmenaautoru > span > a")?.TextContent;
             var description = page.QuerySelector("p[itemprop=\"description\"] >span.start_text")?.TextContent;
             description = RemoveWhitespace(description);
             var seriesName = page.QuerySelector("#bdetail_rest > div.detail_description > h3 > a")?.TextContent;
