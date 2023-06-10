@@ -37,7 +37,7 @@ namespace DotCast.Infrastructure.BookInfoProvider.DatabazeKnih
 
         private async IAsyncEnumerable<BookSearchResult> SearchAsync(string bookName)
         {
-            var htmlEncodedName = WebUtility.HtmlEncode(bookName);
+            var htmlEncodedName = bookName.Replace(" ", "+"); 
             var searchUrl = $"https://www.databazeknih.cz/search?q={htmlEncodedName}";
             var searchPage = await LoadPageAsync(searchUrl);
             var foundBooks = searchPage.QuerySelectorAll("#left_less > p.new");
