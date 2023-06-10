@@ -17,6 +17,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DotCast.Infrastructure.BookInfoProvider.Base\DotCast.Infrastructure.BookInfoProvider.Base.csproj" />
+    <ProjectReference Include="..\DotCast.Infrastructure.BookInfoProvider.DatabazeKnih\DotCast.Infrastructure.BookInfoProvider.DatabazeKnih.csproj" />
     <ProjectReference Include="..\DotCast.Infrastructure.Initializer\DotCast.Infrastructure.Initializer.csproj" />
     <ProjectReference Include="..\DotCast.Infrastructure.IoC\DotCast.Infrastructure.IoC.csproj" />
     <ProjectReference Include="..\DotCast.PodcastProvider.Combined\DotCast.PodcastProvider.Combined.csproj" />

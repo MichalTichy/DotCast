@@ -33,6 +33,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotCast.PodcastProvider.Pos
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotCast.PodcastProvider.Combined", "DotCast.PodcastProvider.Combined\DotCast.PodcastProvider.Combined.csproj", "{D256DC08-E898-4761-B2E9-B89929FF54BD}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BookInfoProvider", "BookInfoProvider", "{113B4B32-6B40-4595-A85D-D3BBFB8BBC75}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotCast.Infrastructure.BookInfoProvider.DatabazeKnih", "DotCast.Infrastructure.BookInfoProvider.DatabazeKnih\DotCast.Infrastructure.BookInfoProvider.DatabazeKnih.csproj", "{C10DDE31-6BDB-40C4-9674-3C08EFC4382E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotCast.Infrastructure.BookInfoProvider.Base", "DotCast.Infrastructure.BookInfoProvider.Base\DotCast.Infrastructure.BookInfoProvider.Base.csproj", "{4A5F2C45-73E9-4736-8C5C-E9D46495C4DD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -87,6 +93,14 @@ Global
 		{D256DC08-E898-4761-B2E9-B89929FF54BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D256DC08-E898-4761-B2E9-B89929FF54BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D256DC08-E898-4761-B2E9-B89929FF54BD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C10DDE31-6BDB-40C4-9674-3C08EFC4382E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C10DDE31-6BDB-40C4-9674-3C08EFC4382E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C10DDE31-6BDB-40C4-9674-3C08EFC4382E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C10DDE31-6BDB-40C4-9674-3C08EFC4382E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4A5F2C45-73E9-4736-8C5C-E9D46495C4DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A5F2C45-73E9-4736-8C5C-E9D46495C4DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A5F2C45-73E9-4736-8C5C-E9D46495C4DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A5F2C45-73E9-4736-8C5C-E9D46495C4DD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -103,6 +117,9 @@ Global
 		{999084CF-EBDF-4B4B-AEF6-74CCD09CA34B} = {62FBF550-C29D-4A5C-8DEC-158092F5C096}
 		{19546253-BD0F-47FD-8FB7-B3B326FAF611} = {029A7FF9-ADF9-4C81-ADC2-8681A8619BFE}
 		{D256DC08-E898-4761-B2E9-B89929FF54BD} = {029A7FF9-ADF9-4C81-ADC2-8681A8619BFE}
+		{113B4B32-6B40-4595-A85D-D3BBFB8BBC75} = {62FBF550-C29D-4A5C-8DEC-158092F5C096}
+		{C10DDE31-6BDB-40C4-9674-3C08EFC4382E} = {113B4B32-6B40-4595-A85D-D3BBFB8BBC75}
+		{4A5F2C45-73E9-4736-8C5C-E9D46495C4DD} = {113B4B32-6B40-4595-A85D-D3BBFB8BBC75}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FAF44170-540B-4E5C-B308-6D8775C657F1}

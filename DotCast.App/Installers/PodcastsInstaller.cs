@@ -1,3 +1,5 @@
+using DotCast.Infrastructure.BookInfoProvider.Base;
+using DotCast.Infrastructure.BookInfoProvider.DatabazeKnih;
 using DotCast.Infrastructure.IoC;
 using DotCast.PodcastProvider.Base;
 using DotCast.PodcastProvider.Combined;
@@ -26,6 +28,8 @@ namespace DotCast.App.Installers
             services.AddSingleton<IPodcastFeedProvider, FileSystemPodcastProvider>();
             services.AddSingleton<IPodcastDownloader, FileSystemPodcastProvider>();
             services.AddSingleton<IPodcastUploader, FileSystemPodcastProvider>();
+
+            services.AddSingleton<IBookInfoProvider, DatabazeKnihBookInfoProvider>();
 
             services.AddSingleton<FromFileRssGenerator>();
 

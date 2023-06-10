@@ -52,9 +52,11 @@
                                     <b>@podcast.SeriesName - @podcast.OrderInSeries</b>
                                 }
 
-                                <p>
+                                <p class="description" title="@podcast.Description">
                                     @podcast.Description
                                 </p>
+                                <Rating ReadOnly="true" SelectedValue="@(podcast.Rating/20)" />
+
                             </div>
                             <div class="c-card-footer">
                                 @if (podcast.Duration != null)

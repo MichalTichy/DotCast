@@ -110,7 +110,7 @@ namespace DotCast.PodcastProvider.FileSystem
             var feed = await rssGenerator.BuildFeed(rssGeneratorParams);
 
             return new PodcastInfo(directory.Name, feed.Title, feed.AuthorName ?? "Unknown author", null, 0, feed.Description, $"{settings.PodcastServerUrl}/podcast/{directory.Name}", feed.ImageUrl,
-                feed.Duration);
+                0,feed.Duration);
         }
 
         public async Task<PodcastsStatistics> GetStatistics()

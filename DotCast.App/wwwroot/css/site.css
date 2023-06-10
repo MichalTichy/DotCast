@@ -12,6 +12,12 @@
 .authors {
     padding-top: 10px;
 }
+.description {
+    width:90%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
 .authorLink > div {
     padding-left: 10px;
     padding-top: 3px;
@@ -117,6 +123,10 @@
     color: #545d7a;
 }
 
+div.suggestion{
+    margin-left:1vw;
+    width:25%;
+}
 /*CARDS*/
 #blazor-error-ui {
     position: fixed; /* Sit on top of the page content */

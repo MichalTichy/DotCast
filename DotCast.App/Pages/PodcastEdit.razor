@@ -1,7 +1,9 @@
 ﻿@page "/podcast/{Id}/edit"
 
 <Image Class="CoverImage" src="@Image" />
-
+<Row>
+    <Rating ReadOnly="true" SelectedValue="@(Rating/20)" /> <br />
+</Row>
 
 <Row>
     <Column ColumnSize="ColumnSize.IsHalf">
@@ -72,3 +74,30 @@
     </Column>
 
 </Row>
+
+@if (Suggestions.Count > 0)
+{
+    <hr/>
+    <b>Suggestions:</b>
+
+    <Row>
+        @foreach (var suggestion in Suggestions)
+        {
+        
+            <Card Class="suggestion">
+                <CardImage Source="@suggestion.ImgUrl" />
+                <CardBody>
+                    <h1>@suggestion.Title</h1>
+                    <b>@suggestion.Author</b>
+                    @if (!string.IsNullOrWhiteSpace(suggestion.SeriesName))
+                    {
+                        <div><span>@suggestion.SeriesName</span> - <span>@suggestion.OrderInSeries</span></div>
+                    }
+                    <p>@suggestion.Description</p>
+                    <Rating ReadOnly="true" SelectedValue="@(suggestion.PercentageRating/20)" /> <br />
+                    <Button Color="Color.Link" Clicked="@(() => Prefill(suggestion))">Select</Button>
+                </CardBody>
+            </Card>
+        }
+    </Row>
+}

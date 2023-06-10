@@ -22,7 +22,7 @@ namespace DotCast.PodcastProvider.FakeProvider
             return new Faker<PodcastInfo>().CustomInstantiator(faker =>
                 new PodcastInfo(faker.Random.Hash(), faker.Company.CompanyName(0), faker.Person.FullName, null, 0, faker.Company.CatchPhrase(), faker.Internet.Url(),
                     faker.Image.PlaceholderUrl(500, 500),
-                    TimeSpan.FromMinutes(faker.Random.Double(20, 400))));
+                    faker.Random.Number(100),TimeSpan.FromMinutes(faker.Random.Double(20, 400))));
         }
 
         public Task UpdatePodcastInfo(PodcastInfo podcastInfo)

@@ -9,5 +9,6 @@
         string? Description,
         string Url,
         string? ImageUrl,
+        int Rating,
         TimeSpan? Duration);
 }
