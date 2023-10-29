@@ -2,6 +2,7 @@ using System.Net;
 using AngleSharp;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
+using DotCast.AudioBookInfo;
 using DotCast.Infrastructure.BookInfoProvider.Base;
 
 namespace DotCast.Infrastructure.BookInfoProvider.DatabazeKnih
@@ -9,6 +10,7 @@ namespace DotCast.Infrastructure.BookInfoProvider.DatabazeKnih
     public class DatabazeKnihBookInfoProvider : IBookInfoProvider
     {
         private readonly Uri baseUri = new("https://www.databazeknih.cz/");
+        private readonly CategoryMapper CategoryMapper = new();
 
         public async IAsyncEnumerable<BookInfo> GetBookInfoAsync(string name)
         {
@@ -29,7 +31,23 @@ namespace DotCast.Infrastructure.BookInfoProvider.DatabazeKnih
             var noInSeries = page.QuerySelector("#bdetail_rest > div.detail_description > h3 > em")?.TextContent.Trim().TrimEnd('.') ?? "0";
             var imgUrl  = page.QuerySelector("#icover_mid > a > img")?.Attributes["src"]?.Value;
             var rating  = page.QuerySelector("#voixis > a.bpoints > div")?.Text()?.Replace("%","").Trim() ?? "0";
-            return new BookInfo(title, author, description, seriesName, int.Parse(noInSeries), imgUrl,int.Parse(rating));
+            var categoriesRaw = page.QuerySelectorAll("#bdetail_rest > div.detail_description > h5 > a").Select(t => t.Text().Trim()).ToList();
+
+            var categories = new List<Category>(categoriesRaw.Capacity);
+            foreach (var rawCategory in categoriesRaw)
+            {
+                var category = CategoryMapper.GetCategoryByCzechName(rawCategory);
+                if (category != null)
+                {
+                    categories.Add(category);
+                }
+                else
+                {
+                    Console.WriteLine($"Unknown category: {rawCategory}");
+                }
+            }
+
+            return new BookInfo(title, author, description, seriesName, int.Parse(noInSeries), imgUrl, int.Parse(rating), categories);
         }
 
         private string? RemoveWhitespace(string? input)

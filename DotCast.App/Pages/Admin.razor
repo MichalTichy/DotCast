@@ -1,27 +1,49 @@
 @page "/Admin"
 @using DotCast.App.Auth
 
-<h3>Upload AudioBook</h3>
-<p>Enter AudioBook name</p>
-<TextEdit @bind-Text="AudioBookName" />
-@if (!string.IsNullOrWhiteSpace(AudioBookName))
-{
-    <p>
-        <label>
-            <InputFile OnChange="@UploadFiles" multiple />
-        </label>
-    </p>
-}
-<p>@ErrorText</p>
-@foreach (var file in Files)
-{
-    @file.File.Name
-    <Progress Value="@file.UploadPercentage"> </Progress>
-}
-<hr />
-<Button Clicked="UnzipAll" Color="Color.Danger">
-    Unzip all AudioBooks.
+<PageProgress Visible="IsBusy" Value="ProgressBarTotal==null ? null: (100*ProgressBarCurrent)/ProgressBarTotal" />
+<Button Disabled="@IsBusy" Clicked="async () => await uploadModalRef.Show()" Color="Color.Success">
+    Upload new
 </Button>
-<Button Clicked="ZipAll" Color="Color.Danger">
+<hr />
+<Button Disabled="@IsBusy" Clicked="LoadFromFileSystem" Color="Color.Warning">
+    Load audiobooks from File system to database
+</Button>
+<Button Disabled="@IsBusy" Clicked="ZipAll" Color="Color.Warning ">
     Ensure all AudioBooks have zip versions.
 </Button>
+<Button Disabled="@IsBusy" Clicked="ReplaceInfo" Color="Color.Danger ">
+    Replace info for all audio books.
+</Button>
+
+
+
+<Modal @ref="uploadModalRef">
+    <ModalContent Centered>
+        <ModalHeader>
+            <ModalTitle>Upload AudioBook</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+            <h3></h3>
+            <p>Enter AudioBook name</p>
+            <TextEdit @bind-Text="AudioBookName" />
+            @if (!string.IsNullOrWhiteSpace(AudioBookName))
+            {
+                <p>
+                    <label>
+                        <InputFile Disabled="@IsBusy" OnChange="@UploadFiles" multiple />
+                    </label>
+                </p>
+            }
+            <p>@UploadErrorText</p>
+            
+
+            @foreach (var file in Files)
+            {
+                @file.File.Name
+                <Progress Value="@file.UploadPercentage"> </Progress>
+            }
+        </ModalBody>
+    </ModalContent>
+</Modal>

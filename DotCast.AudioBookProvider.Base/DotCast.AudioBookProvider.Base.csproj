@@ -10,4 +10,8 @@
     <PackageReference Include="Baseline" Version="3.2.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\DotCast.AudioBookInfo\DotCast.AudioBookInfo.csproj" />
+  </ItemGroup>
+
 </Project>

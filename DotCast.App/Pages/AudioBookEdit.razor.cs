@@ -1,4 +1,5 @@
 using Blazorise;
+using DotCast.AudioBookInfo;
 using DotCast.Infrastructure.BookInfoProvider.Base;
 using DotCast.AudioBookProvider.Base;
 using Microsoft.AspNetCore.Authorization;
@@ -19,8 +20,6 @@ namespace DotCast.App.Pages
         public IAudioBookUploader AudioBookUploader { get; set; } = null!;
 
         [Inject]
-        public IAudioBookDownloader AudioBookDownloader { get; set; } = null!;
-        [Inject]
         public IBookInfoProvider BookInfoProvider { get; set; } = null!;
 
         [Inject]
@@ -29,16 +28,12 @@ namespace DotCast.App.Pages
         [Parameter]
         public string Id { get; set; }
 
-        public AudioBookInfo Data { get; set; } = null!;
+        public AudioBook Data { get; set; } = new() {Id = "TMP", Name = "LOADING", AuthorName = "", Chapters = new List<Chapter>()};
 
-        public string Name { get; set; } = null!;
-        public string? SeriesName { get; set; }
-        public int OrderInSeries { get; set; }
-        public int Rating { get; set; }
-        public string AuthorName { get; set; } = null!;
-        public string? Image { get; set; }
-        public string? Description { get; set; }
         public List<BookInfo> Suggestions { get; set; } = new List<BookInfo>();
+
+        private Modal suggestionsModalRef = null!;
+
 
         protected override async Task OnInitializedAsync()
         {
@@ -49,68 +44,33 @@ namespace DotCast.App.Pages
         private async Task LoadData()
         {
             Data = await AudioBookInfoProvider.Get(Id) ?? throw new ArgumentException("Requested AudioBook not found");
-            InitDataProperties();
-            _ = Task.Run(async () =>
-            {
-                await LoadSuggestions();
-
-            });
+            _ = Task.Run(async () => await LoadSuggestions());
         }
 
-        private async Task LoadSuggestions()
+
+        public async Task Prefill(BookInfo suggestion)
         {
-            await foreach (var bookInfo in BookInfoProvider.GetBookInfoAsync(Data.Name))
-            {
-                Suggestions.Add(bookInfo);
-                await InvokeAsync(StateHasChanged);
-            }
+            Data.Name = suggestion.Title;
+            Data.AuthorName = suggestion.Author;
+            Data.SeriesName = suggestion.SeriesName;
+            Data.OrderInSeries = suggestion.OrderInSeries;
+            Data.Description = suggestion.Description;
+            Data.Rating = suggestion.PercentageRating;
+            await suggestionsModalRef.Close(CloseReason.None);
         }
 
-        public void Prefill(BookInfo suggestion)
-        {
-            Name = suggestion.Title;
-            AuthorName = suggestion.Author;
-            SeriesName = suggestion.SeriesName;
-            OrderInSeries= suggestion.OrderInSeries;
-            Description = suggestion.Description;
-            Rating = suggestion.PercentageRating;
-        }
-
-        private void InitDataProperties()
-        {
-            Name = Data.Name;
-            AuthorName = Data.AuthorName;
-            Image = Data.ImageUrl;
-            SeriesName = Data.SeriesName;
-            OrderInSeries = Data.OrderInSeries;
-            Description = Data.Description;
-            Rating = Data.Rating;
-        }
 
         public async Task SaveAndExit()
         {
-            var updatedData = BuildUpdatedData();
-            await Save(updatedData);
+            await Save();
             NavigationManager.NavigateTo("/");
         }
 
-        public async Task Save(AudioBookInfo AudioBookInfo)
+        public async Task Save()
         {
-            await AudioBookInfoProvider.UpdateAudioBookInfo(AudioBookInfo);
+            await AudioBookInfoProvider.UpdateAudioBook(Data);
         }
 
-        private AudioBookInfo BuildUpdatedData()
-        {
-            return Data with
-            {
-                Name = Name,
-                AuthorName = AuthorName,
-                SeriesName = !string.IsNullOrWhiteSpace(SeriesName) ? SeriesName : null,
-                OrderInSeries = OrderInSeries,
-                Description = !string.IsNullOrWhiteSpace(Description) ? Description : null,
-                Rating = Rating
-            };
-        }
 
         private async Task FilesSelected(FileChangedEventArgs e)
         {
@@ -126,10 +86,24 @@ namespace DotCast.App.Pages
         private async Task ResetImageUrl()
         {
             var feedCover = await AudioBookFeedProvider.GetFeedCover(Id);
-            var updatedData = Data with {ImageUrl = feedCover};
-            await Save(updatedData);
-            Data = updatedData;
-            Image = Data.ImageUrl;
+            Data.ImageUrl = feedCover;
+        }
+
+        private async Task LoadSuggestions()
+        {
+            await foreach (var bookInfo in BookInfoProvider.GetBookInfoAsync(Data.Name))
+            {
+                Suggestions.Add(bookInfo);
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+
+        private void ChapterOrderChanged(DraggableDroppedEventArgs<Chapter> obj)
+        {
+            var newIndex = obj.IndexInZone;
+            var chapter = obj.Item;
+            Data.Chapters.Remove(chapter);
+            Data.Chapters.Insert(newIndex, chapter);
         }
     }
 }

@@ -1,8 +1,9 @@
 using System.Globalization;
 using System.IO.Compression;
 using System.Text;
+using DotCast.AudioBookInfo;
 using DotCast.AudioBookProvider.Base;
-using DotCast.AudioBookProvider.Postgre;
+using DotCast.RssGenerator.Base;
 using DotCast.RssGenerator.FromFiles;
 using Microsoft.Extensions.Options;
 using File = TagLib.File;
@@ -30,13 +31,13 @@ namespace DotCast.AudioBookProvider.FileSystem
 
         private RssFromFileParams GetFeedParams(string id)
         {
-            var AudioBookName = GetNormalizedName(id);
+            var audioBookName = GetNormalizedName(id);
 
-            var AudioBookPath = Path.Combine(settings.AudioBooksLocation, id);
-            var directory = new DirectoryInfo(AudioBookPath);
+            var audioBookPath = Path.Combine(settings.AudioBooksLocation, id);
+            var directory = new DirectoryInfo(audioBookPath);
             var filePaths = directory.GetFiles().Select(t => new LocalFileInfo(t.FullName, GetFileUrl(t.Directory!.Name, t.Name))).ToArray();
 
-            var rssGeneratorParams = new RssFromFileParams(AudioBookName, filePaths);
+            var rssGeneratorParams = new RssFromFileParams(audioBookName, filePaths);
             return rssGeneratorParams;
         }
 
@@ -47,47 +48,47 @@ namespace DotCast.AudioBookProvider.FileSystem
             return feed.ImageUrl;
         }
 
-        public async IAsyncEnumerable<AudioBookInfo> GetAudioBooks(string? searchText = null)
+        public async IAsyncEnumerable<AudioBook> GetAudioBooks(string? searchText = null)
         {
             var baseDirectory = new DirectoryInfo(settings.AudioBooksLocation);
             foreach (var directory in baseDirectory.GetDirectories())
             {
-                var AudioBookInfo = await Get(directory.Name);
-                if (AudioBookInfo == null)
+                var audioBook = await Get(directory.Name);
+                if (audioBook == null)
                 {
                     continue;
                 }
 
                 var matchesSearchText = searchText == null ||
-                                        AudioBookInfo.Name.Contains(searchText) ||
-                                        AudioBookInfo.AuthorName.Contains(searchText) ||
-                                        (AudioBookInfo.SeriesName?.Contains(searchText) ?? false);
+                                        audioBook.Name.Contains(searchText) ||
+                                        audioBook.AuthorName.Contains(searchText) ||
+                                        (audioBook.SeriesName?.Contains(searchText) ?? false);
                 if (!matchesSearchText)
                 {
                     continue;
                 }
 
-                yield return AudioBookInfo;
+                yield return audioBook;
             }
         }
 
-        public Task UpdateAudioBookInfo(AudioBookInfo AudioBookInfo)
+        public Task UpdateAudioBook(AudioBook audioBook)
         {
             _ = Task.Run(() =>
             {
-                var localFileInfos = GetFiles(AudioBookInfo.Id, out _);
+                var localFileInfos = GetFiles(audioBook.Id, out _);
                 foreach (var localFileInfo in localFileInfos)
                 {
                     try
                     {
                         var file = File.Create(localFileInfo.LocalPath);
-                        file.Tag.Album = AudioBookInfo.Name;
-                        file.Tag.Performers = new[] {AudioBookInfo.AuthorName};
+                        file.Tag.Album = audioBook.Name;
+                        file.Tag.Performers = new[] {audioBook.AuthorName};
 
-                        file.Tag.Grouping = AudioBookInfo.SeriesName;
-                        file.Tag.TitleSort = AudioBookInfo.OrderInSeries.ToString();
+                        file.Tag.Grouping = audioBook.SeriesName;
+                        file.Tag.TitleSort = audioBook.OrderInSeries.ToString();
 
-                        file.Tag.Description = AudioBookInfo.Description;
+                        file.Tag.Description = audioBook.Description;
 
                         file.Save();
                     }
@@ -101,7 +102,7 @@ namespace DotCast.AudioBookProvider.FileSystem
             return Task.CompletedTask;
         }
 
-        public async Task<AudioBookInfo?> Get(string id)
+        public async Task<AudioBook?> Get(string id)
         {
             var filePaths = GetFiles(id, out var directory);
 
@@ -109,14 +110,26 @@ namespace DotCast.AudioBookProvider.FileSystem
 
             var feed = await rssGenerator.BuildFeed(rssGeneratorParams);
 
-            return new AudioBookInfo(directory.Name, feed.Title, feed.AuthorName ?? "Unknown author", null, 0, feed.Description, $"{settings.AudioBookServerUrl}/AudioBook/{directory.Name}", feed.ImageUrl,
-                0,feed.Duration);
+
+            return new AudioBook
+            {
+                Id = id,
+                Name = feed.Title,
+                AuthorName = feed.AuthorName ?? "Unknown author",
+                Description = feed.Description,
+                ImageUrl = feed.ImageUrl,
+                OrderInSeries = 0,
+                Rating = 0,
+                SeriesName = null,
+                Url = $"{settings.AudioBookServerUrl}/AudioBook/{directory.Name}",
+                Chapters = feed.Episodes.Select(t => new Chapter {Name = t.Title, Url = t.FileUrl, Duration = t.Duration}).ToList()
+            };
         }
 
         public async Task<AudioBooksStatistics> GetStatistics()
         {
-            var AudioBooks = await GetAudioBooks().ToListAsync();
-            return AudioBooksStatistics.Create(AudioBooks);
+            var audioBooks = await GetAudioBooks().ToListAsync();
+            return AudioBooksStatistics.Create(audioBooks);
         }
 
         private ICollection<LocalFileInfo> GetFiles(string id, out DirectoryInfo directory)
@@ -174,16 +187,16 @@ namespace DotCast.AudioBookProvider.FileSystem
         }
 
 
-        public async Task GenerateZip(string AudioBookId, bool replace = false)
+        public async Task GenerateZipForDownload(string audioBookId, bool replace = false)
         {
-            var path = GetAudioBookZipPath(AudioBookId);
+            var path = GetAudioBookZipPath(audioBookId);
             if (!replace && System.IO.File.Exists(path))
             {
                 return;
             }
 
-            var AudioBookDirectory = GetAudioBookDirectory(AudioBookId);
-            var files = Directory.GetFiles(AudioBookDirectory);
+            var audioBookDirectory = GetAudioBookDirectory(audioBookId);
+            var files = Directory.GetFiles(audioBookDirectory);
 
             var tmpSuffix = ".tmp";
 
@@ -206,28 +219,28 @@ namespace DotCast.AudioBookProvider.FileSystem
         }
 
 
-        public bool IsDownloadSupported(string AudioBookId)
+        public bool IsDownloadSupported(string audioBookId)
         {
-            return System.IO.File.Exists(GetAudioBookZipPath(AudioBookId));
+            return System.IO.File.Exists(GetAudioBookZipPath(audioBookId));
         }
 
-        public Task<string> GetZipDownloadUrl(string AudioBookId)
+        public Task<string> GetZipDownloadUrl(string audioBookId)
         {
-            var AudioBookZipPath = GetAudioBookZipPath(AudioBookId);
+            var audioBookZipPath = GetAudioBookZipPath(audioBookId);
 
-            if (!System.IO.File.Exists(AudioBookZipPath))
+            if (!System.IO.File.Exists(audioBookZipPath))
             {
                 throw new ArgumentException("Unable to find requested zip");
             }
 
-            var fileName = Path.GetFileName(AudioBookZipPath);
+            var fileName = Path.GetFileName(audioBookZipPath);
             return Task.FromResult(GetZipUrl(fileName));
         }
 
-        public FileStream GetAudioBookFileWriteStream(string AudioBookName, string fileName, string fileContentType, out string AudioBookId)
+        public FileStream GetAudioBookFileWriteStream(string audioBookName, string fileName, string fileContentType, out string audioBookId)
         {
-            AudioBookId = GetEscapedName(AudioBookName);
-            var finalDirectoryPath = GetAudioBookDirectory(AudioBookId);
+            audioBookId = GetEscapedName(audioBookName);
+            var finalDirectoryPath = GetAudioBookDirectory(audioBookId);
             var targetFileName = GetEscapedName(fileName);
             var fileFilePath = Path.Combine(finalDirectoryPath, targetFileName);
             if (!Directory.Exists(finalDirectoryPath))
@@ -238,11 +251,11 @@ namespace DotCast.AudioBookProvider.FileSystem
             return new FileStream(fileFilePath, FileMode.Create);
         }
 
-        public FileStream GetAudioBookZipWriteStream(string AudioBookName, out string AudioBookId)
+        public FileStream GetAudioBookZipWriteStream(string audioBookName, out string audioBookId)
         {
-            AudioBookId = GetEscapedName(AudioBookName);
+            audioBookId = GetEscapedName(audioBookName);
 
-            var path = GetAudioBookZipPath(AudioBookId);
+            var path = GetAudioBookZipPath(audioBookId);
 
             return GetAudioBookZipWriteStream(path);
         }
@@ -263,28 +276,28 @@ namespace DotCast.AudioBookProvider.FileSystem
         }
 
 
-        public Task UnzipAudioBook(string AudioBookId)
+        public Task UnzipAudioBook(string audioBookId)
         {
             try
             {
-                var AudioBookZipPath = GetAudioBookZipPath(AudioBookId);
-                if (!System.IO.File.Exists(AudioBookZipPath))
+                var audioBookZipPath = GetAudioBookZipPath(audioBookId);
+                if (!System.IO.File.Exists(audioBookZipPath))
                 {
                     throw new ArgumentException("Provided zip could not be found!");
                 }
 
-                var AudioBookDirectory = GetAudioBookDirectory(AudioBookId);
-                if (Directory.Exists(AudioBookDirectory))
+                var audioBookDirectory = GetAudioBookDirectory(audioBookId);
+                if (Directory.Exists(audioBookDirectory))
                 {
-                    Directory.Delete(AudioBookZipPath, true);
+                    Directory.Delete(audioBookZipPath, true);
                 }
 
-                Directory.CreateDirectory(AudioBookDirectory);
+                Directory.CreateDirectory(audioBookDirectory);
 
 
-                var zipStream = GetAudioBookZipStream(AudioBookZipPath, FileMode.Open);
+                var zipStream = GetAudioBookZipStream(audioBookZipPath, FileMode.Open);
                 using var archive = new ZipArchive(zipStream, ZipArchiveMode.Read);
-                archive.ExtractToDirectory(AudioBookDirectory, true);
+                archive.ExtractToDirectory(audioBookDirectory, true);
                 return Task.CompletedTask;
             }
             catch (Exception e)
@@ -294,16 +307,16 @@ namespace DotCast.AudioBookProvider.FileSystem
             }
         }
 
-        private string GetAudioBookDirectory(string AudioBookId)
+        private string GetAudioBookDirectory(string audioBookId)
         {
-            var targetDirectoryName = AudioBookId;
+            var targetDirectoryName = audioBookId;
             var finalDirectoryPath = Path.Combine(options.Value.AudioBooksLocation, targetDirectoryName);
             return finalDirectoryPath;
         }
 
-        private string GetAudioBookZipPath(string AudioBookId)
+        private string GetAudioBookZipPath(string audioBookId)
         {
-            var targetFileName = AudioBookId;
+            var targetFileName = audioBookId;
             var fileFilePath = Path.Combine(options.Value.ZippedAudioBooksLocation, targetFileName);
             return $"{fileFilePath}.zip";
         }

@@ -4,8 +4,8 @@ namespace DotCast.AudioBookProvider.Base
     {
         IEnumerable<string> GetAudioBookIdsAvailableForDownload();
 
-        bool IsDownloadSupported(string AudioBookId);
-        Task<string> GetZipDownloadUrl(string AudioBookId);
-        Task GenerateZip(string AudioBookId, bool replace = false);
+        bool IsDownloadSupported(string audioBookId);
+        Task<string> GetZipDownloadUrl(string audioBookId);
+        Task GenerateZipForDownload(string audioBookId, bool replace = false);
     }
 }

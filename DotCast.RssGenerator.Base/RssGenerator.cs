@@ -92,11 +92,11 @@ namespace DotCast.RssGenerator.Base
             // iTunes category
             // Start itunes:category
             writer.WriteStartElement("category", itunesUri);
-            writer.WriteAttributeString("text", feed.ITunesCategory);
+            writer.WriteAttributeString("text", feed.TunesCategory);
 
             // Start itunes:category
             writer.WriteStartElement("category", itunesUri);
-            writer.WriteAttributeString("text", feed.ITunesSubCategory);
+            writer.WriteAttributeString("text", feed.TunesSubCategory);
             // End itunes:category
             writer.WriteEndElement();
 

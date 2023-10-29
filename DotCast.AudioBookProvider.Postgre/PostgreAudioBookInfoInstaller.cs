@@ -9,6 +9,8 @@ namespace DotCast.AudioBookProvider.Postgre
     {
         public void Install(IServiceCollection services, IConfiguration configuration, bool isProduction)
         {
+            services.AddTransient<PostgreAudioBookInfoProvider>();
+
             services.AddTransient<IStorageConfiguration, AudioBookInfoStorageConfiguration>();
         }
     }

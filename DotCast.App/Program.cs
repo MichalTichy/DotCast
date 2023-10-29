@@ -1,4 +1,5 @@
 using System.Net;
+using DotCast.App.Middlewares;
 using DotCast.Infrastructure.Initializer;
 using DotCast.Infrastructure.IoC;
 using DotCast.AudioBookProvider.FileSystem;
@@ -32,7 +33,7 @@ namespace DotCast.App
             }
 
             app.UseHttpsRedirection();
-
+            app.UseMiddleware<LegacyUrlRedirectMiddleware>();
             app.UseStaticFiles();
 
             app.UseRouting();

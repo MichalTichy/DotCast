@@ -123,7 +123,11 @@ body {
     color: #545d7a;
 }
 
-div.suggestion{
+.suggestions{
+    display:flex;
+    flex-wrap:wrap;
+}
+.suggestion{
     margin-left:1vw;
     width:25%;
 }

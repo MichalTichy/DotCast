@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DotCast.AudioBookProvider.Base\DotCast.AudioBookProvider.Base.csproj" />
+    <ProjectReference Include="..\DotCast.Infrastructure.IoC\DotCast.Infrastructure.IoC.csproj" />
     <ProjectReference Include="..\DotCast.RssGenerator.FromFiles\DotCast.RssGenerator.FromFiles.csproj" />
   </ItemGroup>
 

@@ -1,8 +1,22 @@
+@using DotCast.AudioBookProvider.Base
+@using DotCast.AudioBookInfo
 @page "/AudioBook/{Id}/edit"
 
-<Image Class="CoverImage" src="@Image" />
 <Row>
-    <Rating ReadOnly="true" SelectedValue="@((int)Math.Round(Rating / 20.0))" />
+    <Column>
+
+        <Button Color="Color.Info" Clicked="async () => await suggestionsModalRef.Show()">
+            Suggestions
+        </Button>
+        <Button Color="Color.Primary" Clicked="@SaveAndExit">
+            Save
+        </Button>
+
+    </Column>
+</Row>
+<Image Class="CoverImage" src="@Data.ImageUrl" />
+<Row>
+    <Rating ReadOnly="true" SelectedValue="@((int)Math.Round(Data.Rating / 20.0))" />
 </Row>
 
 <Row>
@@ -10,7 +24,7 @@
     <Field >
         <FieldLabel>Name</FieldLabel>
         <FieldBody>
-            <TextEdit @bind-Text="@Name"/>
+            <TextEdit @bind-Text="@Data.Name"/>
         </FieldBody>
     </Field>
     </Column>
@@ -18,7 +32,7 @@
         <Field >
             <FieldLabel>Author</FieldLabel>
             <FieldBody>
-                <TextEdit @bind-Text="@AuthorName">
+                <TextEdit @bind-Text="@Data.AuthorName">
                 </TextEdit>
             </FieldBody>
         </Field>
@@ -29,7 +43,7 @@
         <Field >
             <FieldLabel>Series Name</FieldLabel>
             <FieldBody>
-                <TextEdit @bind-Text="@SeriesName"/>
+                <TextEdit @bind-Text="@Data.SeriesName" />
             </FieldBody>
         </Field>
     </Column>
@@ -37,7 +51,7 @@
         <Field >
             <FieldLabel>Order in series</FieldLabel>
             <FieldBody>
-                <NumericPicker @bind-Value="OrderInSeries" Min="0" />
+                <NumericPicker @bind-Value="Data.OrderInSeries" Min="0" />
             </FieldBody>
         </Field>
     </Column>
@@ -48,7 +62,7 @@
         <Field>
             <FieldLabel>Description</FieldLabel>
             <FieldBody>
-                <TextEdit @bind-Text="Description"/>
+                <TextEdit @bind-Text="Data.Description" />
             </FieldBody>
         </Field>
     </Column>
@@ -64,40 +78,56 @@
     </Column>
 
 </Row>
+
 <Row>
-    <Column>
-
-        <Button Color="Color.Primary" Clicked="@SaveAndExit">
-            Save
-        </Button>
-
-    </Column>
-
-</Row>
-
-@if (Suggestions.Count > 0)
-{
-    <hr/>
-    <b>Suggestions:</b>
-
-    <Row>
-        @foreach (var suggestion in Suggestions)
+    <Column ColumnSize="ColumnSize.IsFull">
+        @if (Data?.Chapters.Count > 0)
         {
-        
-            <Card Class="suggestion">
-                <CardImage Source="@suggestion.ImgUrl" />
-                <CardBody>
-                    <h1>@suggestion.Title</h1>
-                    <b>@suggestion.Author</b>
-                    @if (!string.IsNullOrWhiteSpace(suggestion.SeriesName))
-                    {
-                        <div><span>@suggestion.SeriesName</span> - <span>@suggestion.OrderInSeries</span></div>
-                    }
-                    <p>@suggestion.Description</p>
-                    <Rating ReadOnly="true" SelectedValue="@((int)Math.Round(Rating / 20.0))" /> <br />
-                    <Button Color="Color.Link" Clicked="@(() => Prefill(suggestion))">Select</Button>
-                </CardBody>
-            </Card>
+            <DropContainer TItem="Chapter" Items="@Data.Chapters" ItemsFilter="@((item, dropZone) => true)" ItemDropped="@ChapterOrderChanged" Flex="Flex.Wrap.Grow.Is1">
+                <ChildContent>
+       
+                    <DropZone TItem="Chapter" Name="Chapters" AllowReorder Padding="Padding.Is3" Margin="Margin.Is3" Flex="Flex.Grow.Is1">
+                        <Heading Size="HeadingSize.Is4" Margin="Margin.Is3.FromBottom">Chapters</Heading>
+                    </DropZone>
+                </ChildContent>
+                <ItemTemplate>
+                    <Card Shadow="Shadow.Default" Margin="Margin.Is3.OnY">
+                        <CardBody>
+                            @context.Name
+                        </CardBody>
+                    </Card>
+                </ItemTemplate>
+            </DropContainer>
         }
-    </Row>
-}
+    </Column>
+</Row>
+<Modal @ref="suggestionsModalRef" >
+    <ModalContent Centered Size="ModalSize.Fullscreen">
+        <ModalHeader>
+            <ModalTitle>Suggestions</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+            <div class="suggestions">
+                @foreach (var suggestion in Suggestions)
+                {
+
+                    <Card Class="suggestion">
+                        <CardImage Source="@suggestion.ImgUrl"/>
+                        <CardBody>
+                            <h1>@suggestion.Title</h1>
+                            <b>@suggestion.Author</b>
+                            @if (!string.IsNullOrWhiteSpace(suggestion.SeriesName))
+                            {
+                                <div><span>@suggestion.SeriesName</span> - <span>@suggestion.OrderInSeries</span></div>
+                            }
+                            <p>@suggestion.Description</p>
+                            <Rating ReadOnly="true" SelectedValue="@((int) Math.Round(Data.Rating / 20.0))"/> <br/>
+                            <Button Color="Color.Link" Clicked="@(async () => await Prefill(suggestion))">Select</Button>
+                        </CardBody>
+                    </Card>
+                }
+            </div>
+        </ModalBody>
+    </ModalContent>
+</Modal>

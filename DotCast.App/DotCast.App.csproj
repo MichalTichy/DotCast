@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
@@ -21,7 +21,6 @@
     <ProjectReference Include="..\DotCast.Infrastructure.BookInfoProvider.DatabazeKnih\DotCast.Infrastructure.BookInfoProvider.DatabazeKnih.csproj" />
     <ProjectReference Include="..\DotCast.Infrastructure.Initializer\DotCast.Infrastructure.Initializer.csproj" />
     <ProjectReference Include="..\DotCast.Infrastructure.IoC\DotCast.Infrastructure.IoC.csproj" />
-    <ProjectReference Include="..\DotCast.AudioBookProvider.Combined\DotCast.AudioBookProvider.Combined.csproj" />
     <ProjectReference Include="..\DotCast.AudioBookProvider.FileSystem\DotCast.AudioBookProvider.FileSystem.csproj" />
     <ProjectReference Include="..\DotCast.AudioBookProvider.Postgre\DotCast.AudioBookProvider.Postgre.csproj" />
   </ItemGroup>

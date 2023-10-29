@@ -1,3 +1,4 @@
+using DotCast.AudioBookInfo;
 using DotCast.AudioBookProvider.Base;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
@@ -17,14 +18,14 @@ namespace DotCast.App.Pages
         [Inject]
         public IAudioBookDownloader AudioBookDownloader { get; set; } = null!;
 
-        public List<AudioBookInfo> Data { get; set; } = new();
+        public List<AudioBook> Data { get; set; } = new();
 
         [Inject]
         public NavigationManager NavigationManager { get; set; } = null!;
 
         public AudioBooksStatistics AudioBooksStatistics { get; set; } = null!;
 
-        public async Task Download(AudioBookInfo info)
+        public async Task Download(AudioBook info)
         {
             var url = await AudioBookDownloader.GetZipDownloadUrl(info.Id);
             await Js.InvokeAsync<object>("open", url, "_blank");
@@ -42,9 +43,9 @@ namespace DotCast.App.Pages
 
         private async Task LoadData(string? filter = null)
         {
-            await foreach (var AudioBookInfo in AudioBookInfoProvider.GetAudioBooks(filter))
+            await foreach (var audioBook in AudioBookInfoProvider.GetAudioBooks(filter))
             {
-                Data.Add(AudioBookInfo);
+                Data.Add(audioBook);
                 await InvokeAsync(StateHasChanged);
             }
         }

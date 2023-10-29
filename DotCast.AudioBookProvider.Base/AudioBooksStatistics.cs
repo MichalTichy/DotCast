@@ -1,14 +1,16 @@
+using DotCast.AudioBookInfo;
+
 namespace DotCast.AudioBookProvider.Base
 {
     public record AudioBooksStatistics(int TotalCount, int AuthorCount, TimeSpan TotalDuration)
     {
-        public static AudioBooksStatistics Create(ICollection<AudioBookInfo> AudioBookInfos)
+        public static AudioBooksStatistics Create(ICollection<AudioBook> audioBooks)
         {
-            var AudioBookCount = AudioBookInfos.Count;
-            var authorCount = AudioBookInfos.Select(t => t.AuthorName).Distinct().Count();
-            var totalMinutes = AudioBookInfos.Sum(t => t.Duration?.TotalMinutes ?? 0);
+            var audioBookCount = audioBooks.Count;
+            var authorCount = audioBooks.Select(t => t.AuthorName).Distinct().Count();
+            var totalMinutes = audioBooks.Sum(t => t.Duration.TotalMinutes);
             var totalDuration = TimeSpan.FromMinutes(totalMinutes);
-            return new AudioBooksStatistics(AudioBookCount, authorCount, totalDuration);
+            return new AudioBooksStatistics(audioBookCount, authorCount, totalDuration);
         }
     }
 }

@@ -1,10 +1,12 @@
+using DotCast.AudioBookInfo;
+
 namespace DotCast.AudioBookProvider.Base
 {
     public interface IAudioBookInfoProvider
     {
-        IAsyncEnumerable<AudioBookInfo> GetAudioBooks(string? searchText = null);
-        Task UpdateAudioBookInfo(AudioBookInfo AudioBookInfo);
-        Task<AudioBookInfo?> Get(string id);
+        IAsyncEnumerable<AudioBook> GetAudioBooks(string? searchText = null);
+        Task UpdateAudioBook(AudioBook audioBook);
+        Task<AudioBook?> Get(string id);
         Task<AudioBooksStatistics> GetStatistics();
     }
 }

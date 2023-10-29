@@ -1,58 +1,43 @@
+using DotCast.AudioBookInfo;
 using DotCast.Infrastructure.Persistence.Base.Repositories;
-using DotCast.Infrastructure.Persistence.Base.Specifications;
 using DotCast.AudioBookProvider.Base;
-using Marten;
 
 namespace DotCast.AudioBookProvider.Postgre
 {
-    public record GetFilteredAudioBooks(string? SearchedText) : IListSpecification<AudioBookInfo>
-    {
-        public Task<IReadOnlyList<AudioBookInfo>> ApplyAsync(IQueryable<AudioBookInfo> queryable, CancellationToken cancellationToken = default)
-        {
-            if (SearchedText == null)
-            {
-                return queryable.ToListAsync(cancellationToken);
-            }
-
-            var normalizedSearchedText = SearchedText.ToLower();
-            return queryable.Where(t => t.PlainTextSearch(normalizedSearchedText)).ToListAsync(cancellationToken);
-        }
-    }
-
     public class PostgreAudioBookInfoProvider : IAudioBookInfoProvider
     {
-        private readonly IRepository<AudioBookInfo> repository;
+        private readonly IRepository<AudioBook> repository;
 
-        public PostgreAudioBookInfoProvider(IRepository<AudioBookInfo> repository)
+        public PostgreAudioBookInfoProvider(IRepository<AudioBook> repository)
         {
             this.repository = repository;
         }
 
-        public async IAsyncEnumerable<AudioBookInfo> GetAudioBooks(string? searchText = null)
+        public async IAsyncEnumerable<AudioBook> GetAudioBooks(string? searchText = null)
         {
             searchText = string.IsNullOrWhiteSpace(searchText) ? null : searchText;
             var spec = new GetFilteredAudioBooks(searchText);
             var result = await repository.ListAsync(spec);
-            foreach (var AudioBookInfo in result)
+            foreach (var audioBook in result)
             {
-                yield return AudioBookInfo;
+                yield return audioBook;
             }
         }
 
-        public async Task UpdateAudioBookInfo(AudioBookInfo AudioBookInfo)
+        public async Task UpdateAudioBook(AudioBook audioBook)
         {
-            await repository.StoreAsync(AudioBookInfo);
+            await repository.StoreAsync(audioBook);
         }
 
-        public async Task<AudioBookInfo?> Get(string id)
+        public async Task<AudioBook?> Get(string id)
         {
             return await repository.GetByIdAsync(id);
         }
 
         public async Task<AudioBooksStatistics> GetStatistics()
         {
-            var AudioBooks = await GetAudioBooks().ToListAsync();
-            return AudioBooksStatistics.Create(AudioBooks);
+            var audioBooks = await GetAudioBooks().ToListAsync();
+            return AudioBooksStatistics.Create(audioBooks);
         }
     }
 }

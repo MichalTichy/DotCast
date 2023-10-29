@@ -31,9 +31,9 @@ namespace DotCast.RssGenerator.Base
 
         public ICollection<string>? Categories { get; set; }
 
-        public string? ITunesCategory { get; set; }
+        public string? TunesCategory { get; set; }
 
-        public string? ITunesSubCategory { get; set; }
+        public string? TunesSubCategory { get; set; }
 
         public bool IsExplicit { get; set; }
 
