@@ -8,6 +8,8 @@ namespace DotCast.Infrastructure.BookInfoProvider.DatabazeKnih
 {
     public class DatabazeKnihBookInfoProvider : IBookInfoProvider
     {
+        private readonly Uri baseUri = new("https://www.databazeknih.cz/");
+
         public async IAsyncEnumerable<BookInfo> GetBookInfoAsync(string name)
         {
             await foreach (var foundBook in SearchAsync(name))
@@ -37,8 +39,8 @@ namespace DotCast.Infrastructure.BookInfoProvider.DatabazeKnih
 
         private async IAsyncEnumerable<BookSearchResult> SearchAsync(string bookName)
         {
-            var htmlEncodedName = bookName.Replace(" ", "+"); 
-            var searchUrl = $"https://www.databazeknih.cz/search?q={htmlEncodedName}";
+            var htmlEncodedName = bookName.Replace(" ", "+");
+            var searchUrl = new Uri(baseUri, $"/search?q={htmlEncodedName}").ToString();
             var searchPage = await LoadPageAsync(searchUrl);
             var foundBooks = searchPage.QuerySelectorAll("#left_less > p.new");
 
@@ -51,9 +53,10 @@ namespace DotCast.Infrastructure.BookInfoProvider.DatabazeKnih
                 }
                 var title = link?.Text();
                 var url = link?.GetAttribute("href");
+
                 if (!string.IsNullOrWhiteSpace(url))
                 {
-                    url = $"https://www.databazeknih.cz/{url}";
+                    url = new Uri(baseUri, url).ToString();
                 }
                 var additionalInfo = foundBook.Children.OfType<IHtmlSpanElement>().FirstOrDefault()?.TextContent;
                 if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(url))
