@@ -1,6 +1,6 @@
-﻿namespace DotCast.PodcastProvider.Base
+namespace DotCast.AudioBookProvider.Base
 {
-    public interface IPodcastFeedProvider
+    public interface IAudioBookFeedProvider
     {
         Task<string> GetRss(string id);
         Task<string?> GetFeedCover(string id);

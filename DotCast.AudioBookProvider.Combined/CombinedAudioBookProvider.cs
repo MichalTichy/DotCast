@@ -1,18 +1,18 @@
-﻿using DotCast.PodcastProvider.Base;
+using DotCast.AudioBookProvider.Base;
 
-namespace DotCast.PodcastProvider.Combined
+namespace DotCast.AudioBookProvider.Combined
 {
-    public class CombinedPodcastProvider : IPodcastInfoProvider
+    public class CombinedAudioBookProvider : IAudioBookInfoProvider
     {
-        private readonly List<IPodcastInfoProvider> providers = new();
+        private readonly List<IAudioBookInfoProvider> providers = new();
 
-        public async IAsyncEnumerable<PodcastInfo> GetPodcasts(string? searchText = null)
+        public async IAsyncEnumerable<AudioBookInfo> GetAudioBooks(string? searchText = null)
         {
             var returnedIds = new List<string>();
 
             foreach (var provider in providers)
             {
-                await foreach (var result in provider.GetPodcasts(searchText))
+                await foreach (var result in provider.GetAudioBooks(searchText))
                 {
                     if (returnedIds.Contains(result.Id))
                     {
@@ -25,14 +25,14 @@ namespace DotCast.PodcastProvider.Combined
             }
         }
 
-        public async Task UpdatePodcastInfo(PodcastInfo podcastInfo)
+        public async Task UpdateAudioBookInfo(AudioBookInfo AudioBookInfo)
         {
-            var tasks = providers.Select(t => t.UpdatePodcastInfo(podcastInfo)).ToArray();
+            var tasks = providers.Select(t => t.UpdateAudioBookInfo(AudioBookInfo)).ToArray();
 
             await Task.WhenAll(tasks);
         }
 
-        public async Task<PodcastInfo?> Get(string id)
+        public async Task<AudioBookInfo?> Get(string id)
         {
             foreach (var provider in providers)
             {
@@ -46,13 +46,13 @@ namespace DotCast.PodcastProvider.Combined
             return null;
         }
 
-        public async Task<PodcastsStatistics> GetStatistics()
+        public async Task<AudioBooksStatistics> GetStatistics()
         {
             var tasks = providers.Select(t => t.GetStatistics()).ToArray();
             await Task.WhenAll(tasks);
 
             var max = 0;
-            PodcastsStatistics finalResult = null!;
+            AudioBooksStatistics finalResult = null!;
             foreach (var task in tasks)
             {
                 var result = await task;
@@ -68,7 +68,7 @@ namespace DotCast.PodcastProvider.Combined
             return finalResult;
         }
 
-        public void AddProvider(IPodcastInfoProvider provider)
+        public void AddProvider(IAudioBookInfoProvider provider)
         {
             providers.Add(provider);
         }

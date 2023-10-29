@@ -1,15 +1,12 @@
-﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31612.314
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotCast.App", "DotCast.App\DotCast.App.csproj", "{FF8F5857-C734-4D96-9D81-6CB2197E4C4E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotCast.PodcastProvider.Base", "DotCast.PodcastProvider.Base\DotCast.PodcastProvider.Base.csproj", "{B485C607-F30A-4314-99AB-BE9A9F76E58B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotCast.AudioBookProvider.Base", "DotCast.AudioBookProvider.Base\DotCast.AudioBookProvider.Base.csproj", "{B485C607-F30A-4314-99AB-BE9A9F76E58B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotCast.PodcastProvider.FakeProvider", "DotCast.PodcastProvider.FakeProvider\DotCast.PodcastProvider.FakeProvider.csproj", "{D6E16DC5-C68A-4C29-8D6A-B8E84EB597D1}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotCast.PodcastProvider.FileSystem", "DotCast.PodcastProvider.FileSystem\DotCast.PodcastProvider.FileSystem.csproj", "{C4122859-08AB-41A6-9346-119FBB60EF83}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotCast.AudioBookProvider.FileSystem", "DotCast.AudioBookProvider.FileSystem\DotCast.AudioBookProvider.FileSystem.csproj", "{C4122859-08AB-41A6-9346-119FBB60EF83}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotCast.RssGenerator.FromFiles", "DotCast.RssGenerator.FromFiles\DotCast.RssGenerator.FromFiles.csproj", "{59A58105-599B-4F8D-8064-CA31B0B425DA}"
 EndProject
@@ -17,7 +14,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotCast.RssGenerator.Base",
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RssGenerator", "RssGenerator", "{A044D62E-099A-42B0-95E8-C3B2DAFC6040}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PodcastProvider", "PodcastProvider", "{029A7FF9-ADF9-4C81-ADC2-8681A8619BFE}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AudioBookProvider", "AudioBookProvider", "{029A7FF9-ADF9-4C81-ADC2-8681A8619BFE}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{62FBF550-C29D-4A5C-8DEC-158092F5C096}"
 EndProject
@@ -29,15 +26,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotCast.Infrastructure.IoC"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotCast.Infrastructure.Initializer", "DotCast.Infrastructure.Initializer\DotCast.Infrastructure.Initializer.csproj", "{999084CF-EBDF-4B4B-AEF6-74CCD09CA34B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotCast.PodcastProvider.Postgre", "DotCast.PodcastProvider.Postgre\DotCast.PodcastProvider.Postgre.csproj", "{19546253-BD0F-47FD-8FB7-B3B326FAF611}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotCast.AudioBookProvider.Postgre", "DotCast.AudioBookProvider.Postgre\DotCast.AudioBookProvider.Postgre.csproj", "{19546253-BD0F-47FD-8FB7-B3B326FAF611}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotCast.PodcastProvider.Combined", "DotCast.PodcastProvider.Combined\DotCast.PodcastProvider.Combined.csproj", "{D256DC08-E898-4761-B2E9-B89929FF54BD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotCast.AudioBookProvider.Combined", "DotCast.AudioBookProvider.Combined\DotCast.AudioBookProvider.Combined.csproj", "{D256DC08-E898-4761-B2E9-B89929FF54BD}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BookInfoProvider", "BookInfoProvider", "{113B4B32-6B40-4595-A85D-D3BBFB8BBC75}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotCast.Infrastructure.BookInfoProvider.DatabazeKnih", "DotCast.Infrastructure.BookInfoProvider.DatabazeKnih\DotCast.Infrastructure.BookInfoProvider.DatabazeKnih.csproj", "{C10DDE31-6BDB-40C4-9674-3C08EFC4382E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotCast.Infrastructure.BookInfoProvider.DatabazeKnih", "DotCast.Infrastructure.BookInfoProvider.DatabazeKnih\DotCast.Infrastructure.BookInfoProvider.DatabazeKnih.csproj", "{C10DDE31-6BDB-40C4-9674-3C08EFC4382E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotCast.Infrastructure.BookInfoProvider.Base", "DotCast.Infrastructure.BookInfoProvider.Base\DotCast.Infrastructure.BookInfoProvider.Base.csproj", "{4A5F2C45-73E9-4736-8C5C-E9D46495C4DD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotCast.Infrastructure.BookInfoProvider.Base", "DotCast.Infrastructure.BookInfoProvider.Base\DotCast.Infrastructure.BookInfoProvider.Base.csproj", "{4A5F2C45-73E9-4736-8C5C-E9D46495C4DD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -53,10 +50,6 @@ Global
 		{B485C607-F30A-4314-99AB-BE9A9F76E58B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B485C607-F30A-4314-99AB-BE9A9F76E58B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B485C607-F30A-4314-99AB-BE9A9F76E58B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D6E16DC5-C68A-4C29-8D6A-B8E84EB597D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D6E16DC5-C68A-4C29-8D6A-B8E84EB597D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D6E16DC5-C68A-4C29-8D6A-B8E84EB597D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D6E16DC5-C68A-4C29-8D6A-B8E84EB597D1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C4122859-08AB-41A6-9346-119FBB60EF83}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C4122859-08AB-41A6-9346-119FBB60EF83}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C4122859-08AB-41A6-9346-119FBB60EF83}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -107,7 +100,6 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{B485C607-F30A-4314-99AB-BE9A9F76E58B} = {029A7FF9-ADF9-4C81-ADC2-8681A8619BFE}
-		{D6E16DC5-C68A-4C29-8D6A-B8E84EB597D1} = {029A7FF9-ADF9-4C81-ADC2-8681A8619BFE}
 		{C4122859-08AB-41A6-9346-119FBB60EF83} = {029A7FF9-ADF9-4C81-ADC2-8681A8619BFE}
 		{59A58105-599B-4F8D-8064-CA31B0B425DA} = {A044D62E-099A-42B0-95E8-C3B2DAFC6040}
 		{CFF4FDB3-8B3F-417D-A80D-4DB680F660D2} = {A044D62E-099A-42B0-95E8-C3B2DAFC6040}

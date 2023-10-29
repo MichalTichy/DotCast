@@ -1,4 +1,4 @@
-﻿using DotCast.Infrastructure.IoC;
+using DotCast.Infrastructure.IoC;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 

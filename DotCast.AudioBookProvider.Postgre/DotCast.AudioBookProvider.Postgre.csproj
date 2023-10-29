@@ -7,11 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Bogus" Version="34.0.2" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\DotCast.PodcastProvider.Base\DotCast.PodcastProvider.Base.csproj" />
+    <ProjectReference Include="..\DotCast.Infrastructure.Persistence.Marten\DotCast.Infrastructure.Persistence.Marten.csproj" />
+    <ProjectReference Include="..\DotCast.AudioBookProvider.Base\DotCast.AudioBookProvider.Base.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,10 +1,10 @@
-﻿@page "/Admin"
+@page "/Admin"
 @using DotCast.App.Auth
 
-<h3>Upload Podcast</h3>
-<p>Enter podcast name</p>
-<TextEdit @bind-Text="PodcastName" />
-@if (!string.IsNullOrWhiteSpace(PodcastName))
+<h3>Upload AudioBook</h3>
+<p>Enter AudioBook name</p>
+<TextEdit @bind-Text="AudioBookName" />
+@if (!string.IsNullOrWhiteSpace(AudioBookName))
 {
     <p>
         <label>
@@ -20,8 +20,8 @@
 }
 <hr />
 <Button Clicked="UnzipAll" Color="Color.Danger">
-    Unzip all podcasts.
+    Unzip all AudioBooks.
 </Button>
 <Button Clicked="ZipAll" Color="Color.Danger">
-    Ensure all podcasts have zip versions.
+    Ensure all AudioBooks have zip versions.
 </Button>

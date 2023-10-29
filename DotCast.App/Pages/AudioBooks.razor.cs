@@ -1,4 +1,4 @@
-﻿using DotCast.PodcastProvider.Base;
+using DotCast.AudioBookProvider.Base;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
@@ -6,27 +6,27 @@ using Microsoft.JSInterop;
 namespace DotCast.App.Pages
 {
     [Authorize]
-    public partial class Podcasts
+    public partial class AudioBooks
     {
         [Inject]
         public IJSRuntime Js { get; set; } = null!;
 
         [Inject]
-        public IPodcastInfoProvider PodcastInfoProvider { get; set; } = null!;
+        public IAudioBookInfoProvider AudioBookInfoProvider { get; set; } = null!;
 
         [Inject]
-        public IPodcastDownloader PodcastDownloader { get; set; } = null!;
+        public IAudioBookDownloader AudioBookDownloader { get; set; } = null!;
 
-        public List<PodcastInfo> Data { get; set; } = new();
+        public List<AudioBookInfo> Data { get; set; } = new();
 
         [Inject]
         public NavigationManager NavigationManager { get; set; } = null!;
 
-        public PodcastsStatistics PodcastsStatistics { get; set; } = null!;
+        public AudioBooksStatistics AudioBooksStatistics { get; set; } = null!;
 
-        public async Task Download(PodcastInfo info)
+        public async Task Download(AudioBookInfo info)
         {
-            var url = await PodcastDownloader.GetZipDownloadUrl(info.Id);
+            var url = await AudioBookDownloader.GetZipDownloadUrl(info.Id);
             await Js.InvokeAsync<object>("open", url, "_blank");
         }
 
@@ -34,7 +34,7 @@ namespace DotCast.App.Pages
         {
             _ = Task.Run(async () =>
             {
-                PodcastsStatistics = await PodcastInfoProvider.GetStatistics();
+                AudioBooksStatistics = await AudioBookInfoProvider.GetStatistics();
                 await LoadData();
             });
             await base.OnInitializedAsync();
@@ -42,9 +42,9 @@ namespace DotCast.App.Pages
 
         private async Task LoadData(string? filter = null)
         {
-            await foreach (var podcastInfo in PodcastInfoProvider.GetPodcasts(filter))
+            await foreach (var AudioBookInfo in AudioBookInfoProvider.GetAudioBooks(filter))
             {
-                Data.Add(podcastInfo);
+                Data.Add(AudioBookInfo);
                 await InvokeAsync(StateHasChanged);
             }
         }

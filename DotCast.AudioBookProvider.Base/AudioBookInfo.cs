@@ -1,6 +1,6 @@
-﻿namespace DotCast.PodcastProvider.Base
+namespace DotCast.AudioBookProvider.Base
 {
-    public record PodcastInfo(
+    public record AudioBookInfo(
         string Id,
         string Name,
         string AuthorName,

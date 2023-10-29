@@ -1,4 +1,4 @@
-﻿namespace DotCast.Infrastructure.Initializer
+namespace DotCast.Infrastructure.Initializer
 {
     public class InitializerException : Exception
     {

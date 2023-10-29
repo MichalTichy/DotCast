@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using System.Xml;
 
 namespace DotCast.RssGenerator.Base
@@ -22,7 +22,7 @@ namespace DotCast.RssGenerator.Base
 
         private void Generate(Feed feed, XmlWriter writer)
         {
-            var itunesUri = "http://www.itunes.com/dtds/podcast-1.0.dtd";
+            var itunesUri = "http://www.itunes.com/dtds/AudioBook-1.0.dtd";
 
             // Start document
             writer.WriteStartDocument();
@@ -105,7 +105,7 @@ namespace DotCast.RssGenerator.Base
 
             foreach (var episode in feed.Episodes ?? Array.Empty<Episode>())
             {
-                // Start podcast item
+                // Start AudioBook item
                 writer.WriteStartElement("item");
 
                 writer.WriteElementString("title", episode.Title);
@@ -133,7 +133,7 @@ namespace DotCast.RssGenerator.Base
                 if (!string.IsNullOrEmpty(episode.Keywords))
                     writer.WriteElementString("keywords", itunesUri, episode.Keywords);
 
-                // End podcast item
+                // End AudioBook item
                 writer.WriteEndElement();
             }
 

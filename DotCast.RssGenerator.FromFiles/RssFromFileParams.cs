@@ -1,4 +1,4 @@
-﻿namespace DotCast.RssGenerator.FromFiles
+namespace DotCast.RssGenerator.FromFiles
 {
-    public record RssFromFileParams(string PodcastName, ICollection<LocalFileInfo> Files);
+    public record RssFromFileParams(string AudioBookName, ICollection<LocalFileInfo> Files);
 }

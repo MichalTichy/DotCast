@@ -1,4 +1,4 @@
-﻿using Marten;
+using Marten;
 
 namespace DotCast.Infrastructure.Persistence.Marten
 {

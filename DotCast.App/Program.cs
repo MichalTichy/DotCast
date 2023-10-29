@@ -1,7 +1,7 @@
 using System.Net;
 using DotCast.Infrastructure.Initializer;
 using DotCast.Infrastructure.IoC;
-using DotCast.PodcastProvider.FileSystem;
+using DotCast.AudioBookProvider.FileSystem;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
@@ -47,10 +47,10 @@ namespace DotCast.App
                 endpoints.MapFallbackToPage("/_Host");
             });
 
-            var fileSystemOptions = app.Services.GetRequiredService<IOptions<FileSystemPodcastProviderOptions>>().Value;
+            var fileSystemOptions = app.Services.GetRequiredService<IOptions<FileSystemAudioBookProviderOptions>>().Value;
             app.UseStaticFiles(new StaticFileOptions
             {
-                FileProvider = new PhysicalFileProvider(Path.GetFullPath(fileSystemOptions.PodcastsLocation, Directory.GetCurrentDirectory())),
+                FileProvider = new PhysicalFileProvider(Path.GetFullPath(fileSystemOptions.AudioBooksLocation, Directory.GetCurrentDirectory())),
                 RequestPath = "/files",
                 OnPrepareResponse = async ctx =>
                 {
@@ -73,7 +73,7 @@ namespace DotCast.App
             });
             app.UseStaticFiles(new StaticFileOptions
             {
-                FileProvider = new PhysicalFileProvider(Path.GetFullPath(fileSystemOptions.ZippedPodcastsLocation, Directory.GetCurrentDirectory())),
+                FileProvider = new PhysicalFileProvider(Path.GetFullPath(fileSystemOptions.ZippedAudioBooksLocation, Directory.GetCurrentDirectory())),
                 RequestPath = "/zip",
                 OnPrepareResponse = async ctx =>
                 {

@@ -1,25 +1,25 @@
-﻿using Blazorise;
+using Blazorise;
 using DotCast.Infrastructure.BookInfoProvider.Base;
-using DotCast.PodcastProvider.Base;
+using DotCast.AudioBookProvider.Base;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 
 namespace DotCast.App.Pages
 {
     [Authorize(Roles = "Admin")]
-    public partial class PodcastEdit : ComponentBase
+    public partial class AudioBookEdit : ComponentBase
     {
         [Inject]
-        public IPodcastInfoProvider PodcastInfoProvider { get; set; } = null!;
+        public IAudioBookInfoProvider AudioBookInfoProvider { get; set; } = null!;
 
         [Inject]
-        public IPodcastFeedProvider PodcastFeedProvider { get; set; } = null!;
+        public IAudioBookFeedProvider AudioBookFeedProvider { get; set; } = null!;
 
         [Inject]
-        public IPodcastUploader PodcastUploader { get; set; } = null!;
+        public IAudioBookUploader AudioBookUploader { get; set; } = null!;
 
         [Inject]
-        public IPodcastDownloader PodcastDownloader { get; set; } = null!;
+        public IAudioBookDownloader AudioBookDownloader { get; set; } = null!;
         [Inject]
         public IBookInfoProvider BookInfoProvider { get; set; } = null!;
 
@@ -29,7 +29,7 @@ namespace DotCast.App.Pages
         [Parameter]
         public string Id { get; set; }
 
-        public PodcastInfo Data { get; set; } = null!;
+        public AudioBookInfo Data { get; set; } = null!;
 
         public string Name { get; set; } = null!;
         public string? SeriesName { get; set; }
@@ -48,7 +48,7 @@ namespace DotCast.App.Pages
 
         private async Task LoadData()
         {
-            Data = await PodcastInfoProvider.Get(Id) ?? throw new ArgumentException("Requested podcast not found");
+            Data = await AudioBookInfoProvider.Get(Id) ?? throw new ArgumentException("Requested AudioBook not found");
             InitDataProperties();
             _ = Task.Run(async () =>
             {
@@ -94,12 +94,12 @@ namespace DotCast.App.Pages
             NavigationManager.NavigateTo("/");
         }
 
-        public async Task Save(PodcastInfo podcastInfo)
+        public async Task Save(AudioBookInfo AudioBookInfo)
         {
-            await PodcastInfoProvider.UpdatePodcastInfo(podcastInfo);
+            await AudioBookInfoProvider.UpdateAudioBookInfo(AudioBookInfo);
         }
 
-        private PodcastInfo BuildUpdatedData()
+        private AudioBookInfo BuildUpdatedData()
         {
             return Data with
             {
@@ -116,7 +116,7 @@ namespace DotCast.App.Pages
         {
             foreach (var file in e.Files)
             {
-                await using var stream = PodcastUploader.GetPodcastFileWriteStream(Id, file.Name, file.Type, out var _);
+                await using var stream = AudioBookUploader.GetAudioBookFileWriteStream(Id, file.Name, file.Type, out var _);
                 await file.WriteToStreamAsync(stream);
             }
 
@@ -125,7 +125,7 @@ namespace DotCast.App.Pages
 
         private async Task ResetImageUrl()
         {
-            var feedCover = await PodcastFeedProvider.GetFeedCover(Id);
+            var feedCover = await AudioBookFeedProvider.GetFeedCover(Id);
             var updatedData = Data with {ImageUrl = feedCover};
             await Save(updatedData);
             Data = updatedData;

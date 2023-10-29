@@ -1,15 +1,15 @@
-﻿using DotCast.Infrastructure.IoC;
+using DotCast.Infrastructure.IoC;
 using DotCast.Infrastructure.Persistence.Marten;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace DotCast.PodcastProvider.Postgre
+namespace DotCast.AudioBookProvider.Postgre
 {
-    public class PostgrePodcastInfoInstaller : IInstaller
+    public class PostgreAudioBookInfoInstaller : IInstaller
     {
         public void Install(IServiceCollection services, IConfiguration configuration, bool isProduction)
         {
-            services.AddTransient<IStorageConfiguration, PodcastInfoStorageConfiguration>();
+            services.AddTransient<IStorageConfiguration, AudioBookInfoStorageConfiguration>();
         }
     }
 }

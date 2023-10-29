@@ -1,4 +1,4 @@
-﻿namespace DotCast.RssGenerator.Base
+namespace DotCast.RssGenerator.Base
 {
     public class Episode
     {

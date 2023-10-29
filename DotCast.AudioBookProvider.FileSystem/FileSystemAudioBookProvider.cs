@@ -1,21 +1,21 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.IO.Compression;
 using System.Text;
-using DotCast.PodcastProvider.Base;
-using DotCast.PodcastProvider.Postgre;
+using DotCast.AudioBookProvider.Base;
+using DotCast.AudioBookProvider.Postgre;
 using DotCast.RssGenerator.FromFiles;
 using Microsoft.Extensions.Options;
 using File = TagLib.File;
 
-namespace DotCast.PodcastProvider.FileSystem
+namespace DotCast.AudioBookProvider.FileSystem
 {
-    public class FileSystemPodcastProvider : IPodcastInfoProvider, IPodcastFeedProvider, IPodcastUploader, IPodcastDownloader
+    public class FileSystemAudioBookProvider : IAudioBookInfoProvider, IAudioBookFeedProvider, IAudioBookUploader, IAudioBookDownloader
     {
-        private readonly IOptions<FileSystemPodcastProviderOptions> options;
+        private readonly IOptions<FileSystemAudioBookProviderOptions> options;
         private readonly FromFileRssGenerator rssGenerator;
-        private FileSystemPodcastProviderOptions settings => options.Value;
+        private FileSystemAudioBookProviderOptions settings => options.Value;
 
-        public FileSystemPodcastProvider(IOptions<FileSystemPodcastProviderOptions> options, FromFileRssGenerator rssGenerator)
+        public FileSystemAudioBookProvider(IOptions<FileSystemAudioBookProviderOptions> options, FromFileRssGenerator rssGenerator)
         {
             this.options = options;
             this.rssGenerator = rssGenerator;
@@ -30,13 +30,13 @@ namespace DotCast.PodcastProvider.FileSystem
 
         private RssFromFileParams GetFeedParams(string id)
         {
-            var podcastName = GetNormalizedName(id);
+            var AudioBookName = GetNormalizedName(id);
 
-            var podcastPath = Path.Combine(settings.PodcastsLocation, id);
-            var directory = new DirectoryInfo(podcastPath);
+            var AudioBookPath = Path.Combine(settings.AudioBooksLocation, id);
+            var directory = new DirectoryInfo(AudioBookPath);
             var filePaths = directory.GetFiles().Select(t => new LocalFileInfo(t.FullName, GetFileUrl(t.Directory!.Name, t.Name))).ToArray();
 
-            var rssGeneratorParams = new RssFromFileParams(podcastName, filePaths);
+            var rssGeneratorParams = new RssFromFileParams(AudioBookName, filePaths);
             return rssGeneratorParams;
         }
 
@@ -47,47 +47,47 @@ namespace DotCast.PodcastProvider.FileSystem
             return feed.ImageUrl;
         }
 
-        public async IAsyncEnumerable<PodcastInfo> GetPodcasts(string? searchText = null)
+        public async IAsyncEnumerable<AudioBookInfo> GetAudioBooks(string? searchText = null)
         {
-            var baseDirectory = new DirectoryInfo(settings.PodcastsLocation);
+            var baseDirectory = new DirectoryInfo(settings.AudioBooksLocation);
             foreach (var directory in baseDirectory.GetDirectories())
             {
-                var podcastInfo = await Get(directory.Name);
-                if (podcastInfo == null)
+                var AudioBookInfo = await Get(directory.Name);
+                if (AudioBookInfo == null)
                 {
                     continue;
                 }
 
                 var matchesSearchText = searchText == null ||
-                                        podcastInfo.Name.Contains(searchText) ||
-                                        podcastInfo.AuthorName.Contains(searchText) ||
-                                        (podcastInfo.SeriesName?.Contains(searchText) ?? false);
+                                        AudioBookInfo.Name.Contains(searchText) ||
+                                        AudioBookInfo.AuthorName.Contains(searchText) ||
+                                        (AudioBookInfo.SeriesName?.Contains(searchText) ?? false);
                 if (!matchesSearchText)
                 {
                     continue;
                 }
 
-                yield return podcastInfo;
+                yield return AudioBookInfo;
             }
         }
 
-        public Task UpdatePodcastInfo(PodcastInfo podcastInfo)
+        public Task UpdateAudioBookInfo(AudioBookInfo AudioBookInfo)
         {
             _ = Task.Run(() =>
             {
-                var localFileInfos = GetFiles(podcastInfo.Id, out _);
+                var localFileInfos = GetFiles(AudioBookInfo.Id, out _);
                 foreach (var localFileInfo in localFileInfos)
                 {
                     try
                     {
                         var file = File.Create(localFileInfo.LocalPath);
-                        file.Tag.Album = podcastInfo.Name;
-                        file.Tag.Performers = new[] {podcastInfo.AuthorName};
+                        file.Tag.Album = AudioBookInfo.Name;
+                        file.Tag.Performers = new[] {AudioBookInfo.AuthorName};
 
-                        file.Tag.Grouping = podcastInfo.SeriesName;
-                        file.Tag.TitleSort = podcastInfo.OrderInSeries.ToString();
+                        file.Tag.Grouping = AudioBookInfo.SeriesName;
+                        file.Tag.TitleSort = AudioBookInfo.OrderInSeries.ToString();
 
-                        file.Tag.Description = podcastInfo.Description;
+                        file.Tag.Description = AudioBookInfo.Description;
 
                         file.Save();
                     }
@@ -101,7 +101,7 @@ namespace DotCast.PodcastProvider.FileSystem
             return Task.CompletedTask;
         }
 
-        public async Task<PodcastInfo?> Get(string id)
+        public async Task<AudioBookInfo?> Get(string id)
         {
             var filePaths = GetFiles(id, out var directory);
 
@@ -109,27 +109,27 @@ namespace DotCast.PodcastProvider.FileSystem
 
             var feed = await rssGenerator.BuildFeed(rssGeneratorParams);
 
-            return new PodcastInfo(directory.Name, feed.Title, feed.AuthorName ?? "Unknown author", null, 0, feed.Description, $"{settings.PodcastServerUrl}/podcast/{directory.Name}", feed.ImageUrl,
+            return new AudioBookInfo(directory.Name, feed.Title, feed.AuthorName ?? "Unknown author", null, 0, feed.Description, $"{settings.AudioBookServerUrl}/AudioBook/{directory.Name}", feed.ImageUrl,
                 0,feed.Duration);
         }
 
-        public async Task<PodcastsStatistics> GetStatistics()
+        public async Task<AudioBooksStatistics> GetStatistics()
         {
-            var podcasts = await GetPodcasts().ToListAsync();
-            return PodcastsStatistics.Create(podcasts);
+            var AudioBooks = await GetAudioBooks().ToListAsync();
+            return AudioBooksStatistics.Create(AudioBooks);
         }
 
         private ICollection<LocalFileInfo> GetFiles(string id, out DirectoryInfo directory)
         {
-            var path = Path.Combine(settings.PodcastsLocation, id);
+            var path = Path.Combine(settings.AudioBooksLocation, id);
             directory = new DirectoryInfo(path);
             var filePaths = directory.GetFiles().Select(t => new LocalFileInfo(t.FullName, GetFileUrl(t.Directory!.Name, t.Name))).ToArray();
             return filePaths;
         }
 
-        public IEnumerable<string> GetPodcastIdsAvailableForDownload()
+        public IEnumerable<string> GetAudioBookIdsAvailableForDownload()
         {
-            return Directory.GetFiles(options.Value.ZippedPodcastsLocation).Select(Path.GetFileNameWithoutExtension).Where(t => t != null).Select(t => t!);
+            return Directory.GetFiles(options.Value.ZippedAudioBooksLocation).Select(Path.GetFileNameWithoutExtension).Where(t => t != null).Select(t => t!);
         }
 
         private static string RemoveDiacritics(string text)
@@ -165,30 +165,30 @@ namespace DotCast.PodcastProvider.FileSystem
 
         private string GetFileUrl(string directoryName, string fileName)
         {
-            return $"{settings.PodcastServerUrl}/files/{directoryName}/{fileName}";
+            return $"{settings.AudioBookServerUrl}/files/{directoryName}/{fileName}";
         }
 
         private string GetZipUrl(string fileName)
         {
-            return $"{settings.PodcastServerUrl}/zip/{fileName}";
+            return $"{settings.AudioBookServerUrl}/zip/{fileName}";
         }
 
 
-        public async Task GenerateZip(string podcastId, bool replace = false)
+        public async Task GenerateZip(string AudioBookId, bool replace = false)
         {
-            var path = GetPodcastZipPath(podcastId);
+            var path = GetAudioBookZipPath(AudioBookId);
             if (!replace && System.IO.File.Exists(path))
             {
                 return;
             }
 
-            var podcastDirectory = GetPodcastDirectory(podcastId);
-            var files = Directory.GetFiles(podcastDirectory);
+            var AudioBookDirectory = GetAudioBookDirectory(AudioBookId);
+            var files = Directory.GetFiles(AudioBookDirectory);
 
             var tmpSuffix = ".tmp";
 
             var tmpPath = $"{path}{tmpSuffix}";
-            await using (var zipFileStream = GetPodcastZipWriteStream(tmpPath))
+            await using (var zipFileStream = GetAudioBookZipWriteStream(tmpPath))
             {
                 using var archive = new ZipArchive(zipFileStream, ZipArchiveMode.Update);
 
@@ -206,28 +206,28 @@ namespace DotCast.PodcastProvider.FileSystem
         }
 
 
-        public bool IsDownloadSupported(string podcastId)
+        public bool IsDownloadSupported(string AudioBookId)
         {
-            return System.IO.File.Exists(GetPodcastZipPath(podcastId));
+            return System.IO.File.Exists(GetAudioBookZipPath(AudioBookId));
         }
 
-        public Task<string> GetZipDownloadUrl(string podcastId)
+        public Task<string> GetZipDownloadUrl(string AudioBookId)
         {
-            var podcastZipPath = GetPodcastZipPath(podcastId);
+            var AudioBookZipPath = GetAudioBookZipPath(AudioBookId);
 
-            if (!System.IO.File.Exists(podcastZipPath))
+            if (!System.IO.File.Exists(AudioBookZipPath))
             {
                 throw new ArgumentException("Unable to find requested zip");
             }
 
-            var fileName = Path.GetFileName(podcastZipPath);
+            var fileName = Path.GetFileName(AudioBookZipPath);
             return Task.FromResult(GetZipUrl(fileName));
         }
 
-        public FileStream GetPodcastFileWriteStream(string podcastName, string fileName, string fileContentType, out string podcastId)
+        public FileStream GetAudioBookFileWriteStream(string AudioBookName, string fileName, string fileContentType, out string AudioBookId)
         {
-            podcastId = GetEscapedName(podcastName);
-            var finalDirectoryPath = GetPodcastDirectory(podcastId);
+            AudioBookId = GetEscapedName(AudioBookName);
+            var finalDirectoryPath = GetAudioBookDirectory(AudioBookId);
             var targetFileName = GetEscapedName(fileName);
             var fileFilePath = Path.Combine(finalDirectoryPath, targetFileName);
             if (!Directory.Exists(finalDirectoryPath))
@@ -238,53 +238,53 @@ namespace DotCast.PodcastProvider.FileSystem
             return new FileStream(fileFilePath, FileMode.Create);
         }
 
-        public FileStream GetPodcastZipWriteStream(string podcastName, out string podcastId)
+        public FileStream GetAudioBookZipWriteStream(string AudioBookName, out string AudioBookId)
         {
-            podcastId = GetEscapedName(podcastName);
+            AudioBookId = GetEscapedName(AudioBookName);
 
-            var path = GetPodcastZipPath(podcastId);
+            var path = GetAudioBookZipPath(AudioBookId);
 
-            return GetPodcastZipWriteStream(path);
+            return GetAudioBookZipWriteStream(path);
         }
 
-        protected FileStream GetPodcastZipWriteStream(string targetPath)
+        protected FileStream GetAudioBookZipWriteStream(string targetPath)
         {
-            return GetPodcastZipStream(targetPath, FileMode.Create);
+            return GetAudioBookZipStream(targetPath, FileMode.Create);
         }
 
-        protected FileStream GetPodcastZipStream(string targetPath, FileMode mode)
+        protected FileStream GetAudioBookZipStream(string targetPath, FileMode mode)
         {
-            if (!Directory.Exists(options.Value.ZippedPodcastsLocation))
+            if (!Directory.Exists(options.Value.ZippedAudioBooksLocation))
             {
-                Directory.CreateDirectory(options.Value.ZippedPodcastsLocation);
+                Directory.CreateDirectory(options.Value.ZippedAudioBooksLocation);
             }
 
             return new FileStream(targetPath, mode);
         }
 
 
-        public Task UnzipPodcast(string podcastId)
+        public Task UnzipAudioBook(string AudioBookId)
         {
             try
             {
-                var podcastZipPath = GetPodcastZipPath(podcastId);
-                if (!System.IO.File.Exists(podcastZipPath))
+                var AudioBookZipPath = GetAudioBookZipPath(AudioBookId);
+                if (!System.IO.File.Exists(AudioBookZipPath))
                 {
                     throw new ArgumentException("Provided zip could not be found!");
                 }
 
-                var podcastDirectory = GetPodcastDirectory(podcastId);
-                if (Directory.Exists(podcastDirectory))
+                var AudioBookDirectory = GetAudioBookDirectory(AudioBookId);
+                if (Directory.Exists(AudioBookDirectory))
                 {
-                    Directory.Delete(podcastZipPath, true);
+                    Directory.Delete(AudioBookZipPath, true);
                 }
 
-                Directory.CreateDirectory(podcastDirectory);
+                Directory.CreateDirectory(AudioBookDirectory);
 
 
-                var zipStream = GetPodcastZipStream(podcastZipPath, FileMode.Open);
+                var zipStream = GetAudioBookZipStream(AudioBookZipPath, FileMode.Open);
                 using var archive = new ZipArchive(zipStream, ZipArchiveMode.Read);
-                archive.ExtractToDirectory(podcastDirectory, true);
+                archive.ExtractToDirectory(AudioBookDirectory, true);
                 return Task.CompletedTask;
             }
             catch (Exception e)
@@ -294,17 +294,17 @@ namespace DotCast.PodcastProvider.FileSystem
             }
         }
 
-        private string GetPodcastDirectory(string podcastId)
+        private string GetAudioBookDirectory(string AudioBookId)
         {
-            var targetDirectoryName = podcastId;
-            var finalDirectoryPath = Path.Combine(options.Value.PodcastsLocation, targetDirectoryName);
+            var targetDirectoryName = AudioBookId;
+            var finalDirectoryPath = Path.Combine(options.Value.AudioBooksLocation, targetDirectoryName);
             return finalDirectoryPath;
         }
 
-        private string GetPodcastZipPath(string podcastId)
+        private string GetAudioBookZipPath(string AudioBookId)
         {
-            var targetFileName = podcastId;
-            var fileFilePath = Path.Combine(options.Value.ZippedPodcastsLocation, targetFileName);
+            var targetFileName = AudioBookId;
+            var fileFilePath = Path.Combine(options.Value.ZippedAudioBooksLocation, targetFileName);
             return $"{fileFilePath}.zip";
         }
     }

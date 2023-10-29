@@ -1,4 +1,4 @@
-﻿namespace DotCast.Infrastructure.Persistence.Base.Repositories
+namespace DotCast.Infrastructure.Persistence.Base.Repositories
 {
     public interface IRepository<T> : IReadOnlyRepository<T>
     {

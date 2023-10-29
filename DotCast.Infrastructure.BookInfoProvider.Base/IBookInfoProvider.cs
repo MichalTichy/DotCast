@@ -1,4 +1,4 @@
-﻿namespace DotCast.Infrastructure.BookInfoProvider.Base
+namespace DotCast.Infrastructure.BookInfoProvider.Base
 {
     public interface IBookInfoProvider
     {

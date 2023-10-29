@@ -1,4 +1,4 @@
-﻿using DotCast.RssGenerator.Base;
+using DotCast.RssGenerator.Base;
 using TagLib;
 using File = TagLib.File;
 
@@ -10,7 +10,7 @@ namespace DotCast.RssGenerator.FromFiles
     {
         public override Task<Feed> BuildFeed(RssFromFileParams param)
         {
-            var feed = new Feed(param.PodcastName);
+            var feed = new Feed(param.AudioBookName);
             string? image = null;
             var imageIsDesignatedCover = false;
             var cultureInfo = Thread.CurrentThread.CurrentCulture;

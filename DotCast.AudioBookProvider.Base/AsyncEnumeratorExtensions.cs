@@ -1,4 +1,4 @@
-﻿namespace DotCast.PodcastProvider.Postgre
+namespace DotCast.AudioBookProvider.Postgre
 {
     public static class AsyncEnumeratorExtensions
     {

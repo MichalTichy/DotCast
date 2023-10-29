@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using Marten;
 
 namespace DotCast.Infrastructure.Persistence.Marten

@@ -1,4 +1,4 @@
-﻿using DotCast.PodcastProvider.Base;
+using DotCast.AudioBookProvider.Base;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -13,16 +13,16 @@ namespace DotCast.App.Pages
         private Task<AuthenticationState> AuthenticationStateTask { get; set; } = null!;
 
         [Inject]
-        public IPodcastUploader Uploader { get; set; } = null!;
+        public IAudioBookUploader Uploader { get; set; } = null!;
 
         [Inject]
-        public IPodcastInfoProvider InfoProvider { get; set; } = null!;
+        public IAudioBookInfoProvider InfoProvider { get; set; } = null!;
 
         [Inject]
-        public IPodcastDownloader Downloader { get; set; } = null!;
+        public IAudioBookDownloader Downloader { get; set; } = null!;
 
         public List<UploadedFileInfo> Files { get; set; } = new();
-        public string PodcastName { get; set; } = null!;
+        public string AudioBookName { get; set; } = null!;
         public string? ErrorText { get; set; }
 
         private async Task UploadFiles(InputFileChangeEventArgs e)
@@ -44,20 +44,20 @@ namespace DotCast.App.Pages
                     return;
                 }
 
-                await UploadPodcastZip(Files.Single());
+                await UploadAudioBookZip(Files.Single());
             }
             else
             {
-                await UploadPodcastFiles(Files);
+                await UploadAudioBookFiles(Files);
             }
         }
 
-        private async Task UploadPodcastZip(UploadedFileInfo zip)
+        private async Task UploadAudioBookZip(UploadedFileInfo zip)
         {
             var file = zip.File;
 
-            string? podcastId;
-            await using (var writeStream = Uploader.GetPodcastZipWriteStream(PodcastName, out podcastId))
+            string? AudioBookId;
+            await using (var writeStream = Uploader.GetAudioBookZipWriteStream(AudioBookName, out AudioBookId))
             {
                 await using var readStream = file.OpenReadStream(int.MaxValue);
                 var bytesRead = 0;
@@ -76,17 +76,17 @@ namespace DotCast.App.Pages
                 }
             }
 
-            _ = Uploader.UnzipPodcast(podcastId);
+            _ = Uploader.UnzipAudioBook(AudioBookId);
         }
 
-        private async Task UploadPodcastFiles(List<UploadedFileInfo> files)
+        private async Task UploadAudioBookFiles(List<UploadedFileInfo> files)
         {
             var id = string.Empty;
             foreach (var fileInfo in files)
             {
                 var file = fileInfo.File;
 
-                await using var writeStream = Uploader.GetPodcastFileWriteStream(PodcastName, fileInfo.File.Name, fileInfo.File.ContentType, out id);
+                await using var writeStream = Uploader.GetAudioBookFileWriteStream(AudioBookName, fileInfo.File.Name, fileInfo.File.ContentType, out id);
                 await using var readStream = file.OpenReadStream(int.MaxValue);
                 var bytesRead = 0;
                 double totalRead = 0;
@@ -111,10 +111,10 @@ namespace DotCast.App.Pages
         {
             _ = Task.Run(async () =>
             {
-                foreach (var podcastId in Downloader.GetPodcastIdsAvailableForDownload())
+                foreach (var AudioBookId in Downloader.GetAudioBookIdsAvailableForDownload())
                 {
-                    Console.WriteLine($"Unziping {podcastId}");
-                    await Uploader.UnzipPodcast(podcastId);
+                    Console.WriteLine($"Unziping {AudioBookId}");
+                    await Uploader.UnzipAudioBook(AudioBookId);
                 }
 
                 Console.WriteLine("All zips unziped");
@@ -125,12 +125,12 @@ namespace DotCast.App.Pages
         {
             _ = Task.Run(async () =>
             {
-                var podcastInfos = InfoProvider.GetPodcasts();
+                var AudioBookInfos = InfoProvider.GetAudioBooks();
 
-                await foreach (var podcastInfo in podcastInfos)
+                await foreach (var AudioBookInfo in AudioBookInfos)
                 {
-                    Console.WriteLine($"Generating zip for {podcastInfo.Name}");
-                    await Downloader.GenerateZip(podcastInfo.Id);
+                    Console.WriteLine($"Generating zip for {AudioBookInfo.Name}");
+                    await Downloader.GenerateZip(AudioBookInfo.Id);
                 }
 
                 Console.WriteLine("All zips generated");

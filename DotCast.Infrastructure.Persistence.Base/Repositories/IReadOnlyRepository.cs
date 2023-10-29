@@ -1,4 +1,4 @@
-﻿using DotCast.Infrastructure.Persistence.Base.Specifications;
+using DotCast.Infrastructure.Persistence.Base.Specifications;
 
 namespace DotCast.Infrastructure.Persistence.Base.Repositories
 {

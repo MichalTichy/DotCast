@@ -1,4 +1,4 @@
-﻿using DotCast.Infrastructure.Initializer;
+using DotCast.Infrastructure.Initializer;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection

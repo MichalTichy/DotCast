@@ -1,4 +1,4 @@
-﻿@page "/"
+@page "/"
 
 <Layout Sider>
     <LayoutSider>
@@ -13,9 +13,9 @@
     </LayoutSider>
     <LayoutContent>
         <div class="header">
-            <div class="stat"> Titles: <Icon Name="IconName.Book" /> @PodcastsStatistics?.TotalCount</div>
-            <div class="stat"> Authors: <Icon Name="IconName.Users" />@PodcastsStatistics?.AuthorCount</div>
-            <div class="stat">Duration: <Icon Name="IconName.Clock" />@Math.Floor(PodcastsStatistics?.TotalDuration.TotalHours ??0) hours</div>
+            <div class="stat"> Titles: <Icon Name="IconName.Book" /> @AudioBooksStatistics?.TotalCount</div>
+            <div class="stat"> Authors: <Icon Name="IconName.Users" />@AudioBooksStatistics?.AuthorCount</div>
+            <div class="stat">Duration: <Icon Name="IconName.Clock" />@Math.Floor(AudioBooksStatistics?.TotalDuration.TotalHours ??0) hours</div>
             <Field >
                 <TextEdit Placeholder="Search" TextChanged="async (t) => await SearchTextChanged(t)"/>
             </Field>
@@ -34,48 +34,48 @@
                 }
                 <div class="c-container">
 
-                    @foreach (var podcast in series.OrderBy(info => info.OrderInSeries).ThenBy(info => info.Name))
+                    @foreach (var AudioBook in series.OrderBy(info => info.OrderInSeries).ThenBy(info => info.Name))
                     {
                         <div class="c-card">
                             <div class="c-card-header">
-                                <img src="@podcast.ImageUrl"/>
+                                <img src="@AudioBook.ImageUrl"/>
                             </div>
                             <div class="c-card-body">
 
-                                <h3>@podcast.Name</h3>
+                                <h3>@AudioBook.Name</h3>
 
                                 <div class="user">
                                     <b>@author.Key</b>
                                 </div>
-                                @if (!string.IsNullOrWhiteSpace(@podcast.SeriesName))
+                                @if (!string.IsNullOrWhiteSpace(@AudioBook.SeriesName))
                                 {
-                                    <b>@podcast.SeriesName - @podcast.OrderInSeries</b>
+                                    <b>@AudioBook.SeriesName - @AudioBook.OrderInSeries</b>
                                 }
 
-                                <p class="description" title="@podcast.Description">
-                                    @podcast.Description
+                                <p class="description" title="@AudioBook.Description">
+                                    @AudioBook.Description
                                 </p>
                                 <div>
-                                    <Rating ReadOnly="true" SelectedValue="@((int)Math.Round(podcast.Rating / 20.0))"/> <span>@podcast.Rating %</span>
+                                    <Rating ReadOnly="true" SelectedValue="@((int)Math.Round(AudioBook.Rating / 20.0))"/> <span>@AudioBook.Rating %</span>
                                 </div>
                             </div>
                             <div class="c-card-footer">
-                                @if (podcast.Duration != null)
+                                @if (AudioBook.Duration != null)
                                 {
                                     <span>
-                                        <Icon Name="IconName.Clock"/> @podcast.Duration.Value.ToString(@"hh\:mm")
+                                        <Icon Name="IconName.Clock"/> @AudioBook.Duration.Value.ToString(@"hh\:mm")
                                     </span>
                                 }
-                                @if (PodcastDownloader.IsDownloadSupported(podcast.Id))
+                                @if (AudioBookDownloader.IsDownloadSupported(AudioBook.Id))
                                 {
-                                    <Button class="button" Clicked="async () => await Download(podcast)">
+                                    <Button class="button" Clicked="async () => await Download(AudioBook)">
                                         <Icon Name="IconName.Download"></Icon>
                                     </Button>
                                 }
-                                <a class="button" href="@podcast.Url">
+                                <a class="button" href="@AudioBook.Url">
                                     <Icon Name="IconName.Rss"></Icon>
                                 </a>
-                                <a class="button" href="@($"{podcast.Url}/edit")">
+                                <a class="button" href="@($"{AudioBook.Url}/edit")">
                                     <Icon Name="IconName.Edit"></Icon>
                                 </a>
                             </div>

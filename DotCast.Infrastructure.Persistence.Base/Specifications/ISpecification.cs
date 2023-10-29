@@ -1,4 +1,4 @@
-﻿namespace DotCast.Infrastructure.Persistence.Base.Specifications
+namespace DotCast.Infrastructure.Persistence.Base.Specifications
 {
     public interface ISpecification<T> : ISpecification<T, T>
     {

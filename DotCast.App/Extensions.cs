@@ -1,4 +1,4 @@
-﻿namespace DotCast.App
+namespace DotCast.App
 {
     public static class Extensions
     {
