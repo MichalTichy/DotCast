@@ -12,6 +12,8 @@ namespace DotCast.App.Installers
     {
         public void Install(IServiceCollection services, IConfiguration configuration, bool isProduction)
         {
+            services.AddTransient<PostgreAudioBookInfoProvider>();
+
             services.AddTransient<IAudioBookInfoProvider>(provider => provider.GetRequiredService<PostgreAudioBookInfoProvider>());
 
             services.AddSingleton<IAudioBookFeedProvider, FileSystemAudioBookProvider>();
