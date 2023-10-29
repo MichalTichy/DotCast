@@ -21,12 +21,12 @@ namespace DotCast.Infrastructure.BookInfoProvider.DatabazeKnih
         private async Task<BookInfo> GetBookInfoAsync(BookSearchResult bookSearchResult)
         {
             var page = await LoadPageAsync(bookSearchResult.Url);
-            var title = page.QuerySelector("h1[itemprop=\"name\"]")?.TextContent;
-            var author = page.QuerySelector("#left_less > div > h2.jmenaautoru > span > a")?.TextContent;
-            var description = page.QuerySelector("p[itemprop=\"description\"] >span.start_text")?.TextContent;
+            var title = page.QuerySelector("h1[itemprop=\"name\"]")?.TextContent.Trim();
+            var author = page.QuerySelector("#left_less > div > h2.jmenaautoru > span > a")?.TextContent.Trim();
+            var description = page.QuerySelector("p[itemprop=\"description\"] >span.start_text")?.TextContent.Trim();
             description = RemoveWhitespace(description);
-            var seriesName = page.QuerySelector("#bdetail_rest > div.detail_description > h3 > a")?.TextContent;
-            var noInSeries = page.QuerySelector("#bdetail_rest > div.detail_description > h3 > em")?.TextContent.TrimEnd('.') ?? "0";
+            var seriesName = page.QuerySelector("#bdetail_rest > div.detail_description > h3 > a")?.TextContent.Trim();
+            var noInSeries = page.QuerySelector("#bdetail_rest > div.detail_description > h3 > em")?.TextContent.Trim().TrimEnd('.') ?? "0";
             var imgUrl  = page.QuerySelector("#icover_mid > a > img")?.Attributes["src"]?.Value;
             var rating  = page.QuerySelector("#voixis > a.bpoints > div")?.Text()?.Replace("%","").Trim() ?? "0";
             return new BookInfo(title, author, description, seriesName, int.Parse(noInSeries), imgUrl,int.Parse(rating));
