@@ -5,7 +5,7 @@ namespace DotCast.AudioBookInfo
         public required string Id { get; init; }
         public required string Name { get; set; }
         public required string AuthorName { get; set; }
-        public required List<Chapter> Chapters { get; init; }
+        public required List<Chapter> Chapters { get; set; }
         public ICollection<Category> Categories { get; set; }
 
         public string? SeriesName { get; set; }

@@ -105,5 +105,10 @@ namespace DotCast.App.Pages
             Data.Chapters.Remove(chapter);
             Data.Chapters.Insert(newIndex, chapter);
         }
+
+        private void SortByName()
+        {
+            Data.Chapters = Data.Chapters.OrderBy(t => t.Name).ToList();
+        }
     }
 }
