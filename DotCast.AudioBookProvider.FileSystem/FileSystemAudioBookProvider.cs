@@ -41,13 +41,6 @@ namespace DotCast.AudioBookProvider.FileSystem
             return rssGeneratorParams;
         }
 
-        public async Task<string?> GetFeedCover(string id)
-        {
-            var rssFromFileParams = GetFeedParams(id);
-            var feed = await rssGenerator.BuildFeed(rssFromFileParams);
-            return feed.ImageUrl;
-        }
-
         public async IAsyncEnumerable<AudioBook> GetAudioBooks(string? searchText = null)
         {
             var baseDirectory = new DirectoryInfo(settings.AudioBooksLocation);
@@ -74,30 +67,35 @@ namespace DotCast.AudioBookProvider.FileSystem
 
         public Task UpdateAudioBook(AudioBook audioBook)
         {
-            _ = Task.Run(() =>
+            var localFileInfos = GetFiles(audioBook.Id, out _);
+            foreach (var localFileInfo in localFileInfos)
             {
-                var localFileInfos = GetFiles(audioBook.Id, out _);
-                foreach (var localFileInfo in localFileInfos)
+                try
                 {
-                    try
+                    var file = File.Create(localFileInfo.LocalPath);
+                    file.Tag.Album = audioBook.Name;
+                    file.Tag.Performers = new[] {audioBook.AuthorName};
+
+                    file.Tag.Grouping = audioBook.SeriesName;
+                    file.Tag.TitleSort = audioBook.OrderInSeries.ToString();
+
+                    file.Tag.Description = audioBook.Description;
+
+                    var matchedChapter = audioBook.Chapters.FirstOrDefault(t => t.Url == localFileInfo.RemotePath);
+
+                    if (matchedChapter != null)
                     {
-                        var file = File.Create(localFileInfo.LocalPath);
-                        file.Tag.Album = audioBook.Name;
-                        file.Tag.Performers = new[] {audioBook.AuthorName};
-
-                        file.Tag.Grouping = audioBook.SeriesName;
-                        file.Tag.TitleSort = audioBook.OrderInSeries.ToString();
-
-                        file.Tag.Description = audioBook.Description;
-
-                        file.Save();
+                        file.Tag.Title = matchedChapter.Name;
+                        file.Tag.TitleSort = audioBook.Chapters.IndexOf(matchedChapter).ToString("D5");
                     }
-                    catch (Exception)
-                    {
-                        // ignored
-                    }
+
+                    file.Save();
                 }
-            });
+                catch (Exception)
+                {
+                    // ignored
+                }
+            }
 
             return Task.CompletedTask;
         }

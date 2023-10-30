@@ -79,14 +79,6 @@ namespace DotCast.App.Pages
                 await using var stream = AudioBookUploader.GetAudioBookFileWriteStream(Id, file.Name, file.Type, out var _);
                 await file.WriteToStreamAsync(stream);
             }
-
-            await ResetImageUrl();
-        }
-
-        private async Task ResetImageUrl()
-        {
-            var feedCover = await AudioBookFeedProvider.GetFeedCover(Id);
-            Data.ImageUrl = feedCover;
         }
 
         private async Task LoadSuggestions()

@@ -130,14 +130,11 @@ namespace DotCast.App.Pages
 
         private async Task ZipAll()
         {
-            StartProgressBar("Creating archives for all audiobooks");
-            var i = 0;
             try
             {
                 IsBusy = true;
                 await foreach (var audioBook in InfoProvider.GetAudioBooks())
                 {
-                    ProgressBarReport(++i);
                     await Downloader.GenerateZipForDownload(audioBook.Id);
                 }
             }
@@ -155,14 +152,12 @@ namespace DotCast.App.Pages
 
         private async Task LoadFromFileSystem()
         {
-            StartProgressBar("Loading files from file system into database.");
             var i = 0;
             try
             {
                 IsBusy = true;
                 await foreach (var audioBook in FileSystemInfoProvider.GetAudioBooks())
                 {
-                    ProgressBarReport(++i);
                     await InfoProvider.UpdateAudioBook(audioBook);
                 }
             }
@@ -170,18 +165,6 @@ namespace DotCast.App.Pages
             {
                 IsBusy = false;
             }
-        }
-
-        private void StartProgressBar(string text)
-        {
-            ProgressBarText = text;
-            ProgressBarCurrent = 0;
-        }
-
-        private void ProgressBarReport(int current, int? total = null)
-        {
-            ProgressBarCurrent = current;
-            ProgressBarTotal = total;
         }
 
         private async Task ReplaceInfo()
@@ -210,6 +193,23 @@ namespace DotCast.App.Pages
                     audioBook.Categories = first.Categories;
 
                     await InfoProvider.UpdateAudioBook(audioBook);
+                }
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        private async Task SaveInfoToFileSystem()
+        {
+            try
+            {
+                IsBusy = true;
+
+                await foreach (var audioBook in InfoProvider.GetAudioBooks())
+                {
+                    await FileSystemInfoProvider.UpdateAudioBook(audioBook);
                 }
             }
             finally

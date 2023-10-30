@@ -9,6 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\DotCast.Infrastructure.Persistence.Marten\DotCast.Infrastructure.Persistence.Marten.csproj" />
     <ProjectReference Include="..\DotCast.AudioBookProvider.Base\DotCast.AudioBookProvider.Base.csproj" />
+    <ProjectReference Include="..\DotCast.RssGenerator.FromAudioBookInfo\DotCast.RssGenerator.FromAudioBookInfo.csproj" />
   </ItemGroup>
 
 </Project>
