@@ -1,0 +1,59 @@
+﻿@inject IJSRuntime js
+
+<InputFile OnChange="HandleSelectedFiles" multiple />
+@foreach (var file in uploadFiles)
+{
+    <div>
+        @file.File.Name
+        <Progress Value="@file.Progress"> </Progress>
+    </div>
+}
+
+@code {
+
+    [Parameter]
+    public Func<ICollection<string>, Task<Dictionary<string, string>>> PresignedUrlFactory { get; set; } = null!;
+    private readonly List<UploadFileModel> uploadFiles = new();
+
+    private async Task HandleSelectedFiles(InputFileChangeEventArgs e)
+    {
+        var files = e.GetMultipleFiles();
+        var presignedUrls = await PresignedUrlFactory(files.Select(file => file.Name).ToList());
+        foreach (var file in files)
+        {
+            var uploadFile = new UploadFileModel { File = file, FileName = file.Name, Progress = 0 };
+            uploadFiles.Add(uploadFile);
+            await UploadFile(uploadFile,presignedUrls[file.Name]);
+        }
+    }
+
+    private async Task UploadFile(UploadFileModel uploadFile,string url)
+    {
+        var fileContent = new MemoryStream();
+        await uploadFile.File.OpenReadStream().CopyToAsync(fileContent);
+
+        var progressCallback = DotNetObjectReference.Create(new UploadProgressCallback(progress =>
+        {
+            uploadFile.Progress = progress;
+            StateHasChanged();
+        }));
+
+        await js.InvokeVoidAsync("uploadFileToExternalService", url, fileContent.ToArray(), progressCallback);
+    }
+
+    public class UploadFileModel
+    {
+        public required IBrowserFile File { get; set; }
+        public required string FileName { get; set; }
+        public int Progress { get; set; }
+    }
+
+    public class UploadProgressCallback(Action<int> progressReportAction)
+    {
+        [JSInvokable("ReportProgress")]
+        public void ReportProgress(int progress)
+        {
+            progressReportAction.Invoke(progress);
+        }
+    }
+}

@@ -17,7 +17,7 @@
             <div class="stat"> Authors: <Icon Name="IconName.Users" />@AudioBooksStatistics?.AuthorCount</div>
             <div class="stat">Duration: <Icon Name="IconName.Clock" />@Math.Floor(AudioBooksStatistics?.TotalDuration.TotalHours ??0) hours</div>
             <Field >
-                <TextEdit Placeholder="Search" TextChanged="async (t) => await SearchTextChanged(t)"/>
+                <TextEdit Placeholder="Search" TextChanged="SearchTextChanged"/>
             </Field>
         </div>
 
@@ -64,16 +64,16 @@
                                     <span>
                                         <Icon Name="IconName.Clock"/> @audioBook.Duration.ToString(@"hh\:mm")
                                     </span>
-                                @if (AudioBookDownloader.IsDownloadSupported(audioBook.Id))
+                                @if (audioBook.ReadyForDownload)
                                 {
                                     <Button class="button" Clicked="async () => await Download(audioBook)">
                                         <Icon Name="IconName.Download"></Icon>
                                     </Button>
                                 }
-                                <a class="button" href="@audioBook.Url">
+                                <a class="button" href="@($"AudioBook/{audioBook.Id}/rss")">
                                     <Icon Name="IconName.Rss"></Icon>
                                 </a>
-                                <a class="button" href="@($"{audioBook.Url}/edit")">
+                                <a class="button" href="@($"AudioBook/{audioBook.Id}/edit")">
                                     <Icon Name="IconName.Edit"></Icon>
                                 </a>
                             </div>

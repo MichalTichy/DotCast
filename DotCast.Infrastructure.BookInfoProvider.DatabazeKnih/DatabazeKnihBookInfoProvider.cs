@@ -2,17 +2,17 @@ using System.Net;
 using AngleSharp;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
-using DotCast.AudioBookInfo;
 using DotCast.Infrastructure.BookInfoProvider.Base;
+using DotCast.SharedKernel.Models;
 
 namespace DotCast.Infrastructure.BookInfoProvider.DatabazeKnih
 {
     public class DatabazeKnihBookInfoProvider : IBookInfoProvider
     {
         private readonly Uri baseUri = new("https://www.databazeknih.cz/");
-        private readonly CategoryMapper CategoryMapper = new();
+        private readonly CategoryMapper categoryMapper = new();
 
-        public async IAsyncEnumerable<BookInfo> GetBookInfoAsync(string name)
+        public async IAsyncEnumerable<FoundBookInfo> GetBookInfoAsync(string name)
         {
             await foreach (var foundBook in SearchAsync(name))
             {
@@ -20,7 +20,7 @@ namespace DotCast.Infrastructure.BookInfoProvider.DatabazeKnih
             }
         }
 
-        private async Task<BookInfo> GetBookInfoAsync(BookSearchResult bookSearchResult)
+        private async Task<FoundBookInfo> GetBookInfoAsync(BookSearchResult bookSearchResult)
         {
             var page = await LoadPageAsync(bookSearchResult.Url);
             var title = page.QuerySelector("h1[itemprop=\"name\"]")?.TextContent.Trim();
@@ -36,7 +36,7 @@ namespace DotCast.Infrastructure.BookInfoProvider.DatabazeKnih
             var categories = new List<Category>(categoriesRaw.Capacity);
             foreach (var rawCategory in categoriesRaw)
             {
-                var category = CategoryMapper.GetCategoryByCzechName(rawCategory);
+                var category = categoryMapper.GetCategoryByCzechName(rawCategory);
                 if (category != null)
                 {
                     categories.Add(category);
@@ -47,7 +47,7 @@ namespace DotCast.Infrastructure.BookInfoProvider.DatabazeKnih
                 }
             }
 
-            return new BookInfo(title, author, description, seriesName, int.Parse(noInSeries), imgUrl, int.Parse(rating), categories);
+            return new FoundBookInfo(title, author, description, seriesName, int.Parse(noInSeries), imgUrl, int.Parse(rating), categories);
         }
 
         private string? RemoveWhitespace(string? input)

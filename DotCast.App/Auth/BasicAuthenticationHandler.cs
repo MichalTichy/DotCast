@@ -19,9 +19,8 @@ namespace DotCast.App.Auth
         public BasicAuthenticationHandler(
             IOptionsMonitor<AuthenticationSchemeOptions> options,
             ILoggerFactory logger,
-            UrlEncoder encoder,
-            ISystemClock clock,IAuthenticationManager authenticationManager)
-            : base(options, logger, encoder, clock)
+            UrlEncoder encoder,IAuthenticationManager authenticationManager)
+            : base(options, logger, encoder)
         {
             this.authenticationManager = authenticationManager;
         }
@@ -37,8 +36,8 @@ namespace DotCast.App.Auth
 
             try
             {
-                var authHeader = AuthenticationHeaderValue.Parse(Request.Headers["Authorization"]);
-                var credentialBytes = Convert.FromBase64String(authHeader.Parameter);
+                var authHeader = AuthenticationHeaderValue.Parse(Request.Headers["Authorization"]!);
+                var credentialBytes = Convert.FromBase64String(authHeader.Parameter!);
                 var credentials = Encoding.UTF8.GetString(credentialBytes).Split(new[] { ':' }, 2);
                 var username = credentials[0];
                 var password = credentials[1];
@@ -53,7 +52,7 @@ namespace DotCast.App.Auth
                 return Task.FromResult(AuthenticateResult.Fail("Invalid Username or Password"));
             var claims = new[]
             {
-                new(ClaimTypes.Name, result.Name),
+                new(ClaimTypes.Name, result.Name!),
                 new Claim(ClaimTypes.Role, result.IsAdmin ? "Admin" : "User")
             };
             var identity = new ClaimsIdentity(claims, Scheme.Name);

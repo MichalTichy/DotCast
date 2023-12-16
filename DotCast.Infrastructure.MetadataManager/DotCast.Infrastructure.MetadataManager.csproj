@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="TagLibSharp" Version="2.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DotCast.Infrastructure.IoC\DotCast.Infrastructure.IoC.csproj" />
+    <ProjectReference Include="..\DotCast.SharedKernel\DotCast.SharedKernel.csproj" />
+    <ProjectReference Include="..\DotCast.Storage.Abstractions\DotCast.Storage.Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>

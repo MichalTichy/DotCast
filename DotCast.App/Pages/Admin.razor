@@ -1,22 +1,12 @@
 @page "/Admin"
-@using DotCast.App.Auth
+@using DotCast.App.Shared
 
-<PageProgress Visible="IsBusy" Value="ProgressBarTotal==null ? null: (100*ProgressBarCurrent)/ProgressBarTotal" />
-<Button Disabled="@IsBusy" Clicked="async () => await uploadModalRef.Show()" Color="Color.Success">
+<Button Clicked="async () => await uploadModalRef.Show()" Color="Color.Success">
     Upload new
 </Button>
 <hr />
-<Button Disabled="@IsBusy" Clicked="LoadFromFileSystem" Color="Color.Warning">
-    Load audiobooks from File system to database
-</Button>
-<Button Disabled="@IsBusy" Clicked="ZipAll" Color="Color.Warning ">
-    Ensure all AudioBooks have zip versions.
-</Button>
-<Button Disabled="@IsBusy" Clicked="ReplaceInfo" Color="Color.Danger ">
-    Replace info for all audio books.
-</Button>
-<Button Disabled="@IsBusy" Clicked="SaveInfoToFileSystem" Color="Color.Danger ">
-    Save AudioBooks info to FileSystem.
+<Button Clicked="RestoreAudioBooksFromStorage" Color="Color.Warning">
+    Restore audiobooks from Storage
 </Button>
 
 
@@ -30,22 +20,15 @@
         <ModalBody>
             <h3></h3>
             <p>Enter AudioBook name</p>
-            <TextEdit @bind-Text="AudioBookName" />
-            @if (!string.IsNullOrWhiteSpace(AudioBookName))
+            <TextEdit TextChanged="BookNameTextChanged" />
+            <p>Id: @newAudioBookId</p>
+            @if (ReadyForUpload)
             {
                 <p>
                     <label>
-                        <InputFile Disabled="@IsBusy" OnChange="@UploadFiles" multiple />
+                        <FileUpload PresignedUrlFactory="GetPresignedUrls" />
                     </label>
                 </p>
-            }
-            <p>@UploadErrorText</p>
-            
-
-            @foreach (var file in Files)
-            {
-                @file.File.Name
-                <Progress Value="@file.UploadPercentage"> </Progress>
             }
         </ModalBody>
     </ModalContent>

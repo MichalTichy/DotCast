@@ -1,6 +1,6 @@
-@using DotCast.AudioBookProvider.Base
-@using DotCast.AudioBookInfo
+
 @page "/AudioBook/{Id}/edit"
+@using DotCast.SharedKernel.Models
 
 <Row>
     <Column>
@@ -72,7 +72,6 @@
         <Field >
             <FieldLabel>Upload files</FieldLabel>
             <FieldBody>                
-                <FileEdit Changed="FilesSelected"></FileEdit>
             </FieldBody>
         </Field>
     </Column>

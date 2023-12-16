@@ -1,4 +1,4 @@
-﻿using DotCast.AudioBookInfo;
+﻿using DotCast.SharedKernel.Models;
 
 namespace DotCast.Infrastructure.BookInfoProvider.DatabazeKnih
 {

@@ -1,8 +1,7 @@
 using System.Net;
-using DotCast.App.Middlewares;
 using DotCast.Infrastructure.Initializer;
 using DotCast.Infrastructure.IoC;
-using DotCast.AudioBookProvider.FileSystem;
+using DotCast.Storage.Abstractions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
@@ -11,6 +10,7 @@ namespace DotCast.App
 {
     public class Program
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "ASP0014:Suggest using top level route registrations", Justification = "<Pending>")]
         public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
@@ -33,7 +33,6 @@ namespace DotCast.App
             }
 
             app.UseHttpsRedirection();
-            app.UseMiddleware<LegacyUrlRedirectMiddleware>();
             app.UseStaticFiles();
 
             app.UseRouting();
@@ -48,7 +47,7 @@ namespace DotCast.App
                 endpoints.MapFallbackToPage("/_Host");
             });
 
-            var fileSystemOptions = app.Services.GetRequiredService<IOptions<FileSystemAudioBookProviderOptions>>().Value;
+            var fileSystemOptions = app.Services.GetRequiredService<IOptions<StorageOptions>>().Value;
             app.UseStaticFiles(new StaticFileOptions
             {
                 FileProvider = new PhysicalFileProvider(Path.GetFullPath(fileSystemOptions.AudioBooksLocation, Directory.GetCurrentDirectory())),

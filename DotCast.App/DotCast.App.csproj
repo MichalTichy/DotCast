@@ -1,33 +1,38 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>4ef6366c-34f9-44a5-9520-d6060af80cbc</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Ardalis.ApiEndpoints" Version="4.0.1" />
-    <PackageReference Include="Blazorise.Bootstrap" Version="1.1.5" />
-    <PackageReference Include="Blazorise.Icons.FontAwesome" Version="1.1.5" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="7.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="7.0.0" />
+    <PackageReference Include="Ardalis.ApiEndpoints" Version="4.1.0" />
+    <PackageReference Include="Blazorise.Bootstrap" Version="1.4.0" />
+    <PackageReference Include="Blazorise.Icons.FontAwesome" Version="1.4.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
+    <PackageReference Include="WolverineFx" Version="1.12.4" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DotCast.Infrastructure.BookInfoProvider.Base\DotCast.Infrastructure.BookInfoProvider.Base.csproj" />
-    <ProjectReference Include="..\DotCast.Infrastructure.BookInfoProvider.DatabazeKnih\DotCast.Infrastructure.BookInfoProvider.DatabazeKnih.csproj" />
     <ProjectReference Include="..\DotCast.Infrastructure.Initializer\DotCast.Infrastructure.Initializer.csproj" />
     <ProjectReference Include="..\DotCast.Infrastructure.IoC\DotCast.Infrastructure.IoC.csproj" />
-    <ProjectReference Include="..\DotCast.AudioBookProvider.FileSystem\DotCast.AudioBookProvider.FileSystem.csproj" />
-    <ProjectReference Include="..\DotCast.AudioBookProvider.Postgre\DotCast.AudioBookProvider.Postgre.csproj" />
+    <ProjectReference Include="..\DotCast.Library\DotCast.Library.csproj" />
+    <ProjectReference Include="..\DotCast.SharedKernel\DotCast.SharedKernel.csproj" />
+    <ProjectReference Include="..\DotCast.Storage.Abstractions\DotCast.Storage.Abstractions.csproj" />
+    <ProjectReference Include="..\DotCast.Storage\DotCast.Storage.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <None Update="DotCast.App.service">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Middlewares\" />
   </ItemGroup>
 </Project>

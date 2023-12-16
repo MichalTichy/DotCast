@@ -1,8 +1,10 @@
-using DotCast.AudioBookInfo;
-using DotCast.AudioBookProvider.Base;
+
+using DotCast.SharedKernel.Messages;
+using DotCast.SharedKernel.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Wolverine;
 
 namespace DotCast.App.Pages
 {
@@ -10,24 +12,22 @@ namespace DotCast.App.Pages
     public partial class AudioBooks
     {
         [Inject]
-        public IJSRuntime Js { get; set; } = null!;
+        public required IJSRuntime Js { get; set; }
 
         [Inject]
-        public IAudioBookInfoProvider AudioBookInfoProvider { get; set; } = null!;
+        public required IMessageBus MessageBus { get; set; }
+
+        public IReadOnlyList<AudioBook> Data { get; set; } = new List<AudioBook>().AsReadOnly();
 
         [Inject]
-        public IAudioBookDownloader AudioBookDownloader { get; set; } = null!;
+        public required NavigationManager NavigationManager { get; set; }
 
-        public List<AudioBook> Data { get; set; } = new();
-
-        [Inject]
-        public NavigationManager NavigationManager { get; set; } = null!;
-
-        public AudioBooksStatistics AudioBooksStatistics { get; set; } = null!;
+        public required AudioBooksStatistics AudioBooksStatistics { get; set; }
 
         public async Task Download(AudioBook info)
         {
-            var url = await AudioBookDownloader.GetZipDownloadUrl(info.Id);
+            throw new NotImplementedException();
+            var url = "";
             await Js.InvokeAsync<object>("open", url, "_blank");
         }
 
@@ -35,27 +35,33 @@ namespace DotCast.App.Pages
         {
             _ = Task.Run(async () =>
             {
-                AudioBooksStatistics = await AudioBookInfoProvider.GetStatistics();
+                await LoadStatistics();
                 await LoadData();
             });
             await base.OnInitializedAsync();
         }
 
-        private async Task LoadData(string? filter = null)
+        private async Task LoadStatistics()
         {
-            await foreach (var audioBook in AudioBookInfoProvider.GetAudioBooks(filter))
-            {
-                Data.Add(audioBook);
-                await InvokeAsync(StateHasChanged);
-            }
+            var request = new AudioBooksStatisticsRequest();
+            AudioBooksStatistics = await MessageBus.InvokeAsync<AudioBooksStatistics>(request);
         }
 
-        private Task SearchTextChanged(string text)
+        private async Task LoadData(string? filter = null)
         {
-            Data.Clear();
-            StateHasChanged();
-            _ = Task.Run(async () => await LoadData(text));
-            return Task.CompletedTask;
+            var request = new AudioBooksRetrievalRequest(filter);
+            var result = await MessageBus.InvokeAsync<IReadOnlyList<AudioBook>>(request);
+            Data = result;
+            await InvokeAsync(StateHasChanged);
+        }
+
+        private Timer? typingTimer;
+        private const int TypingDelay = 1000; // Delay in millisecond
+
+        private void SearchTextChanged(string text)
+        {
+            typingTimer?.Dispose();
+            typingTimer = new Timer(state => _ = LoadData(text), null, TypingDelay, Timeout.Infinite);
         }
     }
 }
