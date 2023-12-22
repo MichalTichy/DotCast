@@ -1,9 +1,4 @@
 namespace DotCast.Infrastructure.Initializer
 {
-    public class InitializerException : Exception
-    {
-        public InitializerException(string message) : base(message)
-        {
-        }
-    }
+    public class InitializerException(string message) : Exception(message);
 }

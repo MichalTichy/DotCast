@@ -38,7 +38,6 @@ namespace DotCast.App.Pages
             var response = await MessageBus.InvokeAsync<AudioBook>(request);
 
             Data = response ?? throw new ArgumentException("Requested AudioBook not found");
-            _ = LoadSuggestions(Data.Name);
         }
 
 
@@ -86,6 +85,12 @@ namespace DotCast.App.Pages
         private void SortByName()
         {
             Data.Chapters = Data.Chapters.OrderBy(t => t.Name).ToList();
+        }
+
+        private async Task ShowSuggestions()
+        {
+            await LoadSuggestions(Data.Name);
+            await suggestionsModalRef.Show();
         }
     }
 }

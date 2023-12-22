@@ -13,7 +13,7 @@ namespace DotCast.SharedKernel.Models
         public string? Description { get; set; }
         public string? ImageUrl { get; set; }
         public int Rating { get; set; }
-        public bool ReadyForDownload { get; set; }
+        public string? ArchiveUrl { get; set; }
         public TimeSpan Duration => TimeSpan.FromMilliseconds(Chapters.Sum(c => c.Duration.TotalMilliseconds));
     }
 }

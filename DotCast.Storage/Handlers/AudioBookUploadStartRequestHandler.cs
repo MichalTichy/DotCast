@@ -2,10 +2,11 @@
 using DotCast.SharedKernel.Messages;
 using DotCast.SharedKernel.Models;
 using DotCast.Storage.Storage;
+using Wolverine.Runtime.RemoteInvocation;
 
 namespace DotCast.Storage.Handlers
 {
-    internal class AudioBookUploadStartRequestHandler
+    public class AudioBookUploadStartRequestHandler
     (
         IStorage storage,
         IPresignedUrlManager presignedUrlManager,
@@ -18,7 +19,8 @@ namespace DotCast.Storage.Handlers
             var currentFiles = storage.GetStorageEntry(message.AudioBookId)?.Files.Select(t => Path.GetFileName(t.LocalPath)).ToArray();
             foreach (var messageFile in message.Files)
             {
-                var url = apiInformationProvider.GetFileUrl(message.AudioBookId, messageFile);
+                var isArchive = messageFile.EndsWith(".zip");
+                var url = apiInformationProvider.GetFileUrl(message.AudioBookId, messageFile, isArchive);
                 var signedUrl = presignedUrlManager.GenerateUrl(url);
                 var exists = currentFiles != null && currentFiles.Contains(messageFile);
                 result.Add(new PreuploadFileInformation(messageFile, signedUrl, exists));

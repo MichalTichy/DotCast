@@ -64,7 +64,7 @@
                                     <span>
                                         <Icon Name="IconName.Clock"/> @audioBook.Duration.ToString(@"hh\:mm")
                                     </span>
-                                @if (audioBook.ReadyForDownload)
+                                @if (!string.IsNullOrWhiteSpace(audioBook.ArchiveUrl))
                                 {
                                     <Button class="button" Clicked="async () => await Download(audioBook)">
                                         <Icon Name="IconName.Download"></Icon>

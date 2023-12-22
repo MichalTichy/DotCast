@@ -4,11 +4,14 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using DotCast.Infrastructure.Persistence.Marten.Extensions;
+using DotCast.Infrastructure.Persistence.Marten.SessionFactory;
+using DotCast.Infrastructure.Persistence.Marten.UnitOfWorks;
 using Marten;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace DotCast.Infrastructure.Persistence.Marten
+namespace DotCast.Infrastructure.Persistence.Marten.Migration
 {
     public class DatabaseMigrator : IDatabaseMigrator
     {
@@ -28,8 +31,9 @@ namespace DotCast.Infrastructure.Persistence.Marten
 
         public async Task EnsureMigrationHistoryTableAsync(CancellationToken ct)
         {
-            await using var session = await sessionFactory.OpenSessionAsync();
-            await using var command = session.Connection.CreateCommand();
+            await using var uow = new UnitOfWorkProvider();
+            using var session = await sessionFactory.OpenSessionAsync(uow.Get());
+            await using var command = session.GetConnection().CreateCommand();
 
             command.CommandText = "create table if not exists __migration_history (" +
                                   "version int primary key," +
@@ -39,6 +43,7 @@ namespace DotCast.Infrastructure.Persistence.Marten
 
             await command.ExecuteNonQueryAsync(ct);
             await session.SaveChangesAsync(ct);
+            await uow.CommitAsync();
         }
 
         public async Task SaveLastMigrationToHistoryAsync(CancellationToken ct)
@@ -50,9 +55,13 @@ namespace DotCast.Infrastructure.Persistence.Marten
                 return;
             }
 
-            await using var session = await sessionFactory.OpenSessionAsync();
-            await AddToMigrationHistoryAsync(session, lastMigration, ct);
+            await using var uow = new UnitOfWorkProvider();
+
+            using var session = await sessionFactory.OpenSessionAsync(uow.Get());
             await session.SaveChangesAsync(ct);
+            await AddToMigrationHistoryAsync(session, lastMigration, ct);
+
+            await uow.CommitAsync();
         }
 
         public async Task RunMigrationsAsync(CancellationToken ct)
@@ -97,13 +106,16 @@ namespace DotCast.Infrastructure.Persistence.Marten
 
         private async Task<int> GetLastAppliedVersionAsync(CancellationToken ct)
         {
-            await using var session = await sessionFactory.OpenSessionAsync();
-            await using var command = session.Connection.CreateCommand();
+            await using var uow = new UnitOfWorkProvider();
+            using var session = await sessionFactory.OpenSessionAsync(uow.Get());
+
+            await using var command = session.GetConnection().CreateCommand();
 
             command.CommandText = "select version from __migration_history " +
                                   "order by version desc limit 1";
 
             var result = await command.ExecuteScalarAsync(ct);
+            await uow.CommitAsync();
 
             if (result is not null)
             {
@@ -114,24 +126,28 @@ namespace DotCast.Infrastructure.Persistence.Marten
                 logger.LogDebug("No applied migrations found.");
             }
 
-            return result is null ? int.MinValue : (int)result;
+            return result is null ? int.MinValue : (int) result;
         }
 
         private async Task ApplyMigrationAsync(IMartenMigration migration, CancellationToken ct)
         {
             logger.LogWarning("Applying migration '{migrationName}' with version '{version}'.", migration.GetType().Name, migration.Version);
 
-            await using var session = await sessionFactory.OpenSessionAsync();
+            await using var uow = new UnitOfWorkProvider();
+            using var session = await sessionFactory.OpenSessionAsync(uow.Get());
+
             await migration.MigrateAsync(session, ct);
             await AddToMigrationHistoryAsync(session, migration, ct);
+
             await session.SaveChangesAsync(ct);
+            await uow.CommitAsync();
         }
 
         private async Task AddToMigrationHistoryAsync(IDocumentSession session, IMartenMigration migration, CancellationToken ct)
         {
             logger.LogDebug("Adding migration version {migrationVersion} to migration history.", migration.Version);
 
-            await using var command = session.Connection.CreateCommand();
+            await using var command = session.GetConnection().CreateCommand();
 
             var now = DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture);
             var migrationName = migration.GetType().Name;

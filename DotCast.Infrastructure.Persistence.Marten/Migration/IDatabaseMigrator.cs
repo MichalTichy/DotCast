@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DotCast.Infrastructure.Persistence.Marten
+namespace DotCast.Infrastructure.Persistence.Marten.Migration
 {
     public interface IDatabaseMigrator
     {

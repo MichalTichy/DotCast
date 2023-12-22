@@ -1,9 +1,4 @@
 namespace DotCast.Infrastructure.Initializer
 {
-    public class InitializerWasAlreadyExecutedException : InitializerException
-    {
-        public InitializerWasAlreadyExecutedException() : base("Initializer already executed.")
-        {
-        }
-    }
+    public class InitializerWasAlreadyExecutedException() : InitializerException("Initializer already executed.");
 }

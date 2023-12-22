@@ -4,11 +4,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using DotCast.Infrastructure.Persistence.Base.Repositories;
 using DotCast.Infrastructure.Persistence.Base.Specifications;
+using DotCast.Infrastructure.Persistence.Marten.SessionFactory;
+using DotCast.Infrastructure.Persistence.Marten.UnitOfWorks;
 using Marten;
 using Marten.Linq;
 using Microsoft.Extensions.Logging;
 
-namespace DotCast.Infrastructure.Persistence.Marten
+namespace DotCast.Infrastructure.Persistence.Marten.Repository.Document
 {
     public class MartenRepository<T> : IRepository<T> where T : notnull
     {
@@ -16,74 +18,63 @@ namespace DotCast.Infrastructure.Persistence.Marten
         protected readonly IAsyncSessionFactory SessionFactory;
 
         public MartenRepository(
-            ILogger<MartenRepository<T>> logger,
-            IAsyncSessionFactory sessionFactory)
+            IAsyncSessionFactory sessionFactory,
+            ILogger<MartenRepository<T>> logger)
         {
-            Logger = logger;
             SessionFactory = sessionFactory;
+            Logger = logger;
         }
 
         public virtual async Task AddAsync(ICollection<T> entities, CancellationToken cancellationToken = default)
         {
-            await using var session = await SessionFactory.OpenSessionAsync();
+            await using var uow = new UnitOfWorkProvider();
+            using var session = await SessionFactory.OpenSessionAsync(uow.Get());
             session.Insert(entities.AsEnumerable());
 
             await SaveChangesAsync(session, cancellationToken: cancellationToken);
+
+            await uow.CommitAsync();
         }
 
         public virtual async Task<T> AddAsync(T entity, CancellationToken cancellationToken = default)
         {
-            await using var session = await SessionFactory.OpenSessionAsync();
+            await using var uow = new UnitOfWorkProvider();
+            using var session = await SessionFactory.OpenSessionAsync(uow.Get());
 
             session.Insert(entity);
 
             await SaveChangesAsync(session, cancellationToken: cancellationToken);
 
-            return entity;
-        }
-
-        public async Task<T> StoreAsync(T entity, CancellationToken cancellationToken = default)
-        {
-            await using var session = await SessionFactory.OpenSessionAsync();
-
-            session.Store(entity);
-
-            await SaveChangesAsync(session, cancellationToken: cancellationToken);
-
+            await uow.CommitAsync();
             return entity;
         }
 
         public virtual async Task UpdateAsync(T entity, CancellationToken cancellationToken = default)
         {
-            await using var session = await SessionFactory.OpenSessionAsync();
+            await using var uow = new UnitOfWorkProvider();
+            using var session = await SessionFactory.OpenSessionAsync(uow.Get());
 
             session.Update(entity);
-
             await SaveChangesAsync(session, cancellationToken: cancellationToken);
-        }
 
-        public virtual async Task ForceUpdateAsync(T entity, CancellationToken cancellationToken = default)
-        {
-            await using var session = await SessionFactory.OpenSessionAsync();
-
-            session.Delete(entity);
-            session.Insert(entity);
-
-            await SaveChangesAsync(session, true, cancellationToken);
+            await uow.CommitAsync();
         }
 
         public virtual async Task DeleteAsync(T entity, CancellationToken cancellationToken = default)
         {
-            await using var session = await SessionFactory.OpenSessionAsync();
+            await using var uow = new UnitOfWorkProvider();
+            using var session = await SessionFactory.OpenSessionAsync(uow.Get());
+
             session.Delete(entity);
 
             await SaveChangesAsync(session, cancellationToken: cancellationToken);
+            await uow.CommitAsync();
         }
 
-        public virtual async Task DeleteRangeAsync(IEnumerable<T> entities,
-            CancellationToken cancellationToken = default)
+        public virtual async Task DeleteRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
         {
-            await using var session = await SessionFactory.OpenSessionAsync();
+            await using var uow = new UnitOfWorkProvider();
+            using var session = await SessionFactory.OpenSessionAsync(uow.Get());
 
             foreach (var entity in entities)
             {
@@ -91,73 +82,100 @@ namespace DotCast.Infrastructure.Persistence.Marten
             }
 
             await SaveChangesAsync(session, cancellationToken: cancellationToken);
+            await uow.CommitAsync();
         }
 
         public virtual async Task<T?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
         {
-            await using var session = await SessionFactory.QuerySessionAsync();
+            await using var uow = new UnitOfWorkProvider();
+            using var session = await SessionFactory.QuerySessionAsync(uow.Get());
 
-            return await session.LoadAsync<T>(id, cancellationToken);
+            var result = await session.LoadAsync<T>(id, cancellationToken);
+
+            await uow.CommitAsync();
+            return result;
         }
 
         public virtual async Task<T?> GetBySpecAsync(ISpecification<T> specification, CancellationToken cancellationToken = default)
         {
-            await using var session = await SessionFactory.QuerySessionAsync();
+            await using var uow = new UnitOfWorkProvider();
+            using var session = await SessionFactory.QuerySessionAsync(uow.Get());
 
             var queryable = session.Query<T>();
             queryable = PreprocessQuery(queryable);
 
-            return await specification.ApplyAsync(queryable, cancellationToken);
+            var result = await specification.ApplyAsync(queryable, cancellationToken);
+
+            await uow.CommitAsync();
+            return result;
         }
 
         public virtual async Task<TResult?> GetBySpecAsync<TResult>(ISpecification<T, TResult> specification, CancellationToken cancellationToken = default)
         {
-            await using var session = await SessionFactory.QuerySessionAsync();
+            await using var uow = new UnitOfWorkProvider();
+            using var session = await SessionFactory.QuerySessionAsync(uow.Get());
 
 
             var queryable = session.Query<T>();
             queryable = PreprocessQuery(queryable);
 
-            return await specification.ApplyAsync(queryable, cancellationToken);
+            var result = await specification.ApplyAsync(queryable, cancellationToken);
+
+            await uow.CommitAsync();
+            return result;
         }
 
         public virtual async Task<IReadOnlyList<T>> ListAsync(CancellationToken cancellationToken = default)
         {
-            await using var session = await SessionFactory.QuerySessionAsync();
-            return await session.Query<T>().ToListAsync(cancellationToken);
+            await using var uow = new UnitOfWorkProvider();
+            using var session = await SessionFactory.QuerySessionAsync(uow.Get());
+
+            var result = await session.Query<T>().ToListAsync(cancellationToken);
+
+            await uow.CommitAsync();
+            return result;
         }
 
         public virtual async Task<IReadOnlyList<T>> ListAsync(IListSpecification<T> specification, CancellationToken cancellationToken = default)
         {
-            await using var session = await SessionFactory.QuerySessionAsync();
+            await using var uow = new UnitOfWorkProvider();
+            using var session = await SessionFactory.QuerySessionAsync(uow.Get());
 
             var queryable = session.Query<T>();
             queryable = PreprocessQuery(queryable);
 
             var aggregates = await specification.ApplyAsync(queryable, cancellationToken);
 
-
+            await uow.CommitAsync();
             return aggregates;
         }
 
         public virtual async Task<IReadOnlyList<TResult>> ListAsync<TResult>(IListSpecification<T, TResult> specification, CancellationToken cancellationToken = default)
         {
-            await using var session = await SessionFactory.QuerySessionAsync();
+            await using var uow = new UnitOfWorkProvider();
+            using var session = await SessionFactory.QuerySessionAsync(uow.Get());
 
             var queryable = session.Query<T>();
             queryable = PreprocessQuery(queryable);
 
-            return await specification.ApplyAsync(queryable, cancellationToken);
+            var results = await specification.ApplyAsync(queryable, cancellationToken);
+
+            await uow.CommitAsync();
+            return results;
         }
 
         public virtual async Task<int> CountAsync(CancellationToken cancellationToken = default)
         {
-            await using var session = await SessionFactory.QuerySessionAsync();
+            await using var uow = new UnitOfWorkProvider();
+            using var session = await SessionFactory.QuerySessionAsync(uow.Get());
 
             var queryable = session.Query<T>();
             queryable = PreprocessQuery(queryable);
 
-            return await queryable.CountAsync(cancellationToken);
+            var result = await queryable.CountAsync(cancellationToken);
+
+            await uow.CommitAsync();
+            return result;
         }
 
         protected virtual async Task SaveChangesAsync(IDocumentSession session, bool force = false, CancellationToken cancellationToken = default)

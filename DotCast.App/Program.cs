@@ -1,10 +1,9 @@
-using System.Net;
+using DotCast.BookInfoProvider;
 using DotCast.Infrastructure.Initializer;
 using DotCast.Infrastructure.IoC;
-using DotCast.Storage.Abstractions;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.Extensions.FileProviders;
-using Microsoft.Extensions.Options;
+using DotCast.Library;
+using DotCast.Storage;
+using Wolverine;
 
 namespace DotCast.App
 {
@@ -19,6 +18,12 @@ namespace DotCast.App
 
             InstallerDiscovery.RunInstallersFromAllReferencedAssemblies(builder.Services, builder.Configuration, isProduction);
             builder.Services.AddAllInitializers();
+            builder.Host.UseWolverine(options =>
+            {
+                options.Discovery.IncludeAssembly(typeof(LibraryInstaller).Assembly);
+                options.Discovery.IncludeAssembly(typeof(StorageInstaller).Assembly);
+                options.Discovery.IncludeAssembly(typeof(AudiobookInfoProviderInstaller).Assembly);
+            });
 
             builder.Host.UseSystemd();
 
@@ -45,49 +50,6 @@ namespace DotCast.App
                 endpoints.MapControllers();
                 endpoints.MapBlazorHub();
                 endpoints.MapFallbackToPage("/_Host");
-            });
-
-            var fileSystemOptions = app.Services.GetRequiredService<IOptions<StorageOptions>>().Value;
-            app.UseStaticFiles(new StaticFileOptions
-            {
-                FileProvider = new PhysicalFileProvider(Path.GetFullPath(fileSystemOptions.AudioBooksLocation, Directory.GetCurrentDirectory())),
-                RequestPath = "/files",
-                OnPrepareResponse = async ctx =>
-                {
-                    if (ctx.File.Name.EndsWith(".png") || ctx.File.Name.EndsWith(".jpg"))
-                    {
-                        return;
-                    }
-
-                    var result = await ctx.Context.AuthenticateAsync();
-                    if (!result.Succeeded)
-                    {
-                        await ctx.Context.ChallengeAsync();
-                        ctx.Context.Response.StatusCode = 401;
-
-                        ctx.Context.Response.StatusCode = (int) HttpStatusCode.Unauthorized;
-                        ctx.Context.Response.ContentLength = 0;
-                        ctx.Context.Response.Body = Stream.Null;
-                    }
-                }
-            });
-            app.UseStaticFiles(new StaticFileOptions
-            {
-                FileProvider = new PhysicalFileProvider(Path.GetFullPath(fileSystemOptions.ZippedAudioBooksLocation, Directory.GetCurrentDirectory())),
-                RequestPath = "/zip",
-                OnPrepareResponse = async ctx =>
-                {
-                    var result = await ctx.Context.AuthenticateAsync();
-                    if (!result.Succeeded)
-                    {
-                        await ctx.Context.ChallengeAsync();
-                        ctx.Context.Response.StatusCode = 401;
-
-                        ctx.Context.Response.StatusCode = (int) HttpStatusCode.Unauthorized;
-                        ctx.Context.Response.ContentLength = 0;
-                        ctx.Context.Response.Body = Stream.Null;
-                    }
-                }
             });
 
             var initializerManager = app.Services.GetRequiredService<InitializerManager>();

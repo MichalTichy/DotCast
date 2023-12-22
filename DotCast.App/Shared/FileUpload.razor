@@ -1,59 +1,60 @@
 ﻿@inject IJSRuntime js
 
-<InputFile OnChange="HandleSelectedFiles" multiple />
-@foreach (var file in uploadFiles)
-{
-    <div>
-        @file.File.Name
-        <Progress Value="@file.Progress"> </Progress>
-    </div>
-}
+<!-- Include this in your HTML where you want the file picker and progress bars -->
+<input type="file" id="filePicker" multiple />
+<div id="progressBars"></div>
+<script>
+    document.getElementById('filePicker').addEventListener('change', async function (e) {
+        const files = e.target.files;
+        const fileNames = Array.from(files).map(file => file.name);
+
+        // Get pre-signed URLs from the server for all files at once
+        try {
+            const presignedUrls = await window.UploadHelpers.dotNetHelper.invokeMethodAsync('GeneratePresignedUrls', fileNames);
+
+            for (let file of files) {
+                // Create a progress bar for each file
+                const progressBar = document.createElement("progress");
+                progressBar.id = `progress_${file.name}`;
+                progressBar.value = 0;
+                progressBar.max = 100;
+                document.getElementById('progressBars').appendChild(progressBar);
+
+                // Get the pre-signed URL for this file
+                const presignedUrl = presignedUrls[file.name];
+                if (presignedUrl) {
+                    await uploadFile(file, presignedUrl);
+                    console.log(file.name + " uploaded successfully!");
+                } else {
+                    console.error("No pre-signed URL for " + file.name);
+                }
+            }
+        } catch (error) {
+            console.error("Error generating or retrieving pre-signed URLs: ", error);
+        }
+    });
+
+</script>
 
 @code {
 
+    private DotNetObjectReference<FileUpload>? dotNetHelper;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            dotNetHelper = DotNetObjectReference.Create(this);
+            await js.InvokeVoidAsync("UploadHelpers.setDotNetHelper",
+                dotNetHelper);
+        }
+    }
     [Parameter]
     public Func<ICollection<string>, Task<Dictionary<string, string>>> PresignedUrlFactory { get; set; } = null!;
-    private readonly List<UploadFileModel> uploadFiles = new();
 
-    private async Task HandleSelectedFiles(InputFileChangeEventArgs e)
+    [JSInvokable]
+    public async Task<Dictionary<string, string>> GeneratePresignedUrls(List<string> fileNames)
     {
-        var files = e.GetMultipleFiles();
-        var presignedUrls = await PresignedUrlFactory(files.Select(file => file.Name).ToList());
-        foreach (var file in files)
-        {
-            var uploadFile = new UploadFileModel { File = file, FileName = file.Name, Progress = 0 };
-            uploadFiles.Add(uploadFile);
-            await UploadFile(uploadFile,presignedUrls[file.Name]);
-        }
-    }
-
-    private async Task UploadFile(UploadFileModel uploadFile,string url)
-    {
-        var fileContent = new MemoryStream();
-        await uploadFile.File.OpenReadStream().CopyToAsync(fileContent);
-
-        var progressCallback = DotNetObjectReference.Create(new UploadProgressCallback(progress =>
-        {
-            uploadFile.Progress = progress;
-            StateHasChanged();
-        }));
-
-        await js.InvokeVoidAsync("uploadFileToExternalService", url, fileContent.ToArray(), progressCallback);
-    }
-
-    public class UploadFileModel
-    {
-        public required IBrowserFile File { get; set; }
-        public required string FileName { get; set; }
-        public int Progress { get; set; }
-    }
-
-    public class UploadProgressCallback(Action<int> progressReportAction)
-    {
-        [JSInvokable("ReportProgress")]
-        public void ReportProgress(int progress)
-        {
-            progressReportAction.Invoke(progress);
-        }
+        return await PresignedUrlFactory(fileNames);
     }
 }

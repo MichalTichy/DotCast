@@ -7,22 +7,16 @@ using Microsoft.Extensions.Options;
 
 namespace DotCast.App.Auth
 {
-    public class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+    public class BasicAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options,
+            ILoggerFactory logger,
+            UrlEncoder encoder,
+            IAuthenticationManager authenticationManager)
+        : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
     {
-        private readonly IAuthenticationManager authenticationManager;
         protected override Task HandleChallengeAsync(AuthenticationProperties properties)
         {
             Response.Headers["WWW-Authenticate"] = "Basic";
             return base.HandleChallengeAsync(properties);
-        }
-
-        public BasicAuthenticationHandler(
-            IOptionsMonitor<AuthenticationSchemeOptions> options,
-            ILoggerFactory logger,
-            UrlEncoder encoder,IAuthenticationManager authenticationManager)
-            : base(options, logger, encoder)
-        {
-            this.authenticationManager = authenticationManager;
         }
 
         protected override Task<AuthenticateResult> HandleAuthenticateAsync()

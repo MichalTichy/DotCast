@@ -26,9 +26,19 @@ namespace DotCast.Infrastructure.BookInfoProvider.DatabazeKnih
             var title = page.QuerySelector("h1[itemprop=\"name\"]")?.TextContent.Trim();
             var author = page.QuerySelector("#left_less > div > h2.jmenaautoru > span > a")?.TextContent.Trim();
             var description = page.QuerySelector("p[itemprop=\"description\"] >span.start_text")?.TextContent.Trim();
+            if (string.IsNullOrWhiteSpace(description))
+            {
+                description = page.QuerySelector("#bdetail_rest > p.justify.new2.odtop")?.TextContent.Trim();
+            }
+
             description = RemoveWhitespace(description);
             var seriesName = page.QuerySelector("#bdetail_rest > div.detail_description > h3 > a")?.TextContent.Trim();
-            var noInSeries = page.QuerySelector("#bdetail_rest > div.detail_description > h3 > em")?.TextContent.Trim().TrimEnd('.') ?? "0";
+            if (string.IsNullOrWhiteSpace(seriesName))
+            {
+                seriesName = page.QuerySelector("#bdetail_rest > h3 > a")?.TextContent.Trim();
+            }
+
+            var noInSeries = page.QuerySelector("#bdetail_rest > span > span")?.TextContent.Trim().TrimEnd('.') ?? "0";
             var imgUrl  = page.QuerySelector("#icover_mid > a > img")?.Attributes["src"]?.Value;
             var rating  = page.QuerySelector("#voixis > a.bpoints > div")?.Text()?.Replace("%","").Trim() ?? "0";
             var categoriesRaw = page.QuerySelectorAll("#bdetail_rest > div.detail_description > h5 > a").Select(t => t.Text().Trim()).ToList();
@@ -47,7 +57,7 @@ namespace DotCast.Infrastructure.BookInfoProvider.DatabazeKnih
                 }
             }
 
-            return new FoundBookInfo(title, author, description, seriesName, int.Parse(noInSeries), imgUrl, int.Parse(rating), categories);
+            return new FoundBookInfo(title ?? "ERROR", author ?? "ERROR", description, seriesName, int.Parse(noInSeries), imgUrl, int.Parse(rating), categories);
         }
 
         private string? RemoveWhitespace(string? input)

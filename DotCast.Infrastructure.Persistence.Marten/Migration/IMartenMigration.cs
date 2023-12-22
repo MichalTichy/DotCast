@@ -2,7 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Marten;
 
-namespace DotCast.Infrastructure.Persistence.Marten
+namespace DotCast.Infrastructure.Persistence.Marten.Migration
 {
     public interface IMartenMigration
     {

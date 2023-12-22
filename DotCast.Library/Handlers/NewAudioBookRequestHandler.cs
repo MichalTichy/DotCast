@@ -23,11 +23,6 @@ namespace DotCast.Library.Handlers
                 return id;
             }
 
-            if (message.Name != message.AudioBook.Name)
-            {
-                throw new ArgumentException($"Provided names do not match. \"{message.Name}\" != \"{message.AudioBook.Name}\"");
-            }
-
             var existing = await repository.GetByIdAsync(message.AudioBook.Id);
             if (existing != null)
             {

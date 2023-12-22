@@ -3,7 +3,7 @@ using DotCast.Storage.Storage;
 
 namespace DotCast.Storage.Handlers
 {
-    internal class RestoreFromFileSystemRequestedHandler(IStorage storage) : CascadingMessageHandler<RestoreFromFileSystemRequest>
+    public class RestoreFromFileSystemRequestHandler(IStorage storage) : CascadingMessageHandler<RestoreFromFileSystemRequest>
     {
         public override async IAsyncEnumerable<object> Handle(RestoreFromFileSystemRequest message)
         {

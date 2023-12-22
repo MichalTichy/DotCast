@@ -7,7 +7,7 @@ namespace DotCast.Infrastructure.MetadataManager
 {
     public class MetadataManager : IMetadataManager
     {
-        public Task<AudioBook> ExtractMetadata(StorageEntryWithFiles source)
+        public Task<AudioBook> ExtractMetadata(StorageEntryWithFiles source, CancellationToken cancellationToken = default)
         {
             string? image = null;
             var imageIsDesignatedCover = false;
@@ -20,6 +20,11 @@ namespace DotCast.Infrastructure.MetadataManager
             List<(LocalFileInfo info, File metadata)> files = new(source.Files.Count);
             foreach (var file in source.Files)
             {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    return Task.FromCanceled<AudioBook>(cancellationToken);
+                }
+
                 File metadata;
                 try
                 {
@@ -55,13 +60,9 @@ namespace DotCast.Infrastructure.MetadataManager
                 }
             }
 
-            if (files.All(t => t.metadata.Tag.TrackCount != 0))
+            if (files.Select(t => t.metadata.Tag.Track).GroupBy(t => t).All(t => t.Count() == 1))
             {
                 files = files.OrderBy(t => t.metadata.Tag.Track).ToList();
-            }
-            else if (files.All(t => !string.IsNullOrWhiteSpace(t.metadata.Tag.TitleSort)))
-            {
-                files = files.OrderBy(t => t.metadata.Tag.TitleSort).ToList();
             }
             else
             {
@@ -128,12 +129,13 @@ namespace DotCast.Infrastructure.MetadataManager
                 Description = description,
                 ImageUrl = image,
                 SeriesName = series,
-                OrderInSeries = orderInSeries ?? 0
+                OrderInSeries = orderInSeries ?? 0,
+                ArchiveUrl = source.Archive?.RemotePath
             };
             return Task.FromResult(audioBook);
         }
 
-        public Task UpdateMetadata(AudioBook audioBook, StorageEntryWithFiles source)
+        public Task UpdateMetadata(AudioBook audioBook, StorageEntryWithFiles source, CancellationToken cancellationToken = default)
         {
             foreach (var localFileInfo in source.Files)
             {
@@ -152,6 +154,11 @@ namespace DotCast.Infrastructure.MetadataManager
                 {
                     file.Tag.Title = matchedChapter.Name;
                     file.Tag.TitleSort = audioBook.Chapters.IndexOf(matchedChapter).ToString("D5");
+                }
+
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    return Task.FromCanceled(cancellationToken);
                 }
 
                 file.Save();

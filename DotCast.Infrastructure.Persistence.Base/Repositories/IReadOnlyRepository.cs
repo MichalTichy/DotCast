@@ -2,7 +2,7 @@ using DotCast.Infrastructure.Persistence.Base.Specifications;
 
 namespace DotCast.Infrastructure.Persistence.Base.Repositories
 {
-    public interface IReadOnlyRepository<T>
+    public interface IReadOnlyRepository<T> where T : notnull
     {
         Task DeleteRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default);
         Task<T?> GetByIdAsync(string id, CancellationToken cancellationToken = default);

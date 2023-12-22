@@ -5,7 +5,7 @@ namespace DotCast.Infrastructure.MetadataManager
 {
     public interface IMetadataManager
     {
-        Task<AudioBook> ExtractMetadata(StorageEntryWithFiles source);
-        Task UpdateMetadata(AudioBook audioBook, StorageEntryWithFiles source);
+        Task<AudioBook> ExtractMetadata(StorageEntryWithFiles source, CancellationToken cancellationToken = default);
+        Task UpdateMetadata(AudioBook audioBook, StorageEntryWithFiles source, CancellationToken cancellationToke = default);
     }
 }

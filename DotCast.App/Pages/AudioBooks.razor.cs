@@ -33,11 +33,8 @@ namespace DotCast.App.Pages
 
         protected override async Task OnInitializedAsync()
         {
-            _ = Task.Run(async () =>
-            {
-                await LoadStatistics();
-                await LoadData();
-            });
+            await LoadStatistics();
+            await LoadData();
             await base.OnInitializedAsync();
         }
 

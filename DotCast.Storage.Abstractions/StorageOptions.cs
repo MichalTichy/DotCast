@@ -2,7 +2,7 @@
 {
     public class StorageOptions
     {
-        public string AudioBooksLocation { get; set; } = null!;
-        public string ZippedAudioBooksLocation { get; set; } = null!;
+        public required string AudioBooksLocation { get; set; }
+        public required string ZippedAudioBooksLocation { get; set; }
     }
 }

@@ -1,6 +1,6 @@
 using Marten;
 
-namespace DotCast.Infrastructure.Persistence.Marten
+namespace DotCast.Infrastructure.Persistence.Marten.StorageConfiguration
 {
     public interface IStorageConfiguration
     {

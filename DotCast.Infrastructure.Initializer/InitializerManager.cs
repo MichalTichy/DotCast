@@ -4,18 +4,9 @@ using Microsoft.Extensions.Logging;
 
 namespace DotCast.Infrastructure.Initializer
 {
-    public class InitializerManager
+    public class InitializerManager(ILogger<InitializerManager> logger, IServiceProvider serviceProvider, IConfiguration configuration)
     {
-        private readonly ILogger<InitializerManager> logger;
-        private readonly IServiceProvider serviceProvider;
-        private readonly IConfiguration configuration;
-
-        public InitializerManager(ILogger<InitializerManager> logger, IServiceProvider serviceProvider, IConfiguration configuration)
-        {
-            this.logger = logger;
-            this.serviceProvider = serviceProvider.CreateScope().ServiceProvider;
-            this.configuration = configuration;
-        }
+        private readonly IServiceProvider serviceProvider = serviceProvider.CreateScope().ServiceProvider;
 
         public async Task RunAllInitializersAsync()
         {

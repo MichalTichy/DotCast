@@ -9,6 +9,7 @@ namespace DotCast.Infrastructure.PresignedUrls
         public void Install(IServiceCollection services, IConfiguration configuration, bool isProduction)
         {
             services.AddSingleton<IPresignedUrlManager, PresignedUrlManager>();
+            services.Configure<PresignedUrlOptions>(configuration.GetSection(nameof(PresignedUrlOptions)));
         }
     }
 }

@@ -4,7 +4,7 @@ namespace DotCast.SharedKernel.Models
 {
     public class Category
     {
-        public string Name { get; init; }
+        public required string Name { get; init; }
 
         private Category()
         {
@@ -98,7 +98,7 @@ namespace DotCast.SharedKernel.Models
             return typeof(Category)
                 .GetFields(BindingFlags.Public | BindingFlags.Static)
                 .Where(f => f.FieldType == typeof(Category))
-                .Select(f => (Category) f.GetValue(null));
+                .Select(f => (Category) f.GetValue(null)!);
         }
     }
 }

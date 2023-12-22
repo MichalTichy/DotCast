@@ -1,13 +1,8 @@
 namespace DotCast.RssGenerator.Base
 {
-    public class Feed
+    public class Feed(string title)
     {
-        public Feed(string title)
-        {
-            Title = title;
-        }
-
-        public string Title { get; set; }
+        public string Title { get; set; } = title;
 
         public string? SubTitle { get; set; }
 

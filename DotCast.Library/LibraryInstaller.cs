@@ -1,9 +1,11 @@
 ﻿using DotCast.Infrastructure.IoC;
 using DotCast.Infrastructure.Persistence.Marten;
+using DotCast.Infrastructure.Persistence.Marten.StorageConfiguration;
 using DotCast.Library.RSS;
 using DotCast.Library.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace DotCast.Library
 {
