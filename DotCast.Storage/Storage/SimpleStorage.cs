@@ -1,53 +1,31 @@
 ﻿using DotCast.Infrastructure.MetadataManager;
 using DotCast.Infrastructure.MimeType;
+using DotCast.SharedKernel.Messages;
 using DotCast.SharedKernel.Models;
 using DotCast.Storage.Abstractions;
-using Microsoft.Extensions.Options;
 using Wolverine;
 
 namespace DotCast.Storage.Storage
 {
-    internal class SimpleStorage(IOptions<StorageOptions> storageOptions, IMetadataManager metadataManager, IStorageApiInformationProvider apiInformationProvider) : IStorage
+    internal class SimpleStorage(IFilesystemPathManager filesystemPathManager,
+        IMetadataManager metadataManager,
+        IStorageApiInformationProvider apiInformationProvider) : IStorage
     {
         public async Task<LocalFileInfo> StoreAsync(Stream stream, string audioBookId, string fileName, CancellationToken cancellationToken)
         {
-            var extension = Path.GetExtension(fileName);
-            var isArchive = IsArchive(extension);
-            var newFileName = GetFileName(audioBookId, fileName, extension);
+            var newFileName = GetFileName(audioBookId, fileName);
 
-            var filePath = GetTargetFilePath(audioBookId, newFileName, extension);
+            var filePath = filesystemPathManager.GetTargetFilePath(audioBookId, fileName);
             await using var fileStream = File.Create(filePath);
             await stream.CopyToAsync(fileStream, cancellationToken);
-            var remotePath = apiInformationProvider.GetFileUrl(audioBookId, newFileName, isArchive);
+            var remotePath = apiInformationProvider.GetFileUrl(audioBookId, newFileName, filesystemPathManager.IsArchive(fileName));
+
             return new LocalFileInfo(filePath, remotePath);
         }
 
-        private bool IsArchive(string extension)
+        private string GetFileName(string audiobookId, string fileName)
         {
-            return extension == ".zip";
-        }
-
-        private string GetTargetFilePath(string audioBookId, string fileName, string extension)
-        {
-            string targetDirectory;
-            if (IsArchive(extension))
-            {
-                targetDirectory = storageOptions.Value.ZippedAudioBooksLocation;
-            }
-            else
-            {
-                var audioBooksLocation = storageOptions.Value.AudioBooksLocation;
-                targetDirectory = Path.Combine(audioBooksLocation, audioBookId);
-            }
-
-            Directory.CreateDirectory(targetDirectory);
-            var filePath = Path.Combine(targetDirectory, fileName);
-            return filePath;
-        }
-
-        private string GetFileName(string audiobookId, string fileName, string extension)
-        {
-            if (IsArchive(extension))
+            if (filesystemPathManager.IsArchive(fileName))
             {
                 return audiobookId;
             }
@@ -57,7 +35,7 @@ namespace DotCast.Storage.Storage
 
         public IEnumerable<StorageEntry> GetEntriesAsync()
         {
-            var booksLocation = storageOptions.Value.AudioBooksLocation;
+            var booksLocation = filesystemPathManager.GetAudioBooksLocation();
 
             var books = Directory.EnumerateDirectories(booksLocation);
 
@@ -92,14 +70,18 @@ namespace DotCast.Storage.Storage
 
         public StorageEntryWithFiles? GetStorageEntry(string id)
         {
-            var audioBooksLocation = storageOptions.Value.AudioBooksLocation;
-            var audioBookDirectory = Path.Combine(audioBooksLocation, id);
-            var audioBookFilesDirectory = new DirectoryInfo(audioBookDirectory);
+            var audioBookFilesDirectory = new DirectoryInfo(filesystemPathManager.GetAudioBookLocation(id));
             var hasExtractedVersion = audioBookFilesDirectory.Exists;
-            var audioBooksZipLocation = storageOptions.Value.ZippedAudioBooksLocation;
+
             var archiveName = $"{id}.zip";
-            var audioBookZipPath = Path.Combine(audioBooksZipLocation, archiveName);
+            var audioBookZipPath = filesystemPathManager.GetTargetFilePath(id, archiveName);
             var hasZipVersion = File.Exists(audioBookZipPath);
+
+            if (!hasZipVersion && !hasExtractedVersion)
+            {
+                return null;
+            }
+
             LocalFileInfo? zipFileInfo = null;
             if (hasZipVersion)
             {
@@ -121,9 +103,7 @@ namespace DotCast.Storage.Storage
 
         public ReadableStorageEntry? GetFileForRead(string audioBookId, string fileName)
         {
-            var audioBooksLocation = storageOptions.Value.AudioBooksLocation;
-            var audioBookDirectory = Path.Combine(audioBooksLocation, audioBookId);
-            var filePath = Path.Combine(audioBookDirectory, fileName);
+            var filePath = filesystemPathManager.GetTargetFilePath(audioBookId, fileName);
             if (!File.Exists(filePath))
             {
                 return null;
@@ -141,14 +121,14 @@ namespace DotCast.Storage.Storage
 
         public ReadableStorageEntry? GetArchiveForRead(string audioBookId)
         {
-            var archivesDirectory = storageOptions.Value.ZippedAudioBooksLocation;
-            var archiveLocation = Path.Combine(archivesDirectory, $"{audioBookId}.zip");
-            if (!File.Exists(archiveLocation))
+            var archive = $"{audioBookId}.zip";
+            var archivesLocation = filesystemPathManager.GetTargetFilePath(audioBookId, archive);
+            if (!File.Exists(archivesLocation))
             {
                 return null;
             }
 
-            return PrepareReadableStorageEntry(audioBookId, archiveLocation);
+            return PrepareReadableStorageEntry(audioBookId, archivesLocation);
         }
     }
 }

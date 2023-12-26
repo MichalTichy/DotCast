@@ -8,6 +8,7 @@ namespace DotCast.App.Installers
         {
             services.AddLogging(loggingBuilder =>
             {
+                loggingBuilder.SetMinimumLevel(LogLevel.Trace);
                 loggingBuilder.AddConsole();
                 loggingBuilder.AddSystemdConsole();
             });

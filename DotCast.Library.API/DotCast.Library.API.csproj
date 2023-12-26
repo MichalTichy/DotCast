@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Ardalis.ApiEndpoints" Version="4.1.0" />
+		<PackageReference Include="WolverineFx" Version="1.12.4" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\DotCast.SharedKernel\DotCast.SharedKernel.csproj" />
+	</ItemGroup>
+</Project>

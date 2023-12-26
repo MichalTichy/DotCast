@@ -2,16 +2,14 @@
 
 namespace DotCast.SharedKernel.Messages
 {
+    //WEB
     public record AudioBooksRetrievalRequest(string? Filter = null);
 
     public record AudioBookDetailRequest(string Id);
 
-    public record AudioBookMetadataUpdated(AudioBook AudioBook);
+    public record AudioBookEdited(AudioBook AudioBook);
 
-
-    public record NewAudioBookRequest(string Name, AudioBook? AudioBook = null);
-
-    public record AudioBookRssRequest(string Id);
+    public record NewAudioBookIdRequest(string Name);
 
     public record AudioBookUploadStartRequest(string AudioBookId, ICollection<string> Files);
 
@@ -21,5 +19,14 @@ namespace DotCast.SharedKernel.Messages
 
     public record AudiobookInfoSuggestionsRequest(string Name, int? Count = null);
 
-    public record AudioBookMetadataRequest(string Id);
+
+    //STORAGE
+    public record AudioBookStorageMetadataUpdated(AudioBook AudioBook);
+
+    public record FileUploaded(string AudioBookId, string FileName);
+
+    public record FilesModificationsFinished(string AudioBookId, ICollection<string> ModifiedFiles);
+
+    //LIBRARY
+    public record AudioBookRssRequest(string Id);
 }

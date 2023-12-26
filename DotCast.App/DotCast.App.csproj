@@ -21,10 +21,12 @@
     <ProjectReference Include="..\DotCast.BookInfoProvider\DotCast.BookInfoProvider.csproj" />
     <ProjectReference Include="..\DotCast.Infrastructure.Initializer\DotCast.Infrastructure.Initializer.csproj" />
     <ProjectReference Include="..\DotCast.Infrastructure.IoC\DotCast.Infrastructure.IoC.csproj" />
+    <ProjectReference Include="..\DotCast.Library.API\DotCast.Library.API.csproj" />
     <ProjectReference Include="..\DotCast.Library\DotCast.Library.csproj" />
     <ProjectReference Include="..\DotCast.SharedKernel\DotCast.SharedKernel.csproj" />
     <ProjectReference Include="..\DotCast.Storage.Abstractions\DotCast.Storage.Abstractions.csproj" />
     <ProjectReference Include="..\DotCast.Storage.API\DotCast.Storage.API.csproj" />
+    <ProjectReference Include="..\DotCast.Storage.Processing\DotCast.Storage.Processing.csproj" />
     <ProjectReference Include="..\DotCast.Storage\DotCast.Storage.csproj" />
   </ItemGroup>
 

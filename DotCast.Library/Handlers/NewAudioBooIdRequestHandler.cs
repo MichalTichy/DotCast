@@ -7,31 +7,18 @@ using DotCast.SharedKernel.Models;
 
 namespace DotCast.Library.Handlers
 {
-    public class NewAudioBookRequestHandler(IRepository<AudioBook> repository) : MessageHandler<NewAudioBookRequest, string>
+    public class NewAudioBooIdRequestHandler(IRepository<AudioBook> repository) : IMessageHandler<NewAudioBookIdRequest, string>
     {
-        public override async Task<string> Handle(NewAudioBookRequest message)
+        public async Task<string> Handle(NewAudioBookIdRequest message)
         {
-            if (message.AudioBook == null)
+            var id = GenerateId(message.Name);
+            var exists = await repository.GetBySpecAsync(new AudioBookExistenceCheckSpecification(id));
+            if (exists)
             {
-                var id = GenerateId(message.Name);
-                var exists = await repository.GetBySpecAsync(new AudioBookExistenceCheckSpecification(id));
-                if (exists)
-                {
-                    throw new ArgumentException($"AudioBook with id \"{id}\" already exists");
-                }
-
-                return id;
+                throw new ArgumentException($"AudioBook with id \"{id}\" already exists");
             }
 
-            var existing = await repository.GetByIdAsync(message.AudioBook.Id);
-            if (existing != null)
-            {
-                throw new ArgumentException($"AudioBook with id \"{message.AudioBook.Id}\" already exists");
-            }
-
-            await repository.AddAsync(message.AudioBook);
-
-            return message.AudioBook.Id;
+            return id;
         }
 
         private string GenerateId(string name)

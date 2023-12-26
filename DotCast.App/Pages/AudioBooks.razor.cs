@@ -26,9 +26,10 @@ namespace DotCast.App.Pages
 
         public async Task Download(AudioBook info)
         {
-            throw new NotImplementedException();
-            var url = "";
-            await Js.InvokeAsync<object>("open", url, "_blank");
+            if (!string.IsNullOrWhiteSpace(info.ArchiveUrl))
+            {
+                await Js.InvokeAsync<object>("open", info.ArchiveUrl, "_blank");
+            }
         }
 
         protected override async Task OnInitializedAsync()

@@ -18,7 +18,8 @@ namespace DotCast.Library.RSS
                         Title = chapter.Name,
                         Duration = chapter.Duration,
                         FileUrl = chapter.Url,
-                        PublicationDate = (param.ReleaseDate ?? new DateTime(2000, 1, 1)).AddMinutes(param.Categories.Count)
+                        PublicationDate = (param.ReleaseDate ?? new DateTime(2000, 1, 1))
+                            .AddMinutes(param.Categories.Count)
                             .AddMinutes(-index - 1) //this ensures that episodes are in correct order when ordering is by date (latest first)
                     })
                     .ToList()

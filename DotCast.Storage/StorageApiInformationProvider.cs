@@ -12,7 +12,7 @@ namespace DotCast.Storage
             Uri fullUri;
             if (!isArchive)
             {
-                fullUri = new Uri(baseUri, $"storage/{audioBookId}/{fileName}");
+                fullUri = new Uri(baseUri, $"storage/file/{audioBookId}/{fileName}");
             }
             else
             {

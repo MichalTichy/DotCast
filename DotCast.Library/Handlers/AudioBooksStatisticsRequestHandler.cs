@@ -5,9 +5,9 @@ using DotCast.SharedKernel.Models;
 
 namespace DotCast.Library.Handlers
 {
-    public class AudioBooksStatisticsRequestHandler(IReadOnlyRepository<AudioBook> repository) : MessageHandler<AudioBooksStatisticsRequest, AudioBooksStatistics>
+    public class AudioBooksStatisticsRequestHandler(IReadOnlyRepository<AudioBook> repository) : IMessageHandler<AudioBooksStatisticsRequest, AudioBooksStatistics>
     {
-        public override async Task<AudioBooksStatistics> Handle(AudioBooksStatisticsRequest message)
+        public async Task<AudioBooksStatistics> Handle(AudioBooksStatisticsRequest message)
         {
             var specification = new AudioBookStatisticSpecification();
             return await repository.GetBySpecAsync(specification) ?? new AudioBooksStatistics(0, 0, TimeSpan.Zero);

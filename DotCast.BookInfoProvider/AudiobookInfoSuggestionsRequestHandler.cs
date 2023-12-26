@@ -4,9 +4,9 @@ using DotCast.SharedKernel.Models;
 
 namespace DotCast.BookInfoProvider
 {
-    public class AudiobookInfoSuggestionsRequestHandler(IBookInfoProvider bookInfoProvider) : MessageHandler<AudiobookInfoSuggestionsRequest, IReadOnlyCollection<FoundBookInfo>>
+    public class AudiobookInfoSuggestionsRequestHandler(IBookInfoProvider bookInfoProvider) : IMessageHandler<AudiobookInfoSuggestionsRequest, IReadOnlyCollection<FoundBookInfo>>
     {
-        public override async Task<IReadOnlyCollection<FoundBookInfo>> Handle(AudiobookInfoSuggestionsRequest message)
+        public async Task<IReadOnlyCollection<FoundBookInfo>> Handle(AudiobookInfoSuggestionsRequest message)
         {
             var result = new List<FoundBookInfo>();
             await foreach (var info in bookInfoProvider.GetBookInfoAsync(message.Name))

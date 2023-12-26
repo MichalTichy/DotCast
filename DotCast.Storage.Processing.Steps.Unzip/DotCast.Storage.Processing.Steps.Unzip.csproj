@@ -7,7 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DotCast.SharedKernel\DotCast.SharedKernel.csproj" />
+    <ProjectReference Include="..\DotCast.Infrastructure.Archival\DotCast.Infrastructure.Archival.csproj" />
+    <ProjectReference Include="..\DotCast.Storage.Processing.Abstractions\DotCast.Storage.Processing.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Ardalis.GuardClauses" Version="4.2.0" />
+    <PackageReference Include="WolverineFx" Version="1.12.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DotCast.SharedKernel\DotCast.SharedKernel.csproj" />
+    <ProjectReference Include="..\DotCast.Storage.Processing.Abstractions\DotCast.Storage.Processing.Abstractions.csproj" />
+    <ProjectReference Include="..\DotCast.Storage.Processing.Steps.Unzip\DotCast.Storage.Processing.Steps.Unzip.csproj" />
+    <ProjectReference Include="..\DotCast.Storage.Processing.Steps.Zip\DotCast.Storage.Processing.Steps.Zip.csproj" />
+  </ItemGroup>
+
+</Project>

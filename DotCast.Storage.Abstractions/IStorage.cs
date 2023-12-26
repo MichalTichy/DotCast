@@ -1,7 +1,6 @@
 ﻿using DotCast.SharedKernel.Models;
-using DotCast.Storage.Abstractions;
 
-namespace DotCast.Storage.Storage
+namespace DotCast.Storage.Abstractions
 {
     public interface IStorage
     {

@@ -16,7 +16,7 @@ namespace DotCast.Storage.API
         public string? FileId { get; set; }
 
         [HttpGet("/storage/archive/{AudioBookId}")]
-        [HttpGet("/storage/{AudioBookId}/{FileId}")]
+        [HttpGet("/storage/file/{AudioBookId}/{FileId}")]
         public override ActionResult Handle()
         {
             var entry = IsFileRequest() ? storage.GetFileForRead(AudioBookId, FileId!) : storage.GetArchiveForRead(AudioBookId);

@@ -49,6 +49,19 @@ namespace DotCast.Infrastructure.Persistence.Marten.Repository.Document
             return entity;
         }
 
+        public async Task<T> StoreAsync(T entity, CancellationToken cancellationToken = default)
+        {
+            await using var uow = new UnitOfWorkProvider();
+            using var session = await SessionFactory.OpenSessionAsync(uow.Get());
+
+            session.Store(entity);
+
+            await SaveChangesAsync(session, cancellationToken: cancellationToken);
+
+            await uow.CommitAsync();
+            return entity;
+        }
+
         public virtual async Task UpdateAsync(T entity, CancellationToken cancellationToken = default)
         {
             await using var uow = new UnitOfWorkProvider();

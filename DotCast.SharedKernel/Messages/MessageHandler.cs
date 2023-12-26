@@ -2,18 +2,25 @@
 
 namespace DotCast.SharedKernel.Messages
 {
-    public abstract class MessageHandler<TMessage>
+    public interface IMessageHandler<TMessage>
     {
-        public abstract Task Handle(TMessage message);
+        Task Handle(TMessage message);
     }
 
-    public abstract class CascadingMessageHandler<TMessage>
+    public interface IMultiMessageHandler<TMessage1, TMessage2>
     {
-        public abstract IAsyncEnumerable<object> Handle(TMessage message);
+        Task Handle(TMessage1 message);
+        Task Handle(TMessage2 message);
     }
 
-    public abstract class MessageHandler<TMessage, TResponse>
+    public interface ICascadingMessageHandler<TMessage>
     {
-        public abstract Task<TResponse> Handle(TMessage message);
+        IAsyncEnumerable<object> Handle(TMessage message);
+    }
+
+
+    public interface IMessageHandler<TMessage, TResponse>
+    {
+        Task<TResponse> Handle(TMessage message);
     }
 }

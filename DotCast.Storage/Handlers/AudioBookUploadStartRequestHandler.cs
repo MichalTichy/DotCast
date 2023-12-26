@@ -1,8 +1,7 @@
 ﻿using DotCast.Infrastructure.PresignedUrls;
 using DotCast.SharedKernel.Messages;
 using DotCast.SharedKernel.Models;
-using DotCast.Storage.Storage;
-using Wolverine.Runtime.RemoteInvocation;
+using DotCast.Storage.Abstractions;
 
 namespace DotCast.Storage.Handlers
 {
@@ -11,9 +10,9 @@ namespace DotCast.Storage.Handlers
         IStorage storage,
         IPresignedUrlManager presignedUrlManager,
         IStorageApiInformationProvider apiInformationProvider
-    ) : MessageHandler<AudioBookUploadStartRequest, IReadOnlyCollection<PreuploadFileInformation>>
+    ) : IMessageHandler<AudioBookUploadStartRequest, IReadOnlyCollection<PreuploadFileInformation>>
     {
-        public override Task<IReadOnlyCollection<PreuploadFileInformation>> Handle(AudioBookUploadStartRequest message)
+        public Task<IReadOnlyCollection<PreuploadFileInformation>> Handle(AudioBookUploadStartRequest message)
         {
             var result = new List<PreuploadFileInformation>();
             var currentFiles = storage.GetStorageEntry(message.AudioBookId)?.Files.Select(t => Path.GetFileName(t.LocalPath)).ToArray();

@@ -5,9 +5,9 @@ using DotCast.SharedKernel.Models;
 
 namespace DotCast.Library.Handlers
 {
-    public class AudioBookRssRequestHandler(IReadOnlyRepository<AudioBook> repository, AudioBookRssGenerator rssGenerator) : MessageHandler<AudioBookRssRequest, string?>
+    public class AudioBookRssRequestHandler(IReadOnlyRepository<AudioBook> repository, AudioBookRssGenerator rssGenerator) : IMessageHandler<AudioBookRssRequest, string?>
     {
-        public override async Task<string?> Handle(AudioBookRssRequest message)
+        public async Task<string?> Handle(AudioBookRssRequest message)
         {
             var audioBook = await repository.GetByIdAsync(message.Id);
             if (audioBook == null)

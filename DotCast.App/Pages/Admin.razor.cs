@@ -44,7 +44,7 @@ namespace DotCast.App.Pages
             try
             {
                 AudioBookName = text;
-                var request = new NewAudioBookRequest(text);
+                var request = new NewAudioBookIdRequest(text);
                 newAudioBookId = await MessageBus.InvokeAsync<string>(request);
                 await InvokeAsync(StateHasChanged);
             }

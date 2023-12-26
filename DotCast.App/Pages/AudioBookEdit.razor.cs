@@ -62,7 +62,7 @@ namespace DotCast.App.Pages
 
         public async Task Save()
         {
-            var request = new AudioBookMetadataUpdated(Data);
+            var request = new AudioBookEdited(Data);
             await MessageBus.SendAsync(request);
         }
 

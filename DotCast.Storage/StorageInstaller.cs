@@ -13,6 +13,7 @@ namespace DotCast.Storage
             services.AddSingleton<IStorage, SimpleStorage>();
             services.AddSingleton<IStorageApiInformationProvider, StorageApiInformationProvider>();
             services.Configure<StorageOptions>(configuration.GetSection(nameof(StorageOptions)));
+            services.AddSingleton<IFilesystemPathManager, FilesystemPathManager>();
         }
     }
 }
