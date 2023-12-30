@@ -13,9 +13,14 @@ namespace DotCast.SharedKernel.Messages
         Task Handle(TMessage2 message);
     }
 
-    public interface ICascadingMessageHandler<TMessage>
+    public interface IAsyncCascadingMessageHandler<TMessage>
     {
         IAsyncEnumerable<object> Handle(TMessage message);
+    }
+
+    public interface ICascadingMessageHandler<TMessage>
+    {
+        IEnumerable<object> Handle(TMessage message);
     }
 
 

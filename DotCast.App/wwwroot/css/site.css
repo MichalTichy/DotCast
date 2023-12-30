@@ -131,6 +131,13 @@ body {
     margin-left:1vw;
     width:25%;
 }
+#categories > span.badge {
+    margin: 5px;
+    padding: 5px;
+}
+#categories{
+    margin-left: 20px;
+}
 /*CARDS*/
 #blazor-error-ui {
     position: fixed; /* Sit on top of the page content */

@@ -53,7 +53,7 @@ namespace DotCast.Storage.Processing
                     var newFiles = uploads.Select(t => filesystemPathManager.GetTargetFilePath(message.AudioBookId, t.Key)).ToArray();
                     RunningUploads.TryRemove(message.AudioBookId, out _);
 
-                    var newMessage = new FilesModificationsFinished(message.AudioBookId, newFiles);
+                    var newMessage = new AudioBookReadyForProcessing(message.AudioBookId, newFiles);
                     await messageBus.PublishAsync(newMessage);
                 }
             }

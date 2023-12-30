@@ -1,4 +1,5 @@
-﻿using DotCast.Infrastructure.MetadataManager;
+﻿using DotCast.Infrastructure.FileNameNormalization;
+using DotCast.Infrastructure.MetadataManager;
 using DotCast.Infrastructure.MimeType;
 using DotCast.SharedKernel.Messages;
 using DotCast.SharedKernel.Models;
@@ -9,8 +10,18 @@ namespace DotCast.Storage.Storage
 {
     internal class SimpleStorage(IFilesystemPathManager filesystemPathManager,
         IMetadataManager metadataManager,
-        IStorageApiInformationProvider apiInformationProvider) : IStorage
+        IStorageApiInformationProvider apiInformationProvider,
+        IFileNameNormalizer fileNameNormalizer) : IStorage
     {
+        public Task<LocalFileInfo> RenameFileAsync(string id, LocalFileInfo fileInfo, string newName, CancellationToken cancellationToken = default)
+        {
+            var currentFileName = Path.GetFileName(fileInfo.LocalPath);
+            var newPath = filesystemPathManager.GetTargetFilePath(id, newName);
+            File.Move(fileInfo.LocalPath, newPath);
+            var localFileInfo = new LocalFileInfo(newPath, apiInformationProvider.GetFileUrl(id, newName, filesystemPathManager.IsArchive(currentFileName)));
+            return Task.FromResult(localFileInfo);
+        }
+
         public async Task<LocalFileInfo> StoreAsync(Stream stream, string audioBookId, string fileName, CancellationToken cancellationToken)
         {
             var newFileName = GetFileName(audioBookId, fileName);
@@ -30,19 +41,22 @@ namespace DotCast.Storage.Storage
                 return audiobookId;
             }
 
-            return fileName.Replace(" ", "_");
+            return fileNameNormalizer.Normalize(fileName);
         }
 
         public IEnumerable<StorageEntry> GetEntriesAsync()
         {
             var booksLocation = filesystemPathManager.GetAudioBooksLocation();
 
-            var books = Directory.EnumerateDirectories(booksLocation);
+            var books = Directory.EnumerateDirectories(booksLocation).Select(Path.GetFileName).ToArray();
 
-            foreach (var book in books)
+            var archivedBooksLocation = filesystemPathManager.GetAudioBooksZipDirectoryLocation();
+            var archives = Directory.EnumerateFiles(archivedBooksLocation).Select(Path.GetFileNameWithoutExtension).ToArray();
+
+            var storageEntries = books.Union(archives).Distinct().Select(item => new StorageEntry(item!));
+            foreach (var entry in storageEntries)
             {
-                var id = Path.GetFileName(book);
-                yield return new StorageEntry(id);
+                yield return entry;
             }
         }
 
@@ -85,7 +99,7 @@ namespace DotCast.Storage.Storage
             LocalFileInfo? zipFileInfo = null;
             if (hasZipVersion)
             {
-                apiInformationProvider.GetFileUrl(id, archiveName, true);
+                zipFileInfo = new LocalFileInfo(audioBookZipPath, apiInformationProvider.GetFileUrl(id, archiveName, true));
             }
 
             var files = hasExtractedVersion

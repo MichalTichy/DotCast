@@ -43,8 +43,7 @@ namespace DotCast.SharedKernel.Models
         public static Category FactLiterature { get; } = new() {Name = "Fact Literature"};
         public static Category EducationalLiterature { get; } = new() {Name = "Educational Literature"};
         public static Category SlovakLiterature { get; } = new() {Name = "Slovak Literature"};
-        public static Category WorldLiterature { get; } = new() {Name = "World Literature"};
-        public static Category MapsAndAtlases { get; } = new() {Name = "Maps and Atlases"};
+        public static Category MapsAndAtlases { get; } = new() { Name = "Maps and Atlases" };
         public static Category MathematicsAndLogic { get; } = new() {Name = "Mathematics and Logic"};
         public static Category Mythology { get; } = new() {Name = "Mythology"};
         public static Category Religion { get; } = new() {Name = "Religion"};
@@ -96,8 +95,8 @@ namespace DotCast.SharedKernel.Models
         public static IEnumerable<Category> GetAll()
         {
             return typeof(Category)
-                .GetFields(BindingFlags.Public | BindingFlags.Static)
-                .Where(f => f.FieldType == typeof(Category))
+                .GetProperties(BindingFlags.Public | BindingFlags.Static)
+                .Where(f => f.PropertyType == typeof(Category))
                 .Select(f => (Category) f.GetValue(null)!);
         }
     }

@@ -1,4 +1,5 @@
 using Blazorise;
+using DotCast.App.Shared;
 using DotCast.SharedKernel.Messages;
 using DotCast.SharedKernel.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -8,7 +9,7 @@ using Wolverine;
 namespace DotCast.App.Pages
 {
     [Authorize(Roles = "Admin")]
-    public partial class AudioBookEdit : ComponentBase
+    public partial class AudioBookEdit : AppComponentBase
     {
         [Inject]
         public NavigationManager NavigationManager { get; set; } = null!;
@@ -22,6 +23,8 @@ namespace DotCast.App.Pages
         public AudioBook Data { get; set; } = new() { Id = "TMP", Name = "LOADING", AuthorName = "", Chapters = new List<Chapter>(0) };
 
         public IReadOnlyCollection<FoundBookInfo> Suggestions { get; set; } = new List<FoundBookInfo>(0).AsReadOnly();
+        public ICollection<Category> MissingCategories = new List<Category>();
+        public Category? SelectedCategory { get; set; }
 
         private Modal suggestionsModalRef = null!;
 
@@ -29,6 +32,7 @@ namespace DotCast.App.Pages
         protected override async Task OnInitializedAsync()
         {
             await LoadData();
+            UpdateMissingCategories();
             await base.OnInitializedAsync();
         }
 
@@ -40,6 +44,11 @@ namespace DotCast.App.Pages
             Data = response ?? throw new ArgumentException("Requested AudioBook not found");
         }
 
+        public void UpdateMissingCategories()
+        {
+            var allCategories = Category.GetAll().ToList();
+            MissingCategories = allCategories.Except(Data.Categories).ToList();
+        }
 
         public async Task Prefill(FoundBookInfo suggestion)
         {
@@ -63,7 +72,7 @@ namespace DotCast.App.Pages
         public async Task Save()
         {
             var request = new AudioBookEdited(Data);
-            await MessageBus.SendAsync(request);
+            await MessageBus.InvokeAsync(request);
         }
 
 
@@ -91,6 +100,26 @@ namespace DotCast.App.Pages
         {
             await LoadSuggestions(Data.Name);
             await suggestionsModalRef.Show();
+        }
+
+        private void AddCategory(Category? obj)
+        {
+            if (obj != null && !Data.Categories.Contains(obj))
+            {
+                Data.Categories.Add(obj);
+            }
+
+            UpdateMissingCategories();
+        }
+
+        private void RemoveCategory(Category? obj)
+        {
+            if (obj != null && Data.Categories.Contains(obj))
+            {
+                Data.Categories.Remove(obj);
+            }
+
+            UpdateMissingCategories();
         }
     }
 }

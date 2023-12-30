@@ -1,13 +1,14 @@
-﻿using DotCast.SharedKernel.Models;
+﻿using DotCast.Infrastructure.M3U;
+using DotCast.SharedKernel.Models;
 using DotCast.Storage.Abstractions;
 using TagLib;
 using File = TagLib.File;
 
 namespace DotCast.Infrastructure.MetadataManager
 {
-    public class MetadataManager : IMetadataManager
+    public class MetadataManager(M3uManager m3UManager) : IMetadataManager
     {
-        public Task<AudioBook> ExtractMetadata(StorageEntryWithFiles source, CancellationToken cancellationToken = default)
+        public async Task<AudioBook> ExtractMetadata(StorageEntryWithFiles source, CancellationToken cancellationToken = default)
         {
             string? image = null;
             var imageIsDesignatedCover = false;
@@ -18,153 +19,204 @@ namespace DotCast.Infrastructure.MetadataManager
             int? orderInSeries = null;
             DateTime? releaseDate = null;
             List<(LocalFileInfo info, File metadata)> files = new(source.Files.Count);
-            foreach (var file in source.Files)
+            List<string>? fileOrder = null;
+            var chapters = new List<Chapter>(files.Count);
+            Category[]? categories = null;
+            try
             {
-                if (cancellationToken.IsCancellationRequested)
+                foreach (var file in source.Files)
                 {
-                    return Task.FromCanceled<AudioBook>(cancellationToken);
-                }
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        return await Task.FromCanceled<AudioBook>(cancellationToken);
+                    }
 
-                File metadata;
-                try
-                {
-                    metadata = File.Create(file.LocalPath);
-                }
-                catch (KeyNotFoundException)
-                {
-                    continue;
-                }
-                catch (UnsupportedFormatException)
-                {
-                    continue;
-                }
-                catch (CorruptFileException)
-                {
-                    continue;
-                }
+                    if (file.LocalPath.EndsWith(".m3u"))
+                    {
+                        fileOrder = (await m3UManager.ReadM3uFile(file.LocalPath)).ToList();
+                        continue;
+                    }
 
-                if (metadata.Properties.MediaTypes == MediaTypes.Audio || metadata.Properties.MediaTypes == MediaTypes.Video)
-                {
-                    files.Add((file, metadata));
-                }
-
-                if (metadata.Properties.MediaTypes == MediaTypes.Photo)
-                {
-                    if (imageIsDesignatedCover)
+                    File metadata;
+                    try
+                    {
+                        metadata = File.Create(file.LocalPath);
+                    }
+                    catch (KeyNotFoundException)
+                    {
+                        continue;
+                    }
+                    catch (UnsupportedFormatException)
+                    {
+                        continue;
+                    }
+                    catch (CorruptFileException)
                     {
                         continue;
                     }
 
-                    image = file.RemotePath;
-                    imageIsDesignatedCover = Path.GetFileNameWithoutExtension(metadata.Name).ToLower() == "cover";
-                }
-            }
-
-            if (files.Select(t => t.metadata.Tag.Track).GroupBy(t => t).All(t => t.Count() == 1))
-            {
-                files = files.OrderBy(t => t.metadata.Tag.Track).ToList();
-            }
-            else
-            {
-                files = files.OrderBy(t => t.info.LocalPath).ToList();
-            }
-
-            var chapters = new List<Chapter>(files.Count);
-            foreach (var fileInfo in files)
-            {
-                if (string.IsNullOrWhiteSpace(title))
-                {
-                    title = fileInfo.metadata.Tag.Album;
-                }
-
-                if (string.IsNullOrWhiteSpace(author))
-                {
-                    author = string.Join(" ,", fileInfo.metadata.Tag.AlbumArtists.Union(fileInfo.metadata.Tag.Performers).Distinct());
-                }
-
-                if (string.IsNullOrWhiteSpace(description))
-                {
-                    description = fileInfo.metadata.Tag.Description ?? fileInfo.metadata.Tag.Comment;
-                }
-
-                if (releaseDate == null)
-                {
-                    releaseDate = fileInfo.metadata.Tag.Year != 0 ? new DateTime((int) fileInfo.metadata.Tag.Year, 1, 1) : null;
-                }
-
-                if (string.IsNullOrWhiteSpace(series))
-                {
-                    series = fileInfo.metadata.Tag.Grouping;
-                }
-
-                if (orderInSeries == null)
-                {
-                    if (fileInfo.metadata.Tag.TitleSort != null)
+                    if (metadata.Properties.MediaTypes == MediaTypes.Audio || metadata.Properties.MediaTypes == MediaTypes.Video)
                     {
-                        if (int.TryParse(fileInfo.metadata.Tag.TitleSort, out var order))
+                        files.Add((file, metadata));
+                    }
+                    else if (metadata.Properties.MediaTypes == MediaTypes.Photo)
+                    {
+                        if (imageIsDesignatedCover)
                         {
-                            orderInSeries = order;
+                            continue;
                         }
+
+                        image = file.RemotePath;
+                        imageIsDesignatedCover = Path.GetFileNameWithoutExtension(metadata.Name).ToLower() == "cover";
                     }
                 }
 
-                var info = new FileInfo(fileInfo.info.LocalPath);
-                var chapter = new Chapter
+                if (fileOrder != null && files.Select(t => Path.GetFileName(t.info.LocalPath)).All(t => fileOrder.Contains(t)))
                 {
-                    Name = fileInfo.metadata.Tag.Title ?? Path.GetFileNameWithoutExtension(fileInfo.info.RemotePath).Replace('_', ' '),
-                    Duration = fileInfo.metadata.Properties.Duration,
-                    Url = fileInfo.info.RemotePath,
-                    Size = info.Length
-                };
-                chapters.Add(chapter);
+                    files = files.OrderBy(file => fileOrder.IndexOf(Path.GetFileName(file.info.LocalPath))).ToList();
+                }
+
+                if (files.Select(t => t.metadata.Tag.Track).GroupBy(t => t).All(t => t.Count() == 1))
+                {
+                    files = files.OrderBy(t => t.metadata.Tag.Track).ToList();
+                }
+                else
+                {
+                    files = files.OrderBy(t => t.info.LocalPath).ToList();
+                }
+
+                foreach (var fileInfo in files)
+                {
+                    if (string.IsNullOrWhiteSpace(title))
+                    {
+                        title = fileInfo.metadata.Tag.Album;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(author))
+                    {
+                        author = string.Join(" ,", fileInfo.metadata.Tag.AlbumArtists.Union(fileInfo.metadata.Tag.Performers).Distinct());
+                    }
+
+                    if (string.IsNullOrWhiteSpace(description))
+                    {
+                        description = fileInfo.metadata.Tag.Description ?? fileInfo.metadata.Tag.Comment;
+                    }
+
+                    if (releaseDate == null)
+                    {
+                        releaseDate = fileInfo.metadata.Tag.Year != 0 ? new DateTime((int) fileInfo.metadata.Tag.Year, 1, 1) : null;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(series))
+                    {
+                        series = fileInfo.metadata.Tag.Grouping;
+                    }
+
+                    if (orderInSeries == null)
+                    {
+                        if (fileInfo.metadata.Tag.TitleSort != null)
+                        {
+                            if (int.TryParse(fileInfo.metadata.Tag.TitleSort, out var order))
+                            {
+                                orderInSeries = order;
+                            }
+                        }
+                    }
+
+                    if (categories == null)
+                    {
+                        if (fileInfo.metadata.Tag.Genres is { Length: > 0 })
+                        {
+                            var allCategories = Category.GetAll();
+                            categories = fileInfo.metadata.Tag.Genres.Select(t => allCategories.FirstOrDefault(c => c.Name == t)).Where(t => t != null).Select(t => t!).ToArray();
+                        }
+                    }
+
+                    var info = new FileInfo(fileInfo.info.LocalPath);
+
+                    var chapterName = fileInfo.metadata.Tag.Title ?? Path.GetFileNameWithoutExtension(fileInfo.info.RemotePath).Replace('_', ' ');
+
+                    var chapter = new Chapter
+                    {
+                        Name = chapterName,
+                        Duration = fileInfo.metadata.Properties.Duration,
+                        Url = fileInfo.info.RemotePath,
+                        Size = info.Length
+                    };
+                    chapters.Add(chapter);
+                }
+            }
+            finally
+            {
+                foreach (var file in files.Select(t => t.metadata))
+                {
+                    file.Dispose();
+                }
             }
 
+            var audioBookName = title ?? source.Id;
             var audioBook = new AudioBook
             {
                 Id = source.Id,
-                Name = title ?? source.Id,
-                AuthorName = author ?? "Unknown author",
+                Name = audioBookName,
+                AuthorName = author,
                 Chapters = chapters,
                 ReleaseDate = releaseDate,
                 Description = description,
                 ImageUrl = image,
                 SeriesName = series,
                 OrderInSeries = orderInSeries ?? 0,
-                ArchiveUrl = source.Archive?.RemotePath
+                ArchiveUrl = source.Archive?.RemotePath,
+                Categories = categories ?? Array.Empty<Category>()
             };
-            return Task.FromResult(audioBook);
+            return audioBook;
         }
 
-        public Task UpdateMetadata(AudioBook audioBook, StorageEntryWithFiles source, CancellationToken cancellationToken = default)
+        public async Task UpdateMetadata(AudioBook audioBook, StorageEntryWithFiles source, CancellationToken cancellationToken = default)
         {
+            var audioFiles = new List<string>();
+            string? m3UFile = null;
+            var directory = Path.GetDirectoryName(source.Files.First().LocalPath)!;
             foreach (var localFileInfo in source.Files)
             {
-                var file = File.Create(localFileInfo.LocalPath);
+                if (localFileInfo.LocalPath.EndsWith(".m3u"))
+                {
+                    m3UFile = localFileInfo.LocalPath;
+                    continue;
+                }
+
+                using var file = File.Create(localFileInfo.LocalPath);
+                if (file.Properties.MediaTypes != MediaTypes.Audio && file.Properties.MediaTypes != MediaTypes.Video)
+                {
+                    continue;
+                }
+
+                audioFiles.Add(localFileInfo.LocalPath);
+
                 file.Tag.Album = audioBook.Name;
                 file.Tag.Performers = new[] { audioBook.AuthorName };
 
                 file.Tag.Grouping = audioBook.SeriesName;
                 file.Tag.TitleSort = audioBook.OrderInSeries.ToString();
-
+                file.Tag.Genres = audioBook.Categories.Select(t => t.Name).ToArray();
                 file.Tag.Description = audioBook.Description;
-
                 var matchedChapter = audioBook.Chapters.FirstOrDefault(t => t.Url == localFileInfo.RemotePath);
 
                 if (matchedChapter != null)
                 {
                     file.Tag.Title = matchedChapter.Name;
-                    file.Tag.TitleSort = audioBook.Chapters.IndexOf(matchedChapter).ToString("D5");
                 }
 
                 if (cancellationToken.IsCancellationRequested)
                 {
-                    return Task.FromCanceled(cancellationToken);
+                    return;
                 }
-
+                file.Tag.Year = (uint) (audioBook.ReleaseDate?.Year ?? 0);
                 file.Save();
             }
 
-            return Task.CompletedTask;
+            var m3UFileDestination = m3UFile ?? Path.Combine(directory, "index.m3u");
+            await m3UManager.GenerateM3uFile(audioFiles.Select(Path.GetFileName)!, m3UFileDestination);
         }
     }
 }

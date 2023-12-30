@@ -17,6 +17,8 @@ namespace DotCast.SharedKernel.Messages
 
     public record RestoreFromFileSystemRequest;
 
+    public record ReprocessAllAudioBooksRequest(bool Unzip = false);
+
     public record AudiobookInfoSuggestionsRequest(string Name, int? Count = null);
 
 
@@ -25,7 +27,9 @@ namespace DotCast.SharedKernel.Messages
 
     public record FileUploaded(string AudioBookId, string FileName);
 
-    public record FilesModificationsFinished(string AudioBookId, ICollection<string> ModifiedFiles);
+    public record AudioBookReadyForProcessing(string AudioBookId, ICollection<string> ModifiedFiles);
+
+    public record ProcessingStatusChanged(ICollection<string> RunningProcessings);
 
     //LIBRARY
     public record AudioBookRssRequest(string Id);

@@ -16,7 +16,7 @@ namespace DotCast.Storage.Handlers
             Guard.Against.Null(updatedEntry, nameof(message.AudioBook.Id));
             var modifiedFiles = updatedEntry.Files.Select(t => t.LocalPath).ToArray();
 
-            await messageBus.SendAsync(new FilesModificationsFinished(message.AudioBook.Id, modifiedFiles));
+            await messageBus.SendAsync(new AudioBookReadyForProcessing(message.AudioBook.Id, modifiedFiles));
         }
     }
 }

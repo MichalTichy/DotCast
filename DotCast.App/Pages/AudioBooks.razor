@@ -1,5 +1,5 @@
 @page "/"
-
+@inherits AppComponentBase
 <Layout Sider>
     <LayoutSider>
         <div class="authors">
@@ -43,7 +43,12 @@
                             <div class="c-card-body">
 
                                 <h3>@audioBook.Name</h3>
-
+                                <div id="categories">
+                                    @foreach (var category in audioBook.Categories)
+                                    {
+                                        <Badge Color="Color.Info">@category.Name</Badge>
+                                    }
+                                </div>
                                 <div class="user">
                                     <b>@author.Key</b>
                                 </div>

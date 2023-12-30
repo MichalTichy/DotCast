@@ -1,14 +1,30 @@
 @page "/Admin"
+@inherits AppComponentBase
 @using DotCast.App.Shared
+
+
+<PageProgress Visible="@IsProcessingRunning" />
 
 <Button Clicked="async () => await uploadModalRef.Show()" Color="Color.Success">
     Upload new
 </Button>
 <hr />
-<Button Clicked="RestoreAudioBooksFromStorage" Color="Color.Warning">
+<Button Disabled="@IsProcessingRunning" Clicked="RestoreAudioBooksFromStorage" Color="Color.Warning">
     Restore audiobooks from Storage
 </Button>
+<Button Disabled="@IsProcessingRunning" Clicked="async ()=>await ReprocessAudioBooksFromStorage(false)" Color="Color.Warning">
+    Reprocess audiobooks from Storage (No Unzip)
+</Button>
+<Button Disabled="@IsProcessingRunning" Clicked="async ()=>await ReprocessAudioBooksFromStorage(true)" Color="Color.Warning">
+    Reprocess audiobooks from Storage (Unzip)
+</Button>
 
+@if (IsProcessingRunning)
+{
+    <span>
+        Currently @CountOfRunningProcessings processings running.
+    </span>
+}
 
 
 <Modal @ref="uploadModalRef">

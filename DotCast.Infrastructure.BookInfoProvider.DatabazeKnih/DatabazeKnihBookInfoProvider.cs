@@ -14,9 +14,15 @@ namespace DotCast.Infrastructure.BookInfoProvider.DatabazeKnih
 
         public async IAsyncEnumerable<FoundBookInfo> GetBookInfoAsync(string name)
         {
+            var count = 0;
             await foreach (var foundBook in SearchAsync(name))
             {
+                count++;
                 yield return await GetBookInfoAsync(foundBook);
+                if (count >= 10)
+                {
+                    yield break;
+                }
             }
         }
 
@@ -38,7 +44,13 @@ namespace DotCast.Infrastructure.BookInfoProvider.DatabazeKnih
                 seriesName = page.QuerySelector("#bdetail_rest > h3 > a")?.TextContent.Trim();
             }
 
-            var noInSeries = page.QuerySelector("#bdetail_rest > span > span")?.TextContent.Trim().TrimEnd('.') ?? "0";
+            var noInSeries = page.QuerySelector("#bdetail_rest > span > span")?.TextContent ?? "0";
+            var dotPosition = noInSeries.IndexOf('.');
+            if (dotPosition > 0)
+            {
+                noInSeries = noInSeries.Substring(0, dotPosition).Trim();
+            }
+
             var imgUrl  = page.QuerySelector("#icover_mid > a > img")?.Attributes["src"]?.Value;
             var rating  = page.QuerySelector("#voixis > a.bpoints > div")?.Text()?.Replace("%","").Trim() ?? "0";
             var categoriesRaw = page.QuerySelectorAll("#bdetail_rest > div.detail_description > h5 > a").Select(t => t.Text().Trim()).ToList();

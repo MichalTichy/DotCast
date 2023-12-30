@@ -4,17 +4,19 @@ using Ardalis.GuardClauses;
 using DotCast.SharedKernel.Messages;
 using DotCast.Storage.Abstractions;
 using DotCast.Storage.Processing.Abstractions;
+using Microsoft.Extensions.Logging;
 using Wolverine;
 using Wolverine.Attributes;
 
 namespace DotCast.Storage.Processing
 {
     [WolverineHandler]
-    public sealed class ProcessingPipeline(ICollection<IProcessingStep> steps, IMessageBus messageBus, IStorage storage) : IMessageHandler<FilesModificationsFinished>
+    public sealed class ProcessingPipeline
+        (ICollection<IProcessingStep> steps, IMessageBus messageBus, IStorage storage, ILogger<ProcessingPipeline> logger) : IMessageHandler<AudioBookReadyForProcessing>
     {
         private static readonly ConcurrentDictionary<string, SemaphoreSlim> Locks = new();
 
-        public IReadOnlyCollection<IProcessingStep> Steps { get; } = new ReadOnlyCollection<IProcessingStep>(steps.ToList());
+        public IReadOnlyCollection<IProcessingStep> Steps => new ReadOnlyCollection<IProcessingStep>(steps.ToList());
 
         public async Task Process(StorageEntryWithFiles source, ICollection<string> modifiedFiles)
         {
@@ -29,19 +31,28 @@ namespace DotCast.Storage.Processing
 
             try
             {
-                var modifications = modifiedFiles;
+                await messageBus.PublishAsync(new ProcessingStatusChanged(Locks.Keys));
+                logger.LogInformation($"Started processing for {source.Id}. Currently running {Locks.Count} processings.");
+                var modifications = modifiedFiles.ToDictionary(t => t, s => ModificationType.Modified);
                 foreach (var step in steps)
                 {
-                    modifications = await step.Process(source.Id, source.Archive != null, modifications);
+                    modifications = await step.Process(source.Id, modifications);
                 }
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, $"Processing for {source.Id} failed.");
             }
             finally
             {
+                Locks.TryRemove(lockKey, out _);
                 semaphore.Release();
+                logger.LogInformation($"Finished processing for {source.Id}. Currently running {Locks.Count} processings.");
+                await messageBus.PublishAsync(new ProcessingStatusChanged(Locks.Keys));
             }
         }
 
-        public async Task Handle(FilesModificationsFinished message)
+        public async Task Handle(AudioBookReadyForProcessing message)
         {
             var entry = storage.GetStorageEntry(message.AudioBookId);
             Guard.Against.Null(entry, message.AudioBookId);

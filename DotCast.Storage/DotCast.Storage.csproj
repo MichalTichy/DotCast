@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DotCast.Infrastructure.FileNameNormalization\DotCast.Infrastructure.FileNameNormalization.csproj" />
     <ProjectReference Include="..\DotCast.Infrastructure.Gateway.Abstractions\DotCast.Infrastructure.Gateway.Abstractions.csproj" />
     <ProjectReference Include="..\DotCast.Infrastructure.MetadataManager\DotCast.Infrastructure.MetadataManager.csproj" />
     <ProjectReference Include="..\DotCast.Infrastructure.MimeType\DotCast.Infrastructure.MimeType.csproj" />

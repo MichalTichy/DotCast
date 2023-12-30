@@ -1,5 +1,6 @@
 
 @page "/AudioBook/{Id}/edit"
+@inherits AppComponentBase
 @using DotCast.SharedKernel.Models
 
 <Row>
@@ -21,12 +22,12 @@
 
 <Row>
     <Column ColumnSize="ColumnSize.IsHalf">
-    <Field >
-        <FieldLabel>Name</FieldLabel>
-        <FieldBody>
-            <TextEdit @bind-Text="@Data.Name"/>
-        </FieldBody>
-    </Field>
+        <Field >
+            <FieldLabel>Name</FieldLabel>
+            <FieldBody>
+                <TextEdit @bind-Text="@Data.Name"/>
+            </FieldBody>
+        </Field>
     </Column>
     <Column ColumnSize="ColumnSize.IsHalf">
         <Field >
@@ -34,6 +35,28 @@
             <FieldBody>
                 <TextEdit @bind-Text="@Data.AuthorName">
                 </TextEdit>
+            </FieldBody>
+        </Field>
+    </Column>
+</Row>
+<Row>
+    <Column ColumnSize="ColumnSize.IsHalf">
+
+        <div id="categories">
+            @foreach (var category in Data.Categories)
+            {
+                <Badge Color="Color.Info" CloseClicked="@(() => RemoveCategory(category))">@category.Name</Badge>
+            }
+        </div>
+    </Column>
+    <Column ColumnSize="ColumnSize.IsHalf">
+        <Field>
+            <FieldLabel>Add category</FieldLabel>
+            <FieldBody>
+                <SelectList TItem="Category" TValue="string"
+                            Data="MissingCategories" TextField="category => category.Name" ValueField="category => category.Name" 
+                            SelectedValueChanged="@(s => AddCategory(MissingCategories.Single(t=>t.Name==s)))"
+                            DefaultItemText="Choose new category" ></SelectList>
             </FieldBody>
         </Field>
     </Column>
@@ -120,12 +143,13 @@
                         <CardBody>
                             <h1>@suggestion.Title</h1>
                             <b>@suggestion.Author</b>
+                            <p>@string.Join(" ; ",suggestion.Categories.Select(t=>t.Name))</p>
                             @if (!string.IsNullOrWhiteSpace(suggestion.SeriesName))
                             {
                                 <div><span>@suggestion.SeriesName</span> - <span>@suggestion.OrderInSeries</span></div>
                             }
                             <p>@suggestion.Description</p>
-                            <Rating ReadOnly="true" SelectedValue="@((int) Math.Round(Data.Rating / 20.0))"/> <br/>
+                            <Rating ReadOnly="true" SelectedValue="@((int) Math.Round(suggestion.PercentageRating / 20.0))"/> <br/>
                             <Button Color="Color.Link" Clicked="@(async () => await Prefill(suggestion))">Select</Button>
                         </CardBody>
                     </Card>

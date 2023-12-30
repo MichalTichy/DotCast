@@ -6,9 +6,11 @@ namespace DotCast.Storage.Processing.Steps.Zip
 {
     public class ZipProcessingStep(IArchiveManager archiveManager, IFilesystemPathManager filesystemPathManager) : IProcessingStep
     {
-        public async Task<ICollection<string>> Process(string audioBookId, bool wasArchived, ICollection<string> modifiedFiles)
+        public async Task<Dictionary<string, ModificationType>> Process(string audioBookId, Dictionary<string, ModificationType> modifiedFiles)
         {
-            var needsRepacking = modifiedFiles.Any(filesystemPathManager.IsArchive) || !wasArchived;
+            var needsRepacking = modifiedFiles.Select(t => (FilePath: t.Key, ModificationType: t.Value)).Where(t =>
+                t.ModificationType.HasFlag(ModificationType.Deleted) ||
+                t.ModificationType.HasFlag(ModificationType.Modified)).Any(t => !filesystemPathManager.IsArchive(t.FilePath));
             if (!needsRepacking)
             {
                 return modifiedFiles;
@@ -16,10 +18,10 @@ namespace DotCast.Storage.Processing.Steps.Zip
 
             var archivePath = filesystemPathManager.GetTargetFilePath(audioBookId, $"{audioBookId}.zip");
             var sourcePath = filesystemPathManager.GetAudioBookLocation(audioBookId);
-
             await archiveManager.ZipAsync(sourcePath, archivePath);
+            modifiedFiles[archivePath] = ModificationType.Modified;
 
-            return modifiedFiles.Append(archivePath).ToList();
+            return modifiedFiles;
         }
     }
 }

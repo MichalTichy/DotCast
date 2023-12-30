@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DotCast.Infrastructure.IoC\DotCast.Infrastructure.IoC.csproj" />
+    <ProjectReference Include="..\DotCast.Infrastructure.M3U\DotCast.Infrastructure.M3U.csproj" />
     <ProjectReference Include="..\DotCast.SharedKernel\DotCast.SharedKernel.csproj" />
     <ProjectReference Include="..\DotCast.Storage.Abstractions\DotCast.Storage.Abstractions.csproj" />
   </ItemGroup>

@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Newtonsoft.Json;
 using System.Net;
+using DotCast.App.Services;
 using DotCast.Library.API;
 using DotCast.Storage.API;
 using Wolverine;
@@ -39,8 +40,8 @@ namespace DotCast.App
 
                 options.Discovery.IncludeType(typeof(FileUploadTracker));
                 options.Discovery.IncludeType(typeof(ProcessingPipeline));
-
-                var describeHandlerMatch = options.DescribeHandlerMatch(typeof(ProcessingPipeline));
+                options.Discovery.IncludeType(typeof(ProcessingMonitor));
+                options.LocalQueueFor<AudioBookReadyForProcessing>().MaximumParallelMessages(Environment.ProcessorCount / 2);
             });
 
             builder.Host.UseSystemd();

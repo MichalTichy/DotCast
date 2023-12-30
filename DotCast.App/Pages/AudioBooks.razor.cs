@@ -1,4 +1,5 @@
 
+using DotCast.App.Shared;
 using DotCast.SharedKernel.Messages;
 using DotCast.SharedKernel.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -9,7 +10,7 @@ using Wolverine;
 namespace DotCast.App.Pages
 {
     [Authorize]
-    public partial class AudioBooks
+    public partial class AudioBooks : AppComponentBase
     {
         [Inject]
         public required IJSRuntime Js { get; set; }
@@ -28,7 +29,7 @@ namespace DotCast.App.Pages
         {
             if (!string.IsNullOrWhiteSpace(info.ArchiveUrl))
             {
-                await Js.InvokeAsync<object>("open", info.ArchiveUrl, "_blank");
+                await Js.InvokeVoidAsync("open", info.ArchiveUrl, "_blank");
             }
         }
 
@@ -50,7 +51,7 @@ namespace DotCast.App.Pages
             var request = new AudioBooksRetrievalRequest(filter);
             var result = await MessageBus.InvokeAsync<IReadOnlyList<AudioBook>>(request);
             Data = result;
-            await InvokeAsync(StateHasChanged);
+            await SaveStateHasChangedAsync();
         }
 
         private Timer? typingTimer;

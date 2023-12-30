@@ -4,6 +4,6 @@ namespace DotCast.Storage.Processing.Abstractions
 {
     public interface IProcessingStep
     {
-        public Task<ICollection<string>> Process(string audioBookId, bool wasArchived, ICollection<string> modifiedFiles);
+        public Task<Dictionary<string, ModificationType>> Process(string audioBookId, Dictionary<string, ModificationType> modifiedFiles);
     }
 }
