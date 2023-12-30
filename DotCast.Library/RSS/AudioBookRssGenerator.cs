@@ -7,19 +7,19 @@ namespace DotCast.Library.RSS
     {
         public override Task<Feed> BuildFeed(AudioBook param)
         {
-            var feed = new Feed(param.Name)
+            var feed = new Feed(param.AudioBookInfo.Name)
             {
-                AuthorName = param.AuthorName,
-                Categories = param.Categories.Select(c => c.Name).ToList(),
-                Description = param.Description,
-                ImageUrl = param.ImageUrl,
-                Episodes = param.Chapters.Select((chapter, index) => new Episode
+                AuthorName = param.AudioBookInfo.AuthorName,
+                Categories = param.AudioBookInfo.Categories.Select(c => c.Name).ToList(),
+                Description = param.AudioBookInfo.Description,
+                ImageUrl = param.AudioBookInfo.ImageUrl,
+                Episodes = param.AudioBookInfo.Chapters.Select((chapter, index) => new Episode
                     {
                         Title = chapter.Name,
                         Duration = chapter.Duration,
                         FileUrl = chapter.Url,
-                        PublicationDate = (param.ReleaseDate ?? new DateTime(2000, 1, 1))
-                            .AddMinutes(param.Categories.Count)
+                        PublicationDate = (param.AudioBookInfo.ReleaseDate ?? new DateTime(2000, 1, 1))
+                            .AddMinutes(param.AudioBookInfo.Categories.Count)
                             .AddMinutes(-index - 1) //this ensures that episodes are in correct order when ordering is by date (latest first)
                     })
                     .ToList()

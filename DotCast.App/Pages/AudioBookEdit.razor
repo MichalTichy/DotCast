@@ -15,7 +15,7 @@
 
     </Column>
 </Row>
-<Image Class="CoverImage" src="@Data.ImageUrl" />
+<Image Class="CoverImage" src="@Data.AudioBookInfo.ImageUrl" />
 <Row>
     <Rating ReadOnly="true" SelectedValue="@((int)Math.Round(Data.Rating / 20.0))" />
 </Row>
@@ -25,7 +25,7 @@
         <Field >
             <FieldLabel>Name</FieldLabel>
             <FieldBody>
-                <TextEdit @bind-Text="@Data.Name"/>
+                <TextEdit @bind-Text="@Data.AudioBookInfo.Name" />
             </FieldBody>
         </Field>
     </Column>
@@ -33,7 +33,7 @@
         <Field >
             <FieldLabel>Author</FieldLabel>
             <FieldBody>
-                <TextEdit @bind-Text="@Data.AuthorName">
+                <TextEdit @bind-Text="@Data.AudioBookInfo.AuthorName">
                 </TextEdit>
             </FieldBody>
         </Field>
@@ -43,7 +43,7 @@
     <Column ColumnSize="ColumnSize.IsHalf">
 
         <div id="categories">
-            @foreach (var category in Data.Categories)
+            @foreach (var category in Data.AudioBookInfo.Categories)
             {
                 <Badge Color="Color.Info" CloseClicked="@(() => RemoveCategory(category))">@category.Name</Badge>
             }
@@ -66,7 +66,7 @@
         <Field >
             <FieldLabel>Series Name</FieldLabel>
             <FieldBody>
-                <TextEdit @bind-Text="@Data.SeriesName" />
+                <TextEdit @bind-Text="@Data.AudioBookInfo.SeriesName" />
             </FieldBody>
         </Field>
     </Column>
@@ -74,7 +74,7 @@
         <Field >
             <FieldLabel>Order in series</FieldLabel>
             <FieldBody>
-                <NumericPicker @bind-Value="Data.OrderInSeries" Min="0" />
+                <NumericPicker @bind-Value="Data.AudioBookInfo.OrderInSeries" Min="0" />
             </FieldBody>
         </Field>
     </Column>
@@ -85,7 +85,7 @@
         <Field>
             <FieldLabel>Description</FieldLabel>
             <FieldBody>
-                <TextEdit @bind-Text="Data.Description" />
+                <TextEdit @bind-Text="Data.AudioBookInfo.Description" />
             </FieldBody>
         </Field>
     </Column>
@@ -103,9 +103,9 @@
 
 <Row>
     <Column ColumnSize="ColumnSize.IsFull">
-        @if (Data?.Chapters.Count > 0)
+        @if (Data?.AudioBookInfo.Chapters.Count > 0)
         {
-            <DropContainer TItem="Chapter" Items="@Data.Chapters" ItemsFilter="@((item, dropZone) => true)" ItemDropped="@ChapterOrderChanged" Flex="Flex.Wrap.Grow.Is1">
+            <DropContainer TItem="Chapter" Items="@Data.AudioBookInfo.Chapters" ItemsFilter="@((item, dropZone) => true)" ItemDropped="@ChapterOrderChanged" Flex="Flex.Wrap.Grow.Is1">
                 <ChildContent>
        
                     <DropZone TItem="Chapter" Name="Chapters" AllowReorder Padding="Padding.Is3" Margin="Margin.Is3" Flex="Flex.Grow.Is1">

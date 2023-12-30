@@ -20,7 +20,7 @@ namespace DotCast.App.Pages
         [Parameter]
         public required string Id { get; set; }
 
-        public AudioBook Data { get; set; } = new() { Id = "TMP", Name = "LOADING", AuthorName = "", Chapters = new List<Chapter>(0) };
+        public AudioBook Data { get; set; } = new() { Id = "TMP", AudioBookInfo = new AudioBookInfo { Id = "TMP", Name = "LOADING", AuthorName = "", Chapters = new List<Chapter>(0) } };
 
         public IReadOnlyCollection<FoundBookInfo> Suggestions { get; set; } = new List<FoundBookInfo>(0).AsReadOnly();
         public ICollection<Category> MissingCategories = new List<Category>();
@@ -47,18 +47,18 @@ namespace DotCast.App.Pages
         public void UpdateMissingCategories()
         {
             var allCategories = Category.GetAll().ToList();
-            MissingCategories = allCategories.Except(Data.Categories).ToList();
+            MissingCategories = allCategories.Except(Data.AudioBookInfo.Categories).ToList();
         }
 
         public async Task Prefill(FoundBookInfo suggestion)
         {
-            Data.Name = suggestion.Title;
-            Data.AuthorName = suggestion.Author;
-            Data.SeriesName = suggestion.SeriesName;
-            Data.OrderInSeries = suggestion.OrderInSeries;
-            Data.Description = suggestion.Description;
+            Data.AudioBookInfo.Name = suggestion.Title;
+            Data.AudioBookInfo.AuthorName = suggestion.Author;
+            Data.AudioBookInfo.SeriesName = suggestion.SeriesName;
+            Data.AudioBookInfo.OrderInSeries = suggestion.OrderInSeries;
+            Data.AudioBookInfo.Description = suggestion.Description;
+            Data.AudioBookInfo.Categories = suggestion.Categories;
             Data.Rating = suggestion.PercentageRating;
-            Data.Categories = suggestion.Categories;
 
             await suggestionsModalRef.Close(CloseReason.None);
         }
@@ -87,26 +87,26 @@ namespace DotCast.App.Pages
         {
             var newIndex = obj.IndexInZone;
             var chapter = obj.Item;
-            Data.Chapters.Remove(chapter);
-            Data.Chapters.Insert(newIndex, chapter);
+            Data.AudioBookInfo.Chapters.Remove(chapter);
+            Data.AudioBookInfo.Chapters.Insert(newIndex, chapter);
         }
 
         private void SortByName()
         {
-            Data.Chapters = Data.Chapters.OrderBy(t => t.Name).ToList();
+            Data.AudioBookInfo.Chapters = Data.AudioBookInfo.Chapters.OrderBy(t => t.Name).ToList();
         }
 
         private async Task ShowSuggestions()
         {
-            await LoadSuggestions(Data.Name);
+            await LoadSuggestions(Data.AudioBookInfo.Name);
             await suggestionsModalRef.Show();
         }
 
         private void AddCategory(Category? obj)
         {
-            if (obj != null && !Data.Categories.Contains(obj))
+            if (obj != null && !Data.AudioBookInfo.Categories.Contains(obj))
             {
-                Data.Categories.Add(obj);
+                Data.AudioBookInfo.Categories.Add(obj);
             }
 
             UpdateMissingCategories();
@@ -114,9 +114,9 @@ namespace DotCast.App.Pages
 
         private void RemoveCategory(Category? obj)
         {
-            if (obj != null && Data.Categories.Contains(obj))
+            if (obj != null && Data.AudioBookInfo.Categories.Contains(obj))
             {
-                Data.Categories.Remove(obj);
+                Data.AudioBookInfo.Categories.Remove(obj);
             }
 
             UpdateMissingCategories();

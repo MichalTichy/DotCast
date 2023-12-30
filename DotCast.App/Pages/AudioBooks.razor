@@ -4,7 +4,7 @@
     <LayoutSider>
         <div class="authors">
             <span>Authors</span>
-            @foreach (var authorName in Data.Select(t => t.AuthorName).Distinct().OrderBy(t => t))
+            @foreach (var authorName in Data.Select(t => t.AudioBookInfo.AuthorName).Distinct().OrderBy(t => t))
             {
                 <a class="authorLink" onclick="@($"document.getElementById('{authorName.Replace(" ", "")}').scrollIntoView({{behavior:'smooth'}})")">
                     <div>@authorName</div></a>
@@ -21,12 +21,12 @@
             </Field>
         </div>
 
-        @foreach (var author in Data.GroupBy(t => t.AuthorName).OrderBy(t => t.Key))
+        @foreach (var author in Data.GroupBy(t => t.AudioBookInfo.AuthorName).OrderBy(t => t.Key))
         {
             <a id="@author.Key.Replace(" ", "")">
             </a>
             <Divider DividerType="DividerType.TextContent" Text="@author.Key"></Divider>
-            @foreach (var series in author.GroupBy(info => info.SeriesName?.ToLower().Trim()))
+            @foreach (var series in author.GroupBy(info => info.AudioBookInfo.SeriesName?.ToLower().Trim()))
             {
                 @if (!string.IsNullOrWhiteSpace(series.Key))
                 {
@@ -34,17 +34,17 @@
                 }
                 <div class="c-container">
 
-                    @foreach (var audioBook in series.OrderBy(info => info.OrderInSeries).ThenBy(info => info.Name))
+                    @foreach (var audioBook in series.OrderBy(info => info.AudioBookInfo.OrderInSeries).ThenBy(info => info.AudioBookInfo.Name))
                     {
                         <div class="c-card">
                             <div class="c-card-header">
-                                <img src="@audioBook.ImageUrl"/>
+                                <img src="@audioBook.AudioBookInfo.ImageUrl" />
                             </div>
                             <div class="c-card-body">
 
-                                <h3>@audioBook.Name</h3>
+                                <h3>@audioBook.AudioBookInfo.Name</h3>
                                 <div id="categories">
-                                    @foreach (var category in audioBook.Categories)
+                                    @foreach (var category in audioBook.AudioBookInfo.Categories)
                                     {
                                         <Badge Color="Color.Info">@category.Name</Badge>
                                     }
@@ -52,13 +52,13 @@
                                 <div class="user">
                                     <b>@author.Key</b>
                                 </div>
-                                @if (!string.IsNullOrWhiteSpace(audioBook.SeriesName))
+                                @if (!string.IsNullOrWhiteSpace(audioBook.AudioBookInfo.SeriesName))
                                 {
-                                    <b>@audioBook.SeriesName - @audioBook.OrderInSeries</b>
+                                    <b>@audioBook.AudioBookInfo.SeriesName - @audioBook.AudioBookInfo.OrderInSeries</b>
                                 }
 
-                                <p class="description" title="@audioBook.Description">
-                                    @audioBook.Description
+                                <p class="description" title="@audioBook.AudioBookInfo.Description">
+                                    @audioBook.AudioBookInfo.Description
                                 </p>
                                 <div>
                                     <Rating ReadOnly="true" SelectedValue="@((int)Math.Round(audioBook.Rating / 20.0))"/> <span>@audioBook.Rating %</span>
@@ -67,9 +67,9 @@
                             <div class="c-card-footer">
                                 
                                     <span>
-                                        <Icon Name="IconName.Clock"/> @audioBook.Duration.ToString(@"hh\:mm")
+                                    <Icon Name="IconName.Clock" /> @audioBook.AudioBookInfo.Duration.ToString(@"hh\:mm")
                                     </span>
-                                @if (!string.IsNullOrWhiteSpace(audioBook.ArchiveUrl))
+                                @if (!string.IsNullOrWhiteSpace(audioBook.AudioBookInfo.ArchiveUrl))
                                 {
                                     <Button class="button" Clicked="async () => await Download(audioBook)">
                                         <Icon Name="IconName.Download"></Icon>

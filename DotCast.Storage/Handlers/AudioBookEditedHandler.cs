@@ -10,7 +10,7 @@ namespace DotCast.Storage.Handlers
     {
         public async Task Handle(AudioBookEdited message)
         {
-            await storage.UpdateMetadataAsync(message.AudioBook);
+            await storage.UpdateMetadataAsync(message.AudioBook.AudioBookInfo);
 
             var updatedEntry = storage.GetStorageEntry(message.AudioBook.Id);
             Guard.Against.Null(updatedEntry, nameof(message.AudioBook.Id));

@@ -9,7 +9,20 @@ namespace DotCast.Library.Handlers
     {
         public async Task Handle(AudioBookStorageMetadataUpdated message)
         {
-            await repository.StoreAsync(message.AudioBook);
+            var audioBook = await repository.GetByIdAsync(message.AudioBookInfo.Id);
+            if (audioBook == null)
+            {
+                await repository.AddAsync(new AudioBook
+                {
+                    Id = message.AudioBookInfo.Id,
+                    AudioBookInfo = message.AudioBookInfo
+                });
+            }
+            else
+            {
+                audioBook.AudioBookInfo = message.AudioBookInfo;
+                await repository.UpdateAsync(audioBook);
+            }
         }
     }
 }

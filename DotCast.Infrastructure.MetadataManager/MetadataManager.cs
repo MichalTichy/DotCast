@@ -8,7 +8,7 @@ namespace DotCast.Infrastructure.MetadataManager
 {
     public class MetadataManager(M3uManager m3UManager) : IMetadataManager
     {
-        public async Task<AudioBook> ExtractMetadata(StorageEntryWithFiles source, CancellationToken cancellationToken = default)
+        public async Task<AudioBookInfo> ExtractMetadata(StorageEntryWithFiles source, CancellationToken cancellationToken = default)
         {
             string? image = null;
             var imageIsDesignatedCover = false;
@@ -28,7 +28,7 @@ namespace DotCast.Infrastructure.MetadataManager
                 {
                     if (cancellationToken.IsCancellationRequested)
                     {
-                        return await Task.FromCanceled<AudioBook>(cancellationToken);
+                        return await Task.FromCanceled<AudioBookInfo>(cancellationToken);
                     }
 
                     if (file.LocalPath.EndsWith(".m3u"))
@@ -155,11 +155,11 @@ namespace DotCast.Infrastructure.MetadataManager
             }
 
             var audioBookName = title ?? source.Id;
-            var audioBook = new AudioBook
+            var audioBook = new AudioBookInfo
             {
                 Id = source.Id,
                 Name = audioBookName,
-                AuthorName = author,
+                AuthorName = author ?? string.Empty,
                 Chapters = chapters,
                 ReleaseDate = releaseDate,
                 Description = description,
@@ -172,7 +172,7 @@ namespace DotCast.Infrastructure.MetadataManager
             return audioBook;
         }
 
-        public async Task UpdateMetadata(AudioBook audioBook, StorageEntryWithFiles source, CancellationToken cancellationToken = default)
+        public async Task UpdateMetadata(AudioBookInfo audioBook, StorageEntryWithFiles source, CancellationToken cancellationToken = default)
         {
             var audioFiles = new List<string>();
             string? m3UFile = null;
@@ -211,6 +211,7 @@ namespace DotCast.Infrastructure.MetadataManager
                 {
                     return;
                 }
+
                 file.Tag.Year = (uint) (audioBook.ReleaseDate?.Year ?? 0);
                 file.Save();
             }

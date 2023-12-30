@@ -60,7 +60,7 @@ namespace DotCast.Storage.Storage
             }
         }
 
-        public async Task<AudioBook> ExtractMetadataAsync(string id, CancellationToken cancellationToken = default)
+        public async Task<AudioBookInfo> ExtractMetadataAsync(string id, CancellationToken cancellationToken = default)
         {
             var audioBookStorageEntry = GetStorageEntry(id);
             if (audioBookStorageEntry == null)
@@ -71,7 +71,7 @@ namespace DotCast.Storage.Storage
             return await metadataManager.ExtractMetadata(audioBookStorageEntry, cancellationToken);
         }
 
-        public async Task UpdateMetadataAsync(AudioBook audioBook, CancellationToken cancellationToken = default)
+        public async Task UpdateMetadataAsync(AudioBookInfo audioBook, CancellationToken cancellationToken = default)
         {
             var source = GetStorageEntry(audioBook.Id);
             if (source == null)
@@ -142,7 +142,7 @@ namespace DotCast.Storage.Storage
                 return null;
             }
 
-            return PrepareReadableStorageEntry(audioBookId, archivesLocation);
+            return PrepareReadableStorageEntry(archive, archivesLocation);
         }
     }
 }
