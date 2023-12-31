@@ -194,6 +194,7 @@ namespace DotCast.Infrastructure.MetadataManager
                 audioFiles.Add(localFileInfo.LocalPath);
 
                 file.Tag.Album = audioBook.Name;
+                file.Tag.AlbumArtists = Array.Empty<string>();
                 file.Tag.Performers = new[] { audioBook.AuthorName };
 
                 file.Tag.Grouping = audioBook.SeriesName;

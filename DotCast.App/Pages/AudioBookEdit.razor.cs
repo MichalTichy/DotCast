@@ -121,5 +121,11 @@ namespace DotCast.App.Pages
 
             UpdateMissingCategories();
         }
+
+        private async Task<Dictionary<string, string>> CreatePresignedUrl(ICollection<string> files)
+        {
+            var result = await MessageBus.InvokeAsync<IReadOnlyCollection<PreuploadFileInformation>>(new AudioBookUploadStartRequest(Id, files));
+            return result.ToDictionary(t => t.FileName, t => t.UploadUrl);
+        }
     }
 }

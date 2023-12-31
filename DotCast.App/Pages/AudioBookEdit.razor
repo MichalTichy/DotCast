@@ -94,7 +94,8 @@
     <Column ColumnSize="ColumnSize.IsFull">
         <Field >
             <FieldLabel>Upload files</FieldLabel>
-            <FieldBody>                
+            <FieldBody>    
+                <FileUpload PresignedUrlFactory="CreatePresignedUrl" />
             </FieldBody>
         </Field>
     </Column>
