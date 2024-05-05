@@ -21,7 +21,7 @@ steps:
 - task: DotNetCoreCLI@2
   inputs:
     command: 'build'
-    projects: '**/ProductivityStation.Web.csproj'
+    projects: '**/DotCast.App.csproj'
     arguments: '/p:DefineConstants=LINUX -r linux-x64 --configuration $(buildConfiguration)'
 - task: DotNetCoreCLI@2
   inputs:
