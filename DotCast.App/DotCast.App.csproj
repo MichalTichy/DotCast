@@ -17,6 +17,7 @@
     <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
     <PackageReference Include="WolverineFx" Version="1.12.4" />
+    <PackageReference Include="Microsoft.Azure.AppConfiguration.AspNetCore" Version="7.1.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,12 +31,6 @@
     <ProjectReference Include="..\DotCast.Storage.API\DotCast.Storage.API.csproj" />
     <ProjectReference Include="..\DotCast.Storage.Processing\DotCast.Storage.Processing.csproj" />
     <ProjectReference Include="..\DotCast.Storage\DotCast.Storage.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="DotCast.App.service">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
   <ItemGroup>

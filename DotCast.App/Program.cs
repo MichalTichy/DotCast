@@ -23,6 +23,17 @@ namespace DotCast.App
         public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            var appConfig = builder.Configuration.GetConnectionString("AppConfig");
+            if (!string.IsNullOrWhiteSpace(appConfig))
+            {
+                builder.Configuration.AddAzureAppConfiguration(options =>
+                {
+                    var keyFilter = "productivity:";
+                    options.Connect(appConfig).Select($"{keyFilter}*").TrimKeyPrefix(keyFilter);
+                });
+            }
+
             var isProduction = IsProduction();
 
             InstallerDiscovery.RunInstallersFromAllReferencedAssemblies(builder.Services, builder.Configuration, isProduction);
