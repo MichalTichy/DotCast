@@ -15,7 +15,12 @@ namespace DotCast.Storage.Handlers
             {
                 logger.LogInformation("Reprocessing {Id}", storageEntry.Id);
                 var extendedEntry = storage.GetStorageEntry(storageEntry.Id);
-                Guard.Against.Null(extendedEntry, nameof(extendedEntry));
+                if (extendedEntry == null)
+                {
+                    logger.LogError($"Failed to get storage info for {storageEntry.Id}");
+                    continue;
+                }
+
                 var modifiedFiles = extendedEntry.Files.Select(t => t.LocalPath).ToList();
                 if (message.Unzip && extendedEntry.Archive != null)
                 {
