@@ -29,7 +29,7 @@ namespace DotCast.App
             {
                 builder.Configuration.AddAzureAppConfiguration(options =>
                 {
-                    var keyFilter = "productivity:";
+                    var keyFilter = "dotcast:";
                     options.Connect(appConfig).Select($"{keyFilter}*").TrimKeyPrefix(keyFilter);
                 });
             }
