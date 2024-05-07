@@ -27,7 +27,7 @@ namespace DotCast.Infrastructure.PresignedUrls
             return uriBuilder.Uri.ToString();
         }
 
-        public bool ValidateUrl(string presignedUrl)
+        public (bool result, string message) ValidateUrl(string presignedUrl)
         {
             var secretKey = options.Value.SecretKey;
 
@@ -40,18 +40,18 @@ namespace DotCast.Infrastructure.PresignedUrls
 
             if (string.IsNullOrEmpty(fileId) || string.IsNullOrEmpty(expiry) || string.IsNullOrEmpty(receivedSignature))
             {
-                return false;
+                return (false, "One of required parameters is null.");
             }
 
             if (!long.TryParse(expiry, out var expiryUnix))
             {
-                return false;
+                return (false, "Unable to parse link expiration.");
             }
 
             var expiryDateTime = DateTimeOffset.FromUnixTimeSeconds(expiryUnix);
             if (expiryDateTime < DateTimeOffset.UtcNow)
             {
-                return false;
+                return (false, "Link expired");
             }
 
             var signedUrl = uri.GetLeftPart(UriPartial.Path);
@@ -61,7 +61,13 @@ namespace DotCast.Infrastructure.PresignedUrls
             var computedSignature = ComputeHmacSha256(Encoding.UTF8.GetBytes(secretKey), Encoding.UTF8.GetBytes(stringToSign));
 
             var computed = Convert.ToBase64String(computedSignature);
-            return computed == receivedSignature;
+            var signaturesAreMatching = computed == receivedSignature;
+            if (!signaturesAreMatching)
+            {
+                return (false, "Signatures do not match.");
+            }
+
+            return (true, "OK");
         }
 
         private byte[] ComputeHmacSha256(byte[] key, byte[] data)

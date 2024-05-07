@@ -6,12 +6,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Wolverine;
 
 namespace DotCast.Storage.API
 {
     [Authorize]
-    public class UploadFileEndpoint(IStorage storage, IPresignedUrlManager presignedUrlManager, IMessageBus messageBus) : EndpointBaseAsync.WithRequest<IFormFile>.WithActionResult<string>
+    public class UploadFileEndpoint
+        (IStorage storage, IPresignedUrlManager presignedUrlManager, IMessageBus messageBus, ILogger<UploadFileEndpoint> logger) : EndpointBaseAsync.WithRequest<IFormFile>.WithActionResult<string>
     {
         [FromRoute(Name = "AudioBookId")]
         public required string AudioBookId { get; set; }
@@ -26,9 +28,11 @@ namespace DotCast.Storage.API
         public override async Task<ActionResult<string>> HandleAsync(IFormFile request, CancellationToken cancellationToken = new())
         {
             var requestUrl = ControllerContext.HttpContext.Request.GetEncodedUrl();
-            if (!presignedUrlManager.ValidateUrl(requestUrl))
+            var urlValidationResult = presignedUrlManager.ValidateUrl(requestUrl);
+            if (!urlValidationResult.result)
             {
-                return Unauthorized();
+                logger.LogWarning($"Url validation failed {urlValidationResult.message}");
+                return Unauthorized(urlValidationResult.message);
             }
 
             await using var stream = request.OpenReadStream();

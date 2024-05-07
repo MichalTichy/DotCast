@@ -29,7 +29,7 @@ namespace DotCast.Infrastructure.PresignedUrls.Tests
 
             //Act
             var url = presignedManager.GenerateUrl(BaseUrl);
-            var result = presignedManager.ValidateUrl(url);
+            var result = presignedManager.ValidateUrl(url).result;
 
             //Assert
             result.Should().BeTrue();
@@ -45,7 +45,7 @@ namespace DotCast.Infrastructure.PresignedUrls.Tests
             var url = presignedManager.GenerateUrl(sourceUrl);
             url = url.Replace(fileId, "TEMPERED");
             // Act
-            var result = presignedManager.ValidateUrl(url);
+            var result = presignedManager.ValidateUrl(url).result;
 
             // Assert
             result.Should().BeFalse();
@@ -60,8 +60,8 @@ namespace DotCast.Infrastructure.PresignedUrls.Tests
             var url = presignedManager.GenerateUrl(sourceUrl);
 
             // Act
-            await Task.Delay(1100); // Delay for just over 3 seconds
-            var result = presignedManager.ValidateUrl(url);
+            await Task.Delay(1100);
+            var result = presignedManager.ValidateUrl(url).result;
 
             // Assert
             result.Should().BeFalse();

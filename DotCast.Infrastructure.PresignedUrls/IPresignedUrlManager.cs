@@ -3,6 +3,6 @@
     public interface IPresignedUrlManager
     {
         string GenerateUrl(string baseUrl);
-        bool ValidateUrl(string presignedUrl);
+        (bool result, string message) ValidateUrl(string presignedUrl);
     }
 }
