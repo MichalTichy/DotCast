@@ -1,3 +1,5 @@
+using Newtonsoft.Json;
+
 namespace DotCast.SharedKernel.Models
 {
     public class AudioBookInfo
@@ -11,6 +13,8 @@ namespace DotCast.SharedKernel.Models
         public string? SeriesName { get; set; }
         public int OrderInSeries { get; set; }
         public string? Description { get; set; }
+
+        [JsonProperty]
         public TimeSpan Duration => TimeSpan.FromMilliseconds(Chapters.Sum(c => c.Duration.TotalMilliseconds));
         public string? ArchiveUrl { get; set; }
         public string? ImageUrl { get; set; }
