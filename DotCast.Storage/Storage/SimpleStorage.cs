@@ -4,6 +4,7 @@ using DotCast.Infrastructure.MimeType;
 using DotCast.SharedKernel.Messages;
 using DotCast.SharedKernel.Models;
 using DotCast.Storage.Abstractions;
+using Microsoft.Extensions.Logging;
 using Wolverine;
 
 namespace DotCast.Storage.Storage
@@ -11,7 +12,8 @@ namespace DotCast.Storage.Storage
     internal class SimpleStorage(IFilesystemPathManager filesystemPathManager,
         IMetadataManager metadataManager,
         IStorageApiInformationProvider apiInformationProvider,
-        IFileNameNormalizer fileNameNormalizer) : IStorage
+        IFileNameNormalizer fileNameNormalizer,
+        ILogger<SimpleStorage> logger) : IStorage
     {
         public Task<LocalFileInfo> RenameFileAsync(string id, LocalFileInfo fileInfo, string newName, CancellationToken cancellationToken = default)
         {
@@ -93,6 +95,7 @@ namespace DotCast.Storage.Storage
 
             if (!hasZipVersion && !hasExtractedVersion)
             {
+                logger.LogWarning($"No files found for audiobook {id}. Extracted path {audioBookFilesDirectory} | archive path {audioBookZipPath}");
                 return null;
             }
 
