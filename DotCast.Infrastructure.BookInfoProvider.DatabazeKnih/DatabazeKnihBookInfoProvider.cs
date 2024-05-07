@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using AngleSharp;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
@@ -29,7 +29,7 @@ namespace DotCast.Infrastructure.BookInfoProvider.DatabazeKnih
         private async Task<FoundBookInfo> GetBookInfoAsync(BookSearchResult bookSearchResult)
         {
             var page = await LoadPageAsync(bookSearchResult.Url);
-            var title = page.QuerySelector("h1[itemprop=\"name\"]")?.TextContent.Trim();
+            var title = page.QuerySelector("h1[itemprop=\"name\"]")?.TextContent.Replace("přehled", "").Trim();
             var author = page.QuerySelector("#left_less > div > h2.jmenaautoru > span > a")?.TextContent.Trim();
             var description = page.QuerySelector("p[itemprop=\"description\"] >span.start_text")?.TextContent.Trim();
             if (string.IsNullOrWhiteSpace(description))
