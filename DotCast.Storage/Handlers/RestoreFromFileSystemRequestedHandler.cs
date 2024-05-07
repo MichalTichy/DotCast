@@ -10,7 +10,7 @@ namespace DotCast.Storage.Handlers
     {
         public async IAsyncEnumerable<object> Handle(RestoreFromFileSystemRequest message)
         {
-            foreach (var storageEntry in storage.GetEntriesAsync())
+            foreach (var storageEntry in storage.GetEntries())
             {
                 var extendedEntry = storage.GetStorageEntry(storageEntry.Id);
                 Guard.Against.Null(extendedEntry, nameof(extendedEntry));

@@ -1,15 +1,19 @@
 ﻿using Ardalis.GuardClauses;
 using DotCast.SharedKernel.Messages;
 using DotCast.Storage.Abstractions;
+using Microsoft.Extensions.Logging;
 
 namespace DotCast.Storage.Handlers
 {
-    public class ReprocessAllAudioBooksRequestHandler(IStorage storage) : ICascadingMessageHandler<ReprocessAllAudioBooksRequest>
+    public class ReprocessAllAudioBooksRequestHandler(IStorage storage, ILogger<ReprocessAllAudioBooksRequestHandler> logger) : ICascadingMessageHandler<ReprocessAllAudioBooksRequest>
     {
         public IEnumerable<object> Handle(ReprocessAllAudioBooksRequest message)
         {
-            foreach (var storageEntry in storage.GetEntriesAsync())
+            var storageEntries = storage.GetEntries().ToArray();
+            logger.LogWarning("Reprocessing {Count} audiobooks", storageEntries.Length);
+            foreach (var storageEntry in storageEntries)
             {
+                logger.LogInformation("Reprocessing {Id}", storageEntry.Id);
                 var extendedEntry = storage.GetStorageEntry(storageEntry.Id);
                 Guard.Against.Null(extendedEntry, nameof(extendedEntry));
                 var modifiedFiles = extendedEntry.Files.Select(t => t.LocalPath).ToList();

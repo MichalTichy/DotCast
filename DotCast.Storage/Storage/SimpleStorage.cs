@@ -44,7 +44,7 @@ namespace DotCast.Storage.Storage
             return fileNameNormalizer.Normalize(fileName);
         }
 
-        public IEnumerable<StorageEntry> GetEntriesAsync()
+        public IEnumerable<StorageEntry> GetEntries()
         {
             var booksLocation = filesystemPathManager.GetAudioBooksLocation();
 
