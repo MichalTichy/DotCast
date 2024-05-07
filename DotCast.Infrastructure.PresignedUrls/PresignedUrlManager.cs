@@ -64,7 +64,7 @@ namespace DotCast.Infrastructure.PresignedUrls
             var signaturesAreMatching = computed == receivedSignature;
             if (!signaturesAreMatching)
             {
-                return (false, "Signatures do not match.");
+                return (false, $"Signatures do not match. original: {presignedUrl} computed: {signedUrl}");
             }
 
             return (true, "OK");
