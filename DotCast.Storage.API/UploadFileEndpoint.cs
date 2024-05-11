@@ -28,6 +28,7 @@ namespace DotCast.Storage.API
         public override async Task<ActionResult<string>> HandleAsync(IFormFile request, CancellationToken cancellationToken = new())
         {
             var requestUrl = ControllerContext.HttpContext.Request.GetEncodedUrl();
+            requestUrl = Uri.UnescapeDataString(requestUrl);
             var urlValidationResult = presignedUrlManager.ValidateUrl(requestUrl);
             if (!urlValidationResult.result)
             {
