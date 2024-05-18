@@ -58,13 +58,14 @@ namespace DotCast.Infrastructure.PresignedUrls
             signedUrl += $"?fileId={fileId}&expiry={expiry}";
 
             var stringToSign = signedUrl + secretKey;
+
             var computedSignature = ComputeHmacSha256(Encoding.UTF8.GetBytes(secretKey), Encoding.UTF8.GetBytes(stringToSign));
 
             var computed = Convert.ToBase64String(computedSignature);
             var signaturesAreMatching = computed == receivedSignature;
             if (!signaturesAreMatching)
             {
-                return (false, $"Signatures do not match. original: {presignedUrl} computed: {signedUrl}");
+                return (false, $"Signatures do not match. original: {receivedSignature} computed: {computed}");
             }
 
             return (true, "OK");
