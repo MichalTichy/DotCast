@@ -37,8 +37,9 @@ namespace DotCast.Storage.API
             }
 
             await using var stream = request.OpenReadStream();
+
             var storageEntry = await storage.StoreAsync(stream, AudioBookId, request.FileName, cancellationToken);
-            await messageBus.PublishAsync(new FileUploaded(AudioBookId, request.FileName));
+            await messageBus.PublishAsync(new FileUploaded(AudioBookId, request.FileName, Path.GetFileName(storageEntry.LocalPath)));
             return storageEntry.RemotePath;
         }
     }

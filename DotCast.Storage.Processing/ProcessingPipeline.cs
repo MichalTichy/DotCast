@@ -33,7 +33,7 @@ namespace DotCast.Storage.Processing
             {
                 await messageBus.PublishAsync(new ProcessingStatusChanged(Locks.Keys));
                 logger.LogInformation($"Started processing for {source.Id}. Currently running {Locks.Count} processings.");
-                var modifications = modifiedFiles.ToDictionary(t => t, s => ModificationType.Modified);
+                var modifications = modifiedFiles.ToDictionary(t => t, s => ModificationType.FileContentModified);
                 foreach (var step in steps)
                 {
                     modifications = await step.Process(source.Id, modifications);

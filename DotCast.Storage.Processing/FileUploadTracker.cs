@@ -11,15 +11,15 @@ namespace DotCast.Storage.Processing
         IMessageHandler<AudioBookUploadStartRequest>,
         IMessageHandler<FileUploaded>
     {
-        private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, bool>> RunningUploads = new();
+        private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, string?>> RunningUploads = new();
 
         public Task Handle(AudioBookUploadStartRequest message)
         {
             var newFilesWaitingForUpload = message.Files;
-            var pendingUploads = RunningUploads.GetOrAdd(message.AudioBookId, s => new ConcurrentDictionary<string, bool>());
+            var pendingUploads = RunningUploads.GetOrAdd(message.AudioBookId, s => new ConcurrentDictionary<string, string?>());
             foreach (var file in newFilesWaitingForUpload)
             {
-                pendingUploads.TryAdd(file, false);
+                pendingUploads.TryAdd(file, null);
             }
 
             return Task.CompletedTask;
@@ -35,7 +35,7 @@ namespace DotCast.Storage.Processing
                 return;
             }
 
-            pendingUploads![message.FileName] = true;
+            pendingUploads![message.OriginalFilename] = message.NewFileName;
 
             await IsDoneCheckLock.WaitAsync();
 
@@ -47,10 +47,10 @@ namespace DotCast.Storage.Processing
             try
             {
                 var uploads = pendingUploads.ToList();
-                var isDone = uploads.All(t => t.Value);
+                var isDone = uploads.All(t => t.Value != null);
                 if (isDone)
                 {
-                    var newFiles = uploads.Select(t => filesystemPathManager.GetTargetFilePath(message.AudioBookId, t.Key)).ToArray();
+                    var newFiles = uploads.Select(t => filesystemPathManager.GetTargetFilePath(message.AudioBookId, t.Value!)).ToArray();
                     RunningUploads.TryRemove(message.AudioBookId, out _);
 
                     var newMessage = new AudioBookReadyForProcessing(message.AudioBookId, newFiles);

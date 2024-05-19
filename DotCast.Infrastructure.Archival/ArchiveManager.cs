@@ -16,7 +16,13 @@ namespace DotCast.Infrastructure.Archival
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var destinationFilePath = Path.Combine(destinationPath, entry.FullName);
+                    var isDirectory = string.IsNullOrWhiteSpace(entry.Name);
+                    if (isDirectory)
+                    {
+                        continue;
+                    }
+
+                    var destinationFilePath = Path.Combine(destinationPath, entry.Name);
                     Directory.CreateDirectory(Path.GetDirectoryName(destinationFilePath)!);
 
                     await using var inputStream = entry.Open();

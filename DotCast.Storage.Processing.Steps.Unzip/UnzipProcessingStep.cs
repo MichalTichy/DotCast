@@ -9,7 +9,7 @@ namespace DotCast.Storage.Processing.Steps.Unzip
     {
         public async Task<Dictionary<string, ModificationType>> Process(string audioBookId, Dictionary<string, ModificationType> modifiedFiles)
         {
-            var archivePath = modifiedFiles.Where(t => t.Value != ModificationType.Deleted).Select(t => t.Key).SingleOrDefault(filesystemPathManager.IsArchive);
+            var archivePath = modifiedFiles.Where(t => !t.Value.HasFlag(ModificationType.Deleted)).Select(t => t.Key).SingleOrDefault(filesystemPathManager.IsArchive);
             if (archivePath is null)
             {
                 return modifiedFiles;

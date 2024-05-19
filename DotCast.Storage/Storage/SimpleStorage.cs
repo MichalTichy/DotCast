@@ -28,10 +28,10 @@ namespace DotCast.Storage.Storage
         {
             var newFileName = GetFileName(audioBookId, fileName);
 
-            var filePath = filesystemPathManager.GetTargetFilePath(audioBookId, fileName);
+            var filePath = filesystemPathManager.GetTargetFilePath(audioBookId, newFileName);
             await using var fileStream = File.Create(filePath);
             await stream.CopyToAsync(fileStream, cancellationToken);
-            var remotePath = apiInformationProvider.GetFileUrl(audioBookId, newFileName, filesystemPathManager.IsArchive(fileName));
+            var remotePath = apiInformationProvider.GetFileUrl(audioBookId, newFileName, filesystemPathManager.IsArchive(newFileName));
 
             return new LocalFileInfo(filePath, remotePath);
         }
@@ -40,7 +40,8 @@ namespace DotCast.Storage.Storage
         {
             if (filesystemPathManager.IsArchive(fileName))
             {
-                return audiobookId;
+                var extension = Path.GetExtension(fileName);
+                return $"{audiobookId}{extension}";
             }
 
             return fileNameNormalizer.Normalize(fileName);

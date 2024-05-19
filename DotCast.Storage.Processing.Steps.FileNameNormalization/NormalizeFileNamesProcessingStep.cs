@@ -8,13 +8,14 @@ namespace DotCast.Storage.Processing.Steps.FileNameNormalization
     {
         public async Task<Dictionary<string, ModificationType>> Process(string audioBookId, Dictionary<string, ModificationType> modifiedFiles)
         {
-            var notNormalizedFiles = modifiedFiles.ToList().Where(t => t.Value == ModificationType.Modified).Where(t => !fileNameNormalizer.IsNormalized(t.Key));
+            var notNormalizedFiles = modifiedFiles.ToList().Where(t => t.Value.HasFlag(ModificationType.FileContentModified) || t.Value.HasFlag(ModificationType.Extracted))
+                .Where(t => !fileNameNormalizer.IsNormalized(t.Key));
             foreach (var notNormalizedFile in notNormalizedFiles)
             {
                 var normalizedFileName = fileNameNormalizer.Normalize(notNormalizedFile.Key);
                 var normalizedFileInfo = await storage.RenameFileAsync(audioBookId, new LocalFileInfo(notNormalizedFile.Key, string.Empty), normalizedFileName);
                 modifiedFiles.Remove(notNormalizedFile.Key);
-                modifiedFiles.Add(normalizedFileInfo.LocalPath, notNormalizedFile.Value);
+                modifiedFiles.Add(normalizedFileInfo.LocalPath, notNormalizedFile.Value | ModificationType.Renamed);
             }
 
             return modifiedFiles;

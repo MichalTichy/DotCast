@@ -25,7 +25,7 @@ namespace DotCast.SharedKernel.Messages
     //STORAGE
     public record AudioBookStorageMetadataUpdated(AudioBookInfo AudioBookInfo);
 
-    public record FileUploaded(string AudioBookId, string FileName);
+    public record FileUploaded(string AudioBookId, string OriginalFilename, string NewFileName);
 
     public record AudioBookReadyForProcessing(string AudioBookId, ICollection<string> ModifiedFiles);
 
