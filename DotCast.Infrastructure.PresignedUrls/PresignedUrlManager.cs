@@ -19,12 +19,36 @@ namespace DotCast.Infrastructure.PresignedUrls
             query["expiry"] = expiry.ToString();
             uriBuilder.Query = query.ToString();
 
-            var stringToSign = uriBuilder.Uri + secretKey;
-            var signature = ComputeHmacSha256(Encoding.UTF8.GetBytes(secretKey), Encoding.UTF8.GetBytes(stringToSign));
-            query["signature"] = Convert.ToBase64String(signature);
+            var url = uriBuilder.Uri.ToString();
+            var signatureText = GetSignature(url, secretKey);
+            query["signature"] = signatureText;
             uriBuilder.Query = query.ToString();
 
             return uriBuilder.Uri.ToString();
+        }
+
+        private string GetSignature(string url, string secretKey)
+        {
+            var stringToSign = url + secretKey;
+
+            var key = Encoding.UTF8.GetBytes(secretKey);
+            var data = Encoding.UTF8.GetBytes(stringToSign);
+
+            using var hmacSha256 = new HMACSHA256(key);
+            var signature = hmacSha256.ComputeHash(data);
+            return Base64UrlEncode(signature);
+        }
+
+        private string Base64UrlEncode(byte[] input)
+        {
+            var base64 = Convert.ToBase64String(input);
+
+            // Convert Base64 to Base64Url
+            var base64Url = base64.Split('=')[0] // Remove any trailing '=' characters
+                .Replace('+', '-') // 62nd char of encoding
+                .Replace('/', '_'); // 63rd char of encoding
+
+            return base64Url;
         }
 
         public (bool result, string message) ValidateUrl(string presignedUrl)
@@ -57,11 +81,7 @@ namespace DotCast.Infrastructure.PresignedUrls
             var signedUrl = uri.GetLeftPart(UriPartial.Path);
             signedUrl += $"?fileId={fileId}&expiry={expiry}";
 
-            var stringToSign = signedUrl + secretKey;
-
-            var computedSignature = ComputeHmacSha256(Encoding.UTF8.GetBytes(secretKey), Encoding.UTF8.GetBytes(stringToSign));
-
-            var computed = Convert.ToBase64String(computedSignature);
+            var computed = GetSignature(signedUrl, secretKey);
             var signaturesAreMatching = computed == receivedSignature;
             if (!signaturesAreMatching)
             {
@@ -69,12 +89,6 @@ namespace DotCast.Infrastructure.PresignedUrls
             }
 
             return (true, "OK");
-        }
-
-        private byte[] ComputeHmacSha256(byte[] key, byte[] data)
-        {
-            using var hmacSha256 = new HMACSHA256(key);
-            return hmacSha256.ComputeHash(data);
         }
     }
 }
