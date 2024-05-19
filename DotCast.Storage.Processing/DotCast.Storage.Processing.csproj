@@ -15,6 +15,7 @@
     <ProjectReference Include="..\DotCast.SharedKernel\DotCast.SharedKernel.csproj" />
     <ProjectReference Include="..\DotCast.Storage.Processing.Abstractions\DotCast.Storage.Processing.Abstractions.csproj" />
     <ProjectReference Include="..\DotCast.Storage.Processing.Steps.FileNameNormalization\DotCast.Storage.Processing.Steps.FileNameNormalization.csproj" />
+    <ProjectReference Include="..\DotCast.Storage.Processing.Steps.MP4A\DotCast.Storage.Processing.Steps.MP4A.csproj" />
     <ProjectReference Include="..\DotCast.Storage.Processing.Steps.Unzip\DotCast.Storage.Processing.Steps.Unzip.csproj" />
     <ProjectReference Include="..\DotCast.Storage.Processing.Steps.UpdateMetadata\DotCast.Storage.Processing.Steps.UpdateMetadata.csproj" />
     <ProjectReference Include="..\DotCast.Storage.Processing.Steps.Zip\DotCast.Storage.Processing.Steps.Zip.csproj" />

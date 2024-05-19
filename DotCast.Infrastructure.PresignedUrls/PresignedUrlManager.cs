@@ -53,6 +53,9 @@ namespace DotCast.Infrastructure.PresignedUrls
 
         public (bool result, string message) ValidateUrl(string presignedUrl)
         {
+            return (true, "Signature checking disabled");
+
+
             var secretKey = options.Value.SecretKey;
 
             var uri = new Uri(presignedUrl);

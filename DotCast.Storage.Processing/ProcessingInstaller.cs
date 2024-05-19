@@ -2,6 +2,7 @@
 using DotCast.Storage.Abstractions;
 using DotCast.Storage.Processing.Abstractions;
 using DotCast.Storage.Processing.Steps.FileNameNormalization;
+using DotCast.Storage.Processing.Steps.MP4A;
 using DotCast.Storage.Processing.Steps.Unzip;
 using DotCast.Storage.Processing.Steps.UpdateMetadata;
 using DotCast.Storage.Processing.Steps.Zip;
@@ -19,6 +20,7 @@ namespace DotCast.Storage.Processing
             services.AddSingleton(provider => new ProcessingPipeline(new List<IProcessingStep>
                 {
                     provider.GetRequiredService<UnzipProcessingStep>(),
+                    provider.GetRequiredService<Mp4aToMp3sProcessingStep>(),
                     provider.GetRequiredService<NormalizeFileNamesProcessingStep>(),
                     provider.GetRequiredService<UpdateMetadataProcessingStep>(),
                     provider.GetRequiredService<ZipProcessingStep>()
@@ -28,6 +30,9 @@ namespace DotCast.Storage.Processing
                 provider.GetRequiredService<ILogger<ProcessingPipeline>>()));
 
             services.AddSingleton<UnzipProcessingStep>();
+            services.AddSingleton<Mp4aToMp3sProcessingStep>();
+            services.AddSingleton<NormalizeFileNamesProcessingStep>();
+            services.AddSingleton<UpdateMetadataProcessingStep>();
             services.AddSingleton<ZipProcessingStep>();
         }
     }
