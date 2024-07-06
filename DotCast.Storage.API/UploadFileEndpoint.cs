@@ -23,8 +23,8 @@ namespace DotCast.Storage.API
 
         [HttpPut("/storage/archive/{AudioBookId}/")]
         [HttpPut("/storage/file/{AudioBookId}/{FileId}/")]
-        [RequestFormLimits(MultipartBodyLengthLimit = 2000000000)]
-        [RequestSizeLimit(20000000000)]
+        [RequestFormLimits(MultipartBodyLengthLimit = long.MaxValue)]
+        [RequestSizeLimit(long.MaxValue)]
         public override async Task<ActionResult<string>> HandleAsync(IFormFile request, CancellationToken cancellationToken = new())
         {
             var requestUrl = ControllerContext.HttpContext.Request.GetEncodedUrl();
