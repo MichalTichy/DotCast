@@ -3,6 +3,7 @@ using DotCast.SharedKernel.Models;
 using DotCast.Storage.Abstractions;
 using Microsoft.Extensions.Logging;
 using TagLib;
+using Xabe.FFmpeg;
 using File = TagLib.File;
 
 namespace DotCast.Infrastructure.MetadataManager
@@ -57,7 +58,7 @@ namespace DotCast.Infrastructure.MetadataManager
                     }
                     catch (Exception e)
                     {
-                        logger.LogError(e, "Failed to read metadata for file {0}",file);
+                        logger.LogError(e, "Failed to read metadata for file {0}", file);
                         continue;
                     }
 
@@ -141,11 +142,21 @@ namespace DotCast.Infrastructure.MetadataManager
                     var info = new FileInfo(fileInfo.info.LocalPath);
 
                     var chapterName = fileInfo.metadata.Tag.Title ?? Path.GetFileNameWithoutExtension(fileInfo.info.RemotePath).Replace('_', ' ');
+                    TimeSpan duration;
+                    try
+                    {
+                        duration = await GetAudioDuration(fileInfo.info.LocalPath);
+                    }
+                    catch (Exception e)
+                    {
+                        duration = fileInfo.metadata.Properties.Duration;
+                        logger.LogWarning(e, "Failed to extract duration from {0}.", fileInfo.info.LocalPath);
+                    }
 
                     var chapter = new Chapter
                     {
                         Name = chapterName,
-                        Duration = fileInfo.metadata.Properties.Duration,
+                        Duration = duration,
                         Url = fileInfo.info.RemotePath,
                         Size = info.Length
                     };
@@ -178,6 +189,12 @@ namespace DotCast.Infrastructure.MetadataManager
             return audioBook;
         }
 
+        private async Task<TimeSpan> GetAudioDuration(string source)
+        {
+            var mediaInfo = await FFmpeg.GetMediaInfo(source);
+            return mediaInfo.Duration;
+        }
+
         public async Task UpdateMetadata(AudioBookInfo audioBook, StorageEntryWithFiles source, CancellationToken cancellationToken = default)
         {
             var audioFiles = new List<string>();
@@ -204,7 +221,6 @@ namespace DotCast.Infrastructure.MetadataManager
                     file.Tag.Album = audioBook.Name;
                     file.Tag.AlbumArtists = Array.Empty<string>();
                     file.Tag.Performers = new[] { audioBook.AuthorName };
-
                     file.Tag.Grouping = audioBook.SeriesName;
                     file.Tag.TitleSort = audioBook.OrderInSeries.ToString();
                     file.Tag.Genres = audioBook.Categories.Select(t => t.Name).ToArray();
