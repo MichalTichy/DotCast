@@ -15,7 +15,7 @@
         <div class="header">
             <div class="stat"> Titles: <Icon Name="IconName.Book" /> @AudioBooksStatistics?.TotalCount</div>
             <div class="stat"> Authors: <Icon Name="IconName.Users" />@AudioBooksStatistics?.AuthorCount</div>
-            <div class="stat">Duration: <Icon Name="IconName.Clock" />@{$"{AudioBooksStatistics?.TotalDuration.TotalDays:F0}days {AudioBooksStatistics?.TotalDuration.Hours} hours"}</div>
+            <div class="stat">Duration: <Icon Name="IconName.Clock" />@($"{AudioBooksStatistics?.TotalDuration.TotalDays:F0}days {AudioBooksStatistics?.TotalDuration.Hours} hours")</div>
             <Field >
                 <TextEdit Placeholder="Search" TextChanged="SearchTextChanged"/>
             </Field>
