@@ -55,6 +55,11 @@ namespace DotCast.Infrastructure.MetadataManager
                     {
                         continue;
                     }
+                    catch (Exception e)
+                    {
+                        logger.LogError(e, "Failed to read metadata for file {0}",file);
+                        continue;
+                    }
 
                     if (metadata.Properties.MediaTypes == MediaTypes.Audio || metadata.Properties.MediaTypes == MediaTypes.Video)
                     {
@@ -221,7 +226,7 @@ namespace DotCast.Infrastructure.MetadataManager
                 }
                 catch (Exception e)
                 {
-                    logger.LogWarning(e,"Failed to update metadata");
+                    logger.LogWarning(e, "Failed to update metadata");
                 }
             }
 
