@@ -8,10 +8,11 @@ namespace DotCast.Library.Specifications
     {
         public async Task<AudioBooksStatistics?> ApplyAsync(IQueryable<AudioBook> queryable, CancellationToken cancellationToken = default)
         {
-            var count = await queryable.CountAsync(cancellationToken);
-            var sumAsync = await queryable.SumAsync(x => x.AudioBookInfo.Duration.TotalHours, cancellationToken);
-            var totalDuration = TimeSpan.FromHours(sumAsync);
-            var authorCount = await queryable.Select(x => x.AudioBookInfo.AuthorName).Distinct().CountAsync(cancellationToken);
+            var data = await queryable.Select(t => new { Author = t.AudioBookInfo.AuthorName, t.AudioBookInfo.Duration }).ToListAsync(cancellationToken);
+            var count = data.Count();
+            var totalHours = data.Sum(x => x.Duration.TotalHours);
+            var totalDuration = TimeSpan.FromHours(totalHours);
+            var authorCount = data.Select(x => x.Author).Distinct().Count();
             return new AudioBooksStatistics(count, authorCount, totalDuration);
         }
     }
