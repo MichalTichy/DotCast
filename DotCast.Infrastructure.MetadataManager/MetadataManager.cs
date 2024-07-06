@@ -3,7 +3,6 @@ using DotCast.SharedKernel.Models;
 using DotCast.Storage.Abstractions;
 using Microsoft.Extensions.Logging;
 using TagLib;
-using Xabe.FFmpeg;
 using File = TagLib.File;
 
 namespace DotCast.Infrastructure.MetadataManager
