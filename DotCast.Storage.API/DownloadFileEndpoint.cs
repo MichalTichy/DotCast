@@ -26,6 +26,9 @@ namespace DotCast.Storage.API
                 return NotFound();
             }
 
+            Response.Headers["Cache-Control"] = "public, max-age=31536000"; // Cache for 1 year
+            Response.Headers["Expires"] = DateTime.UtcNow.AddYears(1).ToString("R"); // Expiry date for the cache
+
             return File(entry.Stream, entry.MimeType, entry.Id, true);
         }
 
