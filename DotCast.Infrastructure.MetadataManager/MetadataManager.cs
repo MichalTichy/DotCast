@@ -142,21 +142,11 @@ namespace DotCast.Infrastructure.MetadataManager
                     var info = new FileInfo(fileInfo.info.LocalPath);
 
                     var chapterName = fileInfo.metadata.Tag.Title ?? Path.GetFileNameWithoutExtension(fileInfo.info.RemotePath).Replace('_', ' ');
-                    TimeSpan duration;
-                    try
-                    {
-                        duration = await GetAudioDuration(fileInfo.info.LocalPath);
-                    }
-                    catch (Exception e)
-                    {
-                        duration = fileInfo.metadata.Properties.Duration;
-                        logger.LogWarning(e, "Failed to extract duration from {0}.", fileInfo.info.LocalPath);
-                    }
 
                     var chapter = new Chapter
                     {
                         Name = chapterName,
-                        Duration = duration,
+                        Duration = fileInfo.metadata.Properties.Duration,
                         Url = fileInfo.info.RemotePath,
                         Size = info.Length
                     };
@@ -187,12 +177,6 @@ namespace DotCast.Infrastructure.MetadataManager
                 Categories = categories ?? Array.Empty<Category>()
             };
             return audioBook;
-        }
-
-        private async Task<TimeSpan> GetAudioDuration(string source)
-        {
-            var mediaInfo = await FFmpeg.GetMediaInfo(source);
-            return mediaInfo.Duration;
         }
 
         public async Task UpdateMetadata(AudioBookInfo audioBook, StorageEntryWithFiles source, CancellationToken cancellationToken = default)

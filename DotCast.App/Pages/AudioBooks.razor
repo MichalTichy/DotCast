@@ -15,7 +15,7 @@
         <div class="header">
             <div class="stat"> Titles: <Icon Name="IconName.Book" /> @AudioBooksStatistics?.TotalCount</div>
             <div class="stat"> Authors: <Icon Name="IconName.Users" />@AudioBooksStatistics?.AuthorCount</div>
-            <div class="stat">Duration: <Icon Name="IconName.Clock" />@Math.Floor(AudioBooksStatistics?.TotalDuration.TotalHours ??0) hours</div>
+            <div class="stat">Duration: <Icon Name="IconName.Clock" />@{$"{AudioBooksStatistics?.TotalDuration.TotalDays:F0}days {AudioBooksStatistics?.TotalDuration.Hours} hours"}</div>
             <Field >
                 <TextEdit Placeholder="Search" TextChanged="SearchTextChanged"/>
             </Field>
@@ -67,7 +67,7 @@
                             <div class="c-card-footer">
                                 
                                     <span>
-                                    <Icon Name="IconName.Clock" /> @audioBook.AudioBookInfo.Duration.ToString(@"hh\:mm")
+                                    <Icon Name="IconName.Clock" /> @($"{audioBook.AudioBookInfo.Duration.TotalHours:F0}:{audioBook.AudioBookInfo.Duration.Minutes}")
                                     </span>
                                 @if (!string.IsNullOrWhiteSpace(audioBook.AudioBookInfo.ArchiveUrl))
                                 {
