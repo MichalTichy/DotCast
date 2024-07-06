@@ -1,12 +1,13 @@
 ﻿using DotCast.Infrastructure.M3U;
 using DotCast.SharedKernel.Models;
 using DotCast.Storage.Abstractions;
+using Microsoft.Extensions.Logging;
 using TagLib;
 using File = TagLib.File;
 
 namespace DotCast.Infrastructure.MetadataManager
 {
-    public class MetadataManager(M3uManager m3UManager) : IMetadataManager
+    public class MetadataManager(M3uManager m3UManager, ILogger<MetadataManager> logger) : IMetadataManager
     {
         public async Task<AudioBookInfo> ExtractMetadata(StorageEntryWithFiles source, CancellationToken cancellationToken = default)
         {
@@ -179,42 +180,49 @@ namespace DotCast.Infrastructure.MetadataManager
             var directory = Path.GetDirectoryName(source.Files.First().LocalPath)!;
             foreach (var localFileInfo in source.Files)
             {
-                if (localFileInfo.LocalPath.EndsWith(".m3u"))
+                try
                 {
-                    m3UFile = localFileInfo.LocalPath;
-                    continue;
-                }
+                    if (localFileInfo.LocalPath.EndsWith(".m3u"))
+                    {
+                        m3UFile = localFileInfo.LocalPath;
+                        continue;
+                    }
 
-                using var file = File.Create(localFileInfo.LocalPath);
-                if (file.Properties.MediaTypes != MediaTypes.Audio && file.Properties.MediaTypes != MediaTypes.Video)
+                    using var file = File.Create(localFileInfo.LocalPath);
+                    if (file.Properties.MediaTypes != MediaTypes.Audio && file.Properties.MediaTypes != MediaTypes.Video)
+                    {
+                        continue;
+                    }
+
+                    audioFiles.Add(localFileInfo.LocalPath);
+
+                    file.Tag.Album = audioBook.Name;
+                    file.Tag.AlbumArtists = Array.Empty<string>();
+                    file.Tag.Performers = new[] { audioBook.AuthorName };
+
+                    file.Tag.Grouping = audioBook.SeriesName;
+                    file.Tag.TitleSort = audioBook.OrderInSeries.ToString();
+                    file.Tag.Genres = audioBook.Categories.Select(t => t.Name).ToArray();
+                    file.Tag.Description = audioBook.Description;
+                    var matchedChapter = audioBook.Chapters.FirstOrDefault(t => t.Url == localFileInfo.RemotePath);
+
+                    if (matchedChapter != null)
+                    {
+                        file.Tag.Title = matchedChapter.Name;
+                    }
+
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        return;
+                    }
+
+                    file.Tag.Year = (uint) (audioBook.ReleaseDate?.Year ?? 0);
+                    file.Save();
+                }
+                catch (Exception e)
                 {
-                    continue;
+                    logger.LogWarning(e,"Failed to update metadata");
                 }
-
-                audioFiles.Add(localFileInfo.LocalPath);
-
-                file.Tag.Album = audioBook.Name;
-                file.Tag.AlbumArtists = Array.Empty<string>();
-                file.Tag.Performers = new[] { audioBook.AuthorName };
-
-                file.Tag.Grouping = audioBook.SeriesName;
-                file.Tag.TitleSort = audioBook.OrderInSeries.ToString();
-                file.Tag.Genres = audioBook.Categories.Select(t => t.Name).ToArray();
-                file.Tag.Description = audioBook.Description;
-                var matchedChapter = audioBook.Chapters.FirstOrDefault(t => t.Url == localFileInfo.RemotePath);
-
-                if (matchedChapter != null)
-                {
-                    file.Tag.Title = matchedChapter.Name;
-                }
-
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    return;
-                }
-
-                file.Tag.Year = (uint) (audioBook.ReleaseDate?.Year ?? 0);
-                file.Save();
             }
 
             var m3UFileDestination = m3UFile ?? Path.Combine(directory, "index.m3u");
