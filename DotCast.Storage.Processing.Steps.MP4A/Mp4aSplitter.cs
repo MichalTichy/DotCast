@@ -1,16 +1,17 @@
 ﻿using DotCast.Infrastructure.FileNameNormalization;
 using DotCast.Infrastructure.M3U;
 using DotCast.Storage.Abstractions;
+using Microsoft.Extensions.Logging;
 using Mp4Chapters;
 using Xabe.FFmpeg;
 
 namespace DotCast.Storage.Processing.Steps.MP4A
 {
-    public class Mp4aSplitter(IFileNameNormalizer fileNameNormalizer, M3uManager m3UManager) : IMp4ASplitter
+    public class Mp4aSplitter(IFileNameNormalizer fileNameNormalizer, M3uManager m3UManager, ILogger<Mp4aSplitter> logger) : IMp4ASplitter
     {
         public async Task<ICollection<string>> SplitAsync(string source, string destination)
         {
-            var chapters = GetChapters(source);
+            var chapters = await GetChapters(source);
             var outputFiles = new List<string>();
 
             foreach (var chapter in chapters)
@@ -37,13 +38,23 @@ namespace DotCast.Storage.Processing.Steps.MP4A
             return outputFiles;
         }
 
-        private ICollection<Chapter> GetChapters(string source)
+        private async Task<ICollection<Chapter>> GetChapters(string source)
         {
-            using var str = File.OpenRead(source);
-            var extractor = new ChapterExtractor(new StreamWrapper(str));
-            extractor.Run();
+            try
+            {
+                await using var str = File.OpenRead(source);
+                var extractor = new ChapterExtractor(new StreamWrapper(str));
+                extractor.Run();
 
-            return extractor.Chapters.Select(t => new Chapter(t.Name, t.Time)).ToArray();
+                return extractor.Chapters.Select(t => new Chapter(t.Name, t.Time)).ToArray();
+            }
+            catch (Exception e)
+            {
+                logger.LogWarning(e, "Failed to extract chapters. Keeping as single file.");
+                var fileName = Path.GetFileNameWithoutExtension(source);
+                var duration = await GetAudioDuration(source);
+                return new List<Chapter> { new(fileName, duration) };
+            }
         }
 
         private record Chapter(string Name, TimeSpan Time);
