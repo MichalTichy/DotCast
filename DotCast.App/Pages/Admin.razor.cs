@@ -15,6 +15,7 @@ namespace DotCast.App.Pages
     {
         private const int TypingDelay = 1000; // Delay in millisecond
         private Modal uploadModalRef = null!;
+        private Modal uploadMultipleModalRef = null!;
 
         private Timer? typingTimer;
         private string? newAudioBookId;
@@ -101,13 +102,28 @@ namespace DotCast.App.Pages
             }
         }
 
-        private async Task<Dictionary<string, string>> GetPresignedUrls(ICollection<string> arg)
+        private async Task<Dictionary<string, string>> GetPresignedUrls(string audioBookId, ICollection<string> files)
         {
-            var audioBookId = newAudioBookId ?? throw new InvalidOperationException();
-            var request = new AudioBookUploadStartRequest(audioBookId, arg);
+            var request = new AudioBookUploadStartRequest(audioBookId, files);
             var result = await MessageBus.InvokeAsync<IReadOnlyCollection<PreuploadFileInformation>>(request);
 
             return result.ToDictionary(t => t.FileName, t => t.UploadUrl);
+        }
+
+        private async Task<Dictionary<string, string>> GetPresignedUrls(ICollection<string> files)
+        {
+            var urls = new Dictionary<string, string>();
+            foreach (var file in files)
+            {
+                var idRequest = new NewAudioBookIdRequest(file);
+                var audioBookId = await MessageBus.InvokeAsync<string>(idRequest);
+                var request = new AudioBookUploadStartRequest(audioBookId, new[] { file });
+                var result = await MessageBus.InvokeAsync<IReadOnlyCollection<PreuploadFileInformation>>(request);
+                var fileResult = result.Single();
+                urls.Add(fileResult.FileName, fileResult.UploadUrl);
+            }
+
+            return urls;
         }
     }
 }

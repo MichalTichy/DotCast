@@ -8,6 +8,9 @@
 <Button Clicked="async () => await uploadModalRef.Show()" Color="Color.Success">
     Upload new
 </Button>
+<Button Clicked="async () => await uploadModalRef.Show()" Color="Color.Success">
+    Upload multiple hew
+</Button>
 <hr />
 <Button Disabled="@IsProcessingRunning" Clicked="RestoreAudioBooksFromStorage" Color="Color.Warning">
     Restore audiobooks from Storage
@@ -42,10 +45,25 @@
             {
                 <p>
                     <label>
-                        <FileUpload PresignedUrlFactory="GetPresignedUrls" />
+                        <FileUpload PresignedUrlFactory="files => GetPresignedUrls(newAudioBookId!,files)" />
                     </label>
                 </p>
             }
+        </ModalBody>
+    </ModalContent>
+</Modal>
+<Modal @ref="uploadMultipleModalRef">
+    <ModalContent Centered>
+        <ModalHeader>
+            <ModalTitle>Upload multiple audioBooks AudioBook</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+            <p>
+                <label>
+                    <FileUpload PresignedUrlFactory="GetPresignedUrls" />
+                </label>
+            </p>
         </ModalBody>
     </ModalContent>
 </Modal>
