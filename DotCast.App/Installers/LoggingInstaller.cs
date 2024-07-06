@@ -8,6 +8,7 @@ namespace DotCast.App.Installers
         {
             services.AddLogging(loggingBuilder =>
             {
+                loggingBuilder.AddSeq(configuration["Seq:Url"], configuration["Seq:ApiKey"]);
                 loggingBuilder.SetMinimumLevel(LogLevel.Trace);
                 loggingBuilder.AddConsole();
                 loggingBuilder.AddSystemdConsole();
