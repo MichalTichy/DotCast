@@ -115,7 +115,8 @@ namespace DotCast.App.Pages
             var urls = new Dictionary<string, string>();
             foreach (var file in files)
             {
-                var idRequest = new NewAudioBookIdRequest(file);
+                var name = Path.GetFileNameWithoutExtension(file);
+                var idRequest = new NewAudioBookIdRequest(name);
                 var audioBookId = await MessageBus.InvokeAsync<string>(idRequest);
                 var request = new AudioBookUploadStartRequest(audioBookId, new[] { file });
                 var result = await MessageBus.InvokeAsync<IReadOnlyCollection<PreuploadFileInformation>>(request);
