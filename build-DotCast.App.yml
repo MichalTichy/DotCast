@@ -32,11 +32,15 @@ steps:
     modifyOutputPath: false
     zipAfterPublish: false
   displayName: 'Publish'
-  
+
 - task: Docker@2
   inputs:
     containerRegistry: 'Private Registry'
-    repository: ProductivityApp
+    command: 'login'
+- task: Docker@2
+  inputs:
+    containerRegistry: 'Private Registry'
+    repository: DotCast
     tags: $(Build.BuildId)
     command: 'buildAndPush'
     Dockerfile: '**/Dockerfile'
