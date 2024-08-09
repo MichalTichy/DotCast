@@ -35,11 +35,11 @@ steps:
 
 - task: Docker@2
   inputs:
-    containerRegistry: 'Private Registry'
+    containerRegistry: 'Private Registry 2'
     command: 'login'
 - task: Docker@2
   inputs:
-    containerRegistry: 'Private Registry'
+    containerRegistry: 'Private Registry 2'
     repository: DotCast
     tags: $(Build.BuildId)
     command: 'buildAndPush'
