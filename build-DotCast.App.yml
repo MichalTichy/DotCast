@@ -66,6 +66,8 @@ steps:
 
       # Reset the .gitmodules file to avoid committing the PAT
       git checkout .gitmodules
+  env:
+    PAT: $(PAT)
 
 - task: DotNetCoreCLI@2
   inputs:
