@@ -1,6 +1,4 @@
-﻿using DotCast.SharedKernel.Models;
-
-namespace DotCast.SharedKernel.Messages
+﻿namespace DotCast.SharedKernel.Messages
 {
     public interface IMessageHandler<TMessage>
     {

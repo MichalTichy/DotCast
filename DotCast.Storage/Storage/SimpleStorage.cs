@@ -1,11 +1,9 @@
 ﻿using DotCast.Infrastructure.FileNameNormalization;
 using DotCast.Infrastructure.MetadataManager;
 using DotCast.Infrastructure.MimeType;
-using DotCast.SharedKernel.Messages;
 using DotCast.SharedKernel.Models;
 using DotCast.Storage.Abstractions;
 using Microsoft.Extensions.Logging;
-using Wolverine;
 
 namespace DotCast.Storage.Storage
 {

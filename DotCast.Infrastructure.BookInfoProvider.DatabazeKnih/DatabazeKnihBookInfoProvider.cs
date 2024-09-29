@@ -1,5 +1,4 @@
-﻿using System.Net;
-using AngleSharp;
+﻿using AngleSharp;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using DotCast.Infrastructure.BookInfoProvider.Base;

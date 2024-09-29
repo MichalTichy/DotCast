@@ -1,6 +1,6 @@
-﻿using DotCast.Infrastructure.IoC;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Shared.Infrastructure.IoC;
 
 namespace DotCast.Infrastructure.M3U
 {

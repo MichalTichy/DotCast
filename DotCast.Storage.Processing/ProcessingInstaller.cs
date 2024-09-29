@@ -1,5 +1,4 @@
-﻿using DotCast.Infrastructure.IoC;
-using DotCast.Storage.Abstractions;
+﻿using DotCast.Storage.Abstractions;
 using DotCast.Storage.Processing.Abstractions;
 using DotCast.Storage.Processing.Steps.FileNameNormalization;
 using DotCast.Storage.Processing.Steps.MP4A;
@@ -9,6 +8,7 @@ using DotCast.Storage.Processing.Steps.Zip;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Shared.Infrastructure.IoC;
 using Wolverine;
 
 namespace DotCast.Storage.Processing

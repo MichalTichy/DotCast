@@ -1,4 +1,4 @@
-$projectpath = $PSScriptRoot
+﻿$projectpath = $PSScriptRoot
 
 Write-Host "Deleting obj folders in " + $projectpath -ForegroundColor Green
 Get-ChildItem -Directory -Recurse -Path $projectpath |  where {$_.Name -eq "obj" -and $_.FullName -notmatch "node_modules" } | Get-ChildItem | Remove-Item -Recurse -Force

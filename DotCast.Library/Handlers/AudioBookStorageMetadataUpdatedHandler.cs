@@ -1,7 +1,6 @@
-﻿using Ardalis.GuardClauses;
-using DotCast.Infrastructure.Persistence.Base.Repositories;
-using DotCast.SharedKernel.Messages;
+﻿using DotCast.SharedKernel.Messages;
 using DotCast.SharedKernel.Models;
+using Shared.Infrastructure.Persistence.Repositories;
 
 namespace DotCast.Library.Handlers
 {

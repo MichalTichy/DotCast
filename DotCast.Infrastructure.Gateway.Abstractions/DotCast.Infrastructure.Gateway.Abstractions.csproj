@@ -9,8 +9,9 @@
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
 	</ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\DotCast.Infrastructure.IoC\DotCast.Infrastructure.IoC.csproj" />
-  </ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\infrastructure\Shared.Infrastructure.IoC\Shared.Infrastructure.IoC.csproj" />
+	</ItemGroup>
 
 </Project>

@@ -7,15 +7,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Marten" Version="6.4.0" />
+    <PackageReference Include="Marten" Version="7.29.0" />
     <PackageReference Include="WolverineFx" Version="1.12.4" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DotCast.Infrastructure.Persistence.Base\DotCast.Infrastructure.Persistence.Base.csproj" />
-    <ProjectReference Include="..\DotCast.Infrastructure.Persistence.Marten\DotCast.Infrastructure.Persistence.Marten.csproj" />
     <ProjectReference Include="..\DotCast.RssGenerator.Base\DotCast.RssGenerator.Base.csproj" />
     <ProjectReference Include="..\DotCast.SharedKernel\DotCast.SharedKernel.csproj" />
+    <ProjectReference Include="..\infrastructure\Shared.Infrastructure.IoC\Shared.Infrastructure.IoC.csproj" />
+    <ProjectReference Include="..\infrastructure\Shared.Infrastructure.Persistence.Marten\Shared.Infrastructure.Persistence.Marten.csproj" />
+    <ProjectReference Include="..\infrastructure\Shared.Infrastructure.Persistence\Shared.Infrastructure.Persistence.csproj" />
   </ItemGroup>
 
 </Project>

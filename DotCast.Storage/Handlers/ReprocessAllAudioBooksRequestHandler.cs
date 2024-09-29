@@ -1,5 +1,4 @@
-﻿using Ardalis.GuardClauses;
-using DotCast.SharedKernel.Messages;
+﻿using DotCast.SharedKernel.Messages;
 using DotCast.Storage.Abstractions;
 using Microsoft.Extensions.Logging;
 

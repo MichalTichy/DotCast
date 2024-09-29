@@ -1,25 +1,19 @@
 using DotCast.BookInfoProvider;
-using DotCast.Infrastructure.Initializer;
-using DotCast.Infrastructure.IoC;
 using DotCast.Library;
 using DotCast.SharedKernel.Messages;
 using DotCast.Storage;
 using DotCast.Storage.Processing;
-using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
-using Newtonsoft.Json;
-using System.Net;
 using DotCast.App.Services;
 using DotCast.Library.API;
 using DotCast.Storage.API;
+using Shared.Infrastructure.Initializer;
+using Shared.Infrastructure.IoC;
 using Wolverine;
 
 namespace DotCast.App
 {
     public class Program
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "ASP0014:Suggest using top level route registrations", Justification = "<Pending>")]
         public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
@@ -36,11 +30,12 @@ namespace DotCast.App
 
             var isProduction = IsProduction();
 
-            InstallerDiscovery.RunInstallersFromAllReferencedAssemblies(builder.Services, builder.Configuration, isProduction);
+            InstallerDiscovery.RunInstallersFromAllReferencedAssemblies(builder.Services, builder.Configuration, isProduction, "DotCast");
+
             builder.Services.AddControllers()
                 .AddApplicationPart(typeof(UploadFileEndpoint).Assembly)
                 .AddApplicationPart(typeof(GetRssEndpoint).Assembly);
-            builder.Services.AddAllInitializers();
+            builder.Services.AddAllInitializers("DotCast");
 
             builder.Host.UseWolverine(options =>
             {
@@ -78,15 +73,13 @@ namespace DotCast.App
 
             app.UseAuthentication();
             app.UseAuthorization();
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-                endpoints.MapBlazorHub();
-                endpoints.MapFallbackToPage("/_Host");
-            });
+
+            app.MapControllers();
+            app.MapBlazorHub();
+            app.MapFallbackToPage("/_Host");
 
             var initializerManager = app.Services.GetRequiredService<InitializerManager>();
-            await initializerManager.RunAllInitializersAsync();
+            await initializerManager.RunAllInitializersAsync(InitializerTrigger.OnApplicationReady | InitializerTrigger.OnStartup);
 
             await app.RunAsync();
         }

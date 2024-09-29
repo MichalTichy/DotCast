@@ -9,22 +9,20 @@
 
   <ItemGroup>
     <PackageReference Include="Ardalis.ApiEndpoints" Version="4.1.0" />
-    <PackageReference Include="Blazorise.Bootstrap" Version="1.4.0" />
-    <PackageReference Include="Blazorise.Components" Version="1.4.0" />
-    <PackageReference Include="Blazorise.Generator.Features" Version="1.4.0" />
-    <PackageReference Include="Blazorise.Icons.FontAwesome" Version="1.4.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
+    <PackageReference Include="Blazorise.Bootstrap" Version="1.6.1" />
+    <PackageReference Include="Blazorise.Components" Version="1.6.1" />
+    <PackageReference Include="Blazorise.Generator.Features" Version="1.6.1" />
+    <PackageReference Include="Blazorise.Icons.FontAwesome" Version="1.6.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.1" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
-    <PackageReference Include="WolverineFx" Version="1.12.4" />
-    <PackageReference Include="Microsoft.Azure.AppConfiguration.AspNetCore" Version="7.1.0" />
+    <PackageReference Include="WolverineFx" Version="2.17.2" />
+    <PackageReference Include="Microsoft.Azure.AppConfiguration.AspNetCore" Version="7.3.0" />
     <PackageReference Include="Seq.Extensions.Logging" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\DotCast.BookInfoProvider\DotCast.BookInfoProvider.csproj" />
-    <ProjectReference Include="..\DotCast.Infrastructure.Initializer\DotCast.Infrastructure.Initializer.csproj" />
-    <ProjectReference Include="..\DotCast.Infrastructure.IoC\DotCast.Infrastructure.IoC.csproj" />
     <ProjectReference Include="..\DotCast.Library.API\DotCast.Library.API.csproj" />
     <ProjectReference Include="..\DotCast.Library\DotCast.Library.csproj" />
     <ProjectReference Include="..\DotCast.SharedKernel\DotCast.SharedKernel.csproj" />
@@ -32,6 +30,8 @@
     <ProjectReference Include="..\DotCast.Storage.API\DotCast.Storage.API.csproj" />
     <ProjectReference Include="..\DotCast.Storage.Processing\DotCast.Storage.Processing.csproj" />
     <ProjectReference Include="..\DotCast.Storage\DotCast.Storage.csproj" />
+    <ProjectReference Include="..\infrastructure\Shared.Infrastructure.Initializer\Shared.Infrastructure.Initializer.csproj" />
+    <ProjectReference Include="..\infrastructure\Shared.Infrastructure.IoC\Shared.Infrastructure.IoC.csproj" />
   </ItemGroup>
 
   <ItemGroup>

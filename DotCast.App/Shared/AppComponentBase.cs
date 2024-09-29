@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Components;
-using System.Globalization;
 
 namespace DotCast.App.Shared
 {

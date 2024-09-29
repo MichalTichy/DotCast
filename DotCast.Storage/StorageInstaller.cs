@@ -1,8 +1,8 @@
-﻿using DotCast.Infrastructure.IoC;
-using DotCast.Storage.Abstractions;
+﻿using DotCast.Storage.Abstractions;
 using DotCast.Storage.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Shared.Infrastructure.IoC;
 
 namespace DotCast.Storage
 {

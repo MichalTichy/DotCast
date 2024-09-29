@@ -13,6 +13,60 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
+- task: PowerShell@2
+  displayName: 'Replace submodule URLs with PAT and pull submodules'
+  inputs:
+    targetType: 'inline'
+    pwsh: true
+    script: |
+      Write-Host "Adding PAT to submodule URLs"
+
+      # Ensure the PAT environment variable is available
+      if (-not $env:PAT) {
+        Write-Error "PAT environment variable is not set."
+        exit 1
+      }
+
+      # Get the submodule URLs from .gitmodules
+      $submodules = git config -f .gitmodules --get-regexp '^submodule\..*\.url$' | Out-String
+
+      # Split the output into lines
+      $lines = $submodules -split "`n"
+
+      foreach ($line in $lines) {
+        # Skip empty lines
+        if ([string]::IsNullOrWhiteSpace($line)) {
+          continue
+        }
+
+        # Split the line into key and value
+        $parts = $line -split '\s+', 2
+        $key = $parts[0]
+        $url = $parts[1]
+        Write-Host "Processing $key"
+
+        # Insert the PAT into the URL
+        # Replace existing authentication info (if any) with the PAT
+        $new_url = $url -replace 'https://[^@]*@', "https://$($env:PAT)@"
+
+        # If there was no existing auth info, insert the PAT after https://
+        if ($new_url -eq $url) {
+          $new_url = $url -replace 'https://', "https://$($env:PAT)@"
+        }
+
+        # Update the .gitmodules file
+        git config -f .gitmodules $key $new_url
+      }
+
+      # Synchronize the submodule URLs
+      git submodule sync
+
+      # Pull the submodule code
+      git submodule update --init --recursive
+
+      # Reset the .gitmodules file to avoid committing the PAT
+      git checkout .gitmodules
+
 - task: DotNetCoreCLI@2
   inputs:
     command: 'restore'

@@ -1,5 +1,4 @@
-﻿using System.Security.AccessControl;
-using Ardalis.ApiEndpoints;
+﻿using Ardalis.ApiEndpoints;
 using DotCast.SharedKernel.Messages;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

@@ -1,6 +1,4 @@
-﻿using DotCast.Storage.Abstractions;
-
-namespace DotCast.Storage.Processing.Abstractions
+﻿namespace DotCast.Storage.Processing.Abstractions
 {
     public interface IProcessingStep
     {

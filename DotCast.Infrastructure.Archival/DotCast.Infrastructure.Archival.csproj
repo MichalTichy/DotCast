@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DotCast.Infrastructure.IoC\DotCast.Infrastructure.IoC.csproj" />
+    <ProjectReference Include="..\infrastructure\Shared.Infrastructure.IoC\Shared.Infrastructure.IoC.csproj" />
   </ItemGroup>
 
 </Project>

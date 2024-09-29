@@ -1,4 +1,4 @@
-using DotCast.Infrastructure.IoC;
+using Shared.Infrastructure.IoC;
 
 namespace DotCast.App.Installers
 {
@@ -8,8 +8,13 @@ namespace DotCast.App.Installers
         {
             services.AddLogging(loggingBuilder =>
             {
-                loggingBuilder.AddSeq(configuration["Seq:Url"], configuration["Seq:ApiKey"]);
-                loggingBuilder.SetMinimumLevel(LogLevel.Trace);
+                var seq = configuration["Seq:Url"];
+
+                if (!string.IsNullOrWhiteSpace(seq))
+                {
+                    loggingBuilder.AddSeq(seq, configuration["Seq:ApiKey"]);
+                }
+
                 loggingBuilder.AddConsole();
                 loggingBuilder.AddSystemdConsole();
             });

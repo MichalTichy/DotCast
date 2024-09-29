@@ -1,7 +1,6 @@
 ﻿using DotCast.Infrastructure.Archival;
 using DotCast.Storage.Abstractions;
 using DotCast.Storage.Processing.Abstractions;
-using System.Linq;
 
 namespace DotCast.Storage.Processing.Steps.Unzip
 {

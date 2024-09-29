@@ -1,9 +1,9 @@
 using DotCast.App.Auth;
-using DotCast.Infrastructure.IoC;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server;
 using Microsoft.Extensions.Options;
+using Shared.Infrastructure.IoC;
 
 namespace DotCast.App.Installers
 {

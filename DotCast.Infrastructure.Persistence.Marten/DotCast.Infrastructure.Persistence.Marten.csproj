@@ -15,10 +15,4 @@
 		<PackageReference Include="Scrutor" Version="4.2.2" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <ProjectReference Include="..\DotCast.Infrastructure.Initializer\DotCast.Infrastructure.Initializer.csproj" />
-	  <ProjectReference Include="..\DotCast.Infrastructure.Persistence.Base\DotCast.Infrastructure.Persistence.Base.csproj" />
-	  <ProjectReference Include="..\DotCast.Infrastructure.UnitOfWorkBase\DotCast.Infrastructure.UnitOfWorkBase.csproj" />
-	</ItemGroup>
-
 </Project>

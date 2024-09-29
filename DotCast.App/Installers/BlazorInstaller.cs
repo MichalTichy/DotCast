@@ -1,7 +1,7 @@
 using Blazorise;
 using Blazorise.Bootstrap;
 using Blazorise.Icons.FontAwesome;
-using DotCast.Infrastructure.IoC;
+using Shared.Infrastructure.IoC;
 
 namespace DotCast.App.Installers
 {
