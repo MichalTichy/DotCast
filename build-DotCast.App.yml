@@ -13,50 +13,46 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
-- task: PowerShell@2
+- task: Bash@3
   displayName: 'Replace submodule URLs with PAT and pull submodules'
   inputs:
     targetType: 'inline'
-    pwsh: true
     script: |
-      Write-Host "Adding PAT to submodule URLs"
+      echo "Adding PAT to submodule URLs"
 
       # Ensure the PAT environment variable is available
-      if (-not $env:PAT) {
-        Write-Error "PAT environment variable is not set."
+      if [ -z "$PAT" ]; then
+        echo "Error: PAT environment variable is not set."
         exit 1
-      }
+      fi
 
       # Get the submodule URLs from .gitmodules
-      $submodules = git config -f .gitmodules --get-regexp '^submodule\..*\.url$' | Out-String
+      submodules=$(git config -f .gitmodules --get-regexp '^submodule\..*\.url$')
 
-      # Split the output into lines
-      $lines = $submodules -split "`n"
-
-      foreach ($line in $lines) {
+      # Loop through each line of submodule data
+      echo "$submodules" | while IFS= read -r line; do
         # Skip empty lines
-        if ([string]::IsNullOrWhiteSpace($line)) {
+        if [ -z "$line" ]; then
           continue
-        }
+        fi
 
         # Split the line into key and value
-        $parts = $line -split '\s+', 2
-        $key = $parts[0]
-        $url = $parts[1]
-        Write-Host "Processing $key"
+        key=$(echo "$line" | awk '{print $1}')
+        url=$(echo "$line" | awk '{print $2}')
+        echo "Processing $key"
 
         # Insert the PAT into the URL
         # Replace existing authentication info (if any) with the PAT
-        $new_url = $url -replace 'https://[^@]*@', "https://$($env:PAT)@"
+        new_url=$(echo "$url" | sed -E "s|https://[^@]*@|https://$PAT@|")
 
         # If there was no existing auth info, insert the PAT after https://
-        if ($new_url -eq $url) {
-          $new_url = $url -replace 'https://', "https://$($env:PAT)@"
-        }
+        if [ "$new_url" = "$url" ]; then
+          new_url=$(echo "$url" | sed -E "s|https://|https://$PAT@|")
+        fi
 
         # Update the .gitmodules file
-        git config -f .gitmodules $key $new_url
-      }
+        git config -f .gitmodules "$key" "$new_url"
+      done
 
       # Synchronize the submodule URLs
       git submodule sync
