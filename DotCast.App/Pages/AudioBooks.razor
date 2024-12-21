@@ -94,7 +94,7 @@
                 navigator.clipboard.writeText(link).then(() => {
                     alert("Link copied to clipboard!");
                 }).catch(err => {
-                    alert(link);
+                    window.open(link,'_blank');
                     console.error("Failed to copy link: ", err);
                 });
             }
