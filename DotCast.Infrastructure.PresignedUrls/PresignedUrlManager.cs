@@ -1,5 +1,6 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Web;
 using Microsoft.Extensions.Options;
 
@@ -25,9 +26,21 @@ namespace DotCast.Infrastructure.PresignedUrls
 
             return uriBuilder.Uri.ToString();
         }
+        private static string RemoveHttpOrHttps(string url)
+        {
+            // Return as is if string is null/empty to avoid unnecessary processing.
+            if (string.IsNullOrWhiteSpace(url))
+                return url;
 
+            // Pattern that matches "http://" or "https://" at the start of the string
+            string pattern = @"^https?:\/\/";
+
+            // Replace it with an empty string
+            return Regex.Replace(url, pattern, string.Empty, RegexOptions.IgnoreCase);
+        }
         private string GetSignature(string url, string secretKey)
         {
+            url = RemoveHttpOrHttps(url);
             var stringToSign = url + secretKey;
 
             var key = Encoding.UTF8.GetBytes(secretKey);
