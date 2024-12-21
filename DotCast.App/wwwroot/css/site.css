@@ -8,9 +8,11 @@ body {
 .AudioBooks {
     padding: 4%;
     column-count: 4 !important;
+    height: 100%;
 }
 .authors {
     padding-top: 10px;
+    height:100%;
 }
 .description {
     width:90%;
@@ -20,6 +22,7 @@ body {
 }
 .authorLink > div {
     padding-left: 10px;
+    padding-right: 5px;
     padding-top: 3px;
     color: white;
 }

@@ -11,7 +11,11 @@ namespace DotCast.Library.Specifications
             var finalQuery = queryable;
             if (!string.IsNullOrWhiteSpace(Filter))
             {
-                finalQuery.PlainTextSearch(Filter);
+                finalQuery = finalQuery.Where(x =>
+                    x.AudioBookInfo.Name.Contains(Filter, StringComparison.InvariantCultureIgnoreCase) ||
+                    x.AudioBookInfo.AuthorName.Contains(Filter, StringComparison.InvariantCultureIgnoreCase) ||
+                    (x.AudioBookInfo.Description != null && x.AudioBookInfo.Description.Contains(Filter, StringComparison.InvariantCultureIgnoreCase)) ||
+                    x.AudioBookInfo.Categories.Any(category => category.Name.Contains(Filter, StringComparison.InvariantCultureIgnoreCase)));
             }
 
             return finalQuery.ToListAsync(cancellationToken);
