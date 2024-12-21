@@ -35,19 +35,17 @@ namespace DotCast.Infrastructure.PresignedUrls
 
             using var hmacSha256 = new HMACSHA256(key);
             var signature = hmacSha256.ComputeHash(data);
-            return Base64UrlEncode(signature);
+
+            // Use hex instead of Base64 or Base64-URL
+            return HexUrlEncode(signature);
         }
 
-        private string Base64UrlEncode(byte[] input)
+        private string HexUrlEncode(byte[] input)
         {
-            var base64 = Convert.ToBase64String(input);
-
-            // Convert Base64 to Base64Url
-            var base64Url = base64.Split('=')[0] // Remove any trailing '=' characters
-                .Replace('+', '-') // 62nd char of encoding
-                .Replace('/', '_'); // 63rd char of encoding
-
-            return base64Url;
+            // Convert the signature to a lowercase hex string
+            // Hex characters (0-9, a-f) are URL-safe by default.
+            var hexString = BitConverter.ToString(input).Replace("-", "");
+            return hexString.ToLowerInvariant();
         }
 
         public (bool result, string message) ValidateUrl(string presignedUrl)
@@ -85,7 +83,7 @@ namespace DotCast.Infrastructure.PresignedUrls
             var signaturesAreMatching = computed == receivedSignature;
             if (!signaturesAreMatching)
             {
-                return (false, $"Signatures do not match. original: {receivedSignature} computed: {computed}");
+                return (false, $"Signatures do not match. Calculated signature from: {signedUrl}.");
             }
 
             return (true, "OK");
