@@ -1,8 +1,10 @@
-﻿using DotCast.Library.Specifications;
+﻿using DotCast.Infrastructure.Messaging.Base;
+using DotCast.Library.Specifications;
 using DotCast.SharedKernel.Messages;
 using DotCast.SharedKernel.Models;
 using Microsoft.Extensions.Logging;
 using Shared.Infrastructure.Persistence.Repositories;
+using Wolverine;
 
 namespace DotCast.Library.Handlers
 {

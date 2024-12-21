@@ -1,4 +1,5 @@
-﻿using DotCast.Storage.Abstractions;
+﻿using DotCast.Infrastructure.Messaging.Base;
+using DotCast.Storage.Abstractions;
 using DotCast.Storage.Processing.Abstractions;
 using DotCast.Storage.Processing.Steps.FileNameNormalization;
 using DotCast.Storage.Processing.Steps.MP4A;
@@ -17,17 +18,15 @@ namespace DotCast.Storage.Processing
     {
         public void Install(IServiceCollection services, IConfiguration configuration, bool isProduction)
         {
-            services.AddSingleton(provider => new ProcessingPipeline(new List<IProcessingStep>
-                {
-                    provider.GetRequiredService<UnzipProcessingStep>(),
-                    provider.GetRequiredService<Mp4aToMp3sProcessingStep>(),
-                    provider.GetRequiredService<NormalizeFileNamesProcessingStep>(),
-                    provider.GetRequiredService<UpdateMetadataProcessingStep>(),
-                    provider.GetRequiredService<ZipProcessingStep>()
-                },
-                provider.GetRequiredService<IMessageBus>(),
-                provider.GetRequiredService<IStorage>(),
-                provider.GetRequiredService<ILogger<ProcessingPipeline>>()));
+            services.AddTransient<ProcessingPipeline>();
+            services.AddSingleton<ICollection<IProcessingStep>>(provider => new List<IProcessingStep>
+            {
+                provider.GetRequiredService<UnzipProcessingStep>(),
+                provider.GetRequiredService<Mp4aToMp3sProcessingStep>(),
+                provider.GetRequiredService<NormalizeFileNamesProcessingStep>(),
+                provider.GetRequiredService<UpdateMetadataProcessingStep>(),
+                provider.GetRequiredService<ZipProcessingStep>()
+            });
 
             services.AddSingleton<UnzipProcessingStep>();
             services.AddSingleton<Mp4aToMp3sProcessingStep>();

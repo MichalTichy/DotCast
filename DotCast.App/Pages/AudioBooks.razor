@@ -1,5 +1,5 @@
 @page "/"
-@inherits AppComponentBase
+@inherits AppPage
 <Layout Sider>
     <LayoutSider>
         <div class="authors">
@@ -65,21 +65,22 @@
                                 </div>
                             </div>
                             <div class="c-card-footer">
-                                
-                                    <span>
-                                    <Icon Name="IconName.Clock" /> @($"{audioBook.AudioBookInfo.Duration.TotalHours:F0}:{audioBook.AudioBookInfo.Duration.Minutes}")
-                                    </span>
+                                <span>
+                                    <Icon Name="IconName.Clock" /> @($"{audioBook.AudioBookInfo.Duration.TotalHours:F0}:{audioBook.AudioBookInfo.Duration.Minutes:D2}")
+                                </span>
                                 @if (!string.IsNullOrWhiteSpace(audioBook.AudioBookInfo.ArchiveUrl))
                                 {
                                     <Button class="button" Clicked="async () => await Download(audioBook)">
                                         <Icon Name="IconName.Download"></Icon>
                                     </Button>
                                 }
-                                <a class="button" href="@($"library/{audioBook.Id}/rss")">
+
+                                <Button Clicked="async () => await CopyRssAsync(audioBook)">
                                     <Icon Name="IconName.Rss"></Icon>
-                                </a>
+                                </Button>
+
                                 <a class="button" href="@($"AudioBook/{audioBook.Id}/edit")">
-                                    <Icon Name="IconName.Edit"></Icon>
+                                    <Icon Name="IconName.Pen"></Icon>
                                 </a>
                             </div>
                         </div>
@@ -88,5 +89,14 @@
 
             }
         }
+        <script>
+            function copyToClipboard(link) {
+                navigator.clipboard.writeText(link).then(() => {
+                    alert("Link copied to clipboard!");
+                }).catch(err => {
+                    console.error("Failed to copy link: ", err);
+                });
+            }
+        </script>
     </LayoutContent>
 </Layout>

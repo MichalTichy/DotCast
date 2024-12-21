@@ -16,13 +16,21 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.1" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
-    <PackageReference Include="WolverineFx" Version="2.17.2" />
+    <PackageReference Include="WolverineFx" Version="3.3.0" />
     <PackageReference Include="Microsoft.Azure.AppConfiguration.AspNetCore" Version="7.3.0" />
     <PackageReference Include="Seq.Extensions.Logging" Version="8.0.0" />
+
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.4">
+	    <PrivateAssets>all</PrivateAssets>
+	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\DotCast.BookInfoProvider\DotCast.BookInfoProvider.csproj" />
+    <ProjectReference Include="..\DotCast.Infrastructure.AppUser\DotCast.Infrastructure.AppUser.csproj" />
+    <ProjectReference Include="..\DotCast.Infrastructure.Messaging.Wolverine\DotCast.Infrastructure.Messaging.Wolverine.csproj" />
+    <ProjectReference Include="..\DotCast.Infrastructure.Persistence.EF.Identity\DotCast.Infrastructure.Persistence.EF.Identity.csproj" />
     <ProjectReference Include="..\DotCast.Library.API\DotCast.Library.API.csproj" />
     <ProjectReference Include="..\DotCast.Library\DotCast.Library.csproj" />
     <ProjectReference Include="..\DotCast.SharedKernel\DotCast.SharedKernel.csproj" />
@@ -30,8 +38,11 @@
     <ProjectReference Include="..\DotCast.Storage.API\DotCast.Storage.API.csproj" />
     <ProjectReference Include="..\DotCast.Storage.Processing\DotCast.Storage.Processing.csproj" />
     <ProjectReference Include="..\DotCast.Storage\DotCast.Storage.csproj" />
+    <ProjectReference Include="..\infrastructure\Shared.Infrastructure.Blazor.ClaimsManagement\Shared.Infrastructure.Blazor.ClaimsManagement.csproj" />
+    <ProjectReference Include="..\infrastructure\Shared.Infrastructure.CurrentUserProvider.Blazor\Shared.Infrastructure.CurrentUserProvider.Blazor.csproj" />
     <ProjectReference Include="..\infrastructure\Shared.Infrastructure.Initializer\Shared.Infrastructure.Initializer.csproj" />
     <ProjectReference Include="..\infrastructure\Shared.Infrastructure.IoC\Shared.Infrastructure.IoC.csproj" />
+    <ProjectReference Include="..\infrastructure\Shared.Infrastructure.Persistence.EF.Identity\Shared.Infrastructure.Persistence.EF.Identity.csproj" />
   </ItemGroup>
 
   <ItemGroup>

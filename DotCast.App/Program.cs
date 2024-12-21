@@ -9,6 +9,8 @@ using DotCast.Storage.API;
 using Shared.Infrastructure.Initializer;
 using Shared.Infrastructure.IoC;
 using Wolverine;
+using DotCast.Infrastructure.Messaging.Wolverine;
+using Shared.Infrastructure.Blazor.ClaimsManagement;
 
 namespace DotCast.App
 {
@@ -39,6 +41,7 @@ namespace DotCast.App
 
             builder.Host.UseWolverine(options =>
             {
+                options.Policies.AddMiddleware<UserIdSetterWolverineMiddleware>();
                 options.Discovery.IncludeAssembly(typeof(LibraryInstaller).Assembly);
                 options.Discovery.IncludeAssembly(typeof(StorageInstaller).Assembly);
                 options.Discovery.IncludeAssembly(typeof(AudiobookInfoProviderInstaller).Assembly);
@@ -47,6 +50,7 @@ namespace DotCast.App
                 options.Discovery.IncludeType(typeof(FileUploadTracker));
                 options.Discovery.IncludeType(typeof(ProcessingPipeline));
                 options.Discovery.IncludeType(typeof(ProcessingMonitor));
+
                 options.LocalQueueFor<AudioBookReadyForProcessing>().MaximumParallelMessages(Environment.ProcessorCount / 2);
             });
 
@@ -73,13 +77,13 @@ namespace DotCast.App
 
             app.UseAuthentication();
             app.UseAuthorization();
-
+            app.UseMiddleware<UserClaimsMiddleware>();
             app.MapControllers();
             app.MapBlazorHub();
             app.MapFallbackToPage("/_Host");
 
             var initializerManager = app.Services.GetRequiredService<InitializerManager>();
-            await initializerManager.RunAllInitializersAsync(InitializerTrigger.OnApplicationReady | InitializerTrigger.OnStartup);
+            await initializerManager.RunAllInitializersAsync(InitializerTrigger.OnApplicationReady, InitializerTrigger.OnStartup);
 
             await app.RunAsync();
         }

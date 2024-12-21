@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using Ardalis.GuardClauses;
+using DotCast.Infrastructure.Messaging.Base;
 using DotCast.SharedKernel.Messages;
 using DotCast.Storage.Abstractions;
 using DotCast.Storage.Processing.Abstractions;
@@ -12,7 +13,7 @@ namespace DotCast.Storage.Processing
 {
     [WolverineHandler]
     public sealed class ProcessingPipeline
-        (ICollection<IProcessingStep> steps, IMessageBus messageBus, IStorage storage, ILogger<ProcessingPipeline> logger) : IMessageHandler<AudioBookReadyForProcessing>
+        (ICollection<IProcessingStep> steps, IMessagePublisher messenger, IStorage storage, ILogger<ProcessingPipeline> logger) : IMessageHandler<AudioBookReadyForProcessing>
     {
         private static readonly ConcurrentDictionary<string, SemaphoreSlim> Locks = new();
 
@@ -31,7 +32,7 @@ namespace DotCast.Storage.Processing
 
             try
             {
-                await messageBus.PublishAsync(new ProcessingStatusChanged(Locks.Keys));
+                await messenger.PublishAsync(new ProcessingStatusChanged(Locks.Keys));
                 logger.LogInformation($"Started processing for {source.Id}. Currently running {Locks.Count} processings.");
                 var modifications = modifiedFiles.ToDictionary(t => t, s => ModificationType.FileContentModified);
                 foreach (var step in steps)
@@ -48,7 +49,7 @@ namespace DotCast.Storage.Processing
                 Locks.TryRemove(lockKey, out _);
                 semaphore.Release();
                 logger.LogInformation($"Finished processing for {source.Id}. Currently running {Locks.Count} processings.");
-                await messageBus.PublishAsync(new ProcessingStatusChanged(Locks.Keys));
+                await messenger.PublishAsync(new ProcessingStatusChanged(Locks.Keys));
             }
         }
 
@@ -60,7 +61,7 @@ namespace DotCast.Storage.Processing
             await Process(entry, message.ModifiedFiles);
 
             var audioBook = await storage.ExtractMetadataAsync(message.AudioBookId);
-            await messageBus.PublishAsync(new AudioBookStorageMetadataUpdated(audioBook));
+            await messenger.PublishAsync(new AudioBookStorageMetadataUpdated(audioBook));
         }
     }
 }

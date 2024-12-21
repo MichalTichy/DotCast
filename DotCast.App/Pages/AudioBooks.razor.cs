@@ -1,30 +1,37 @@
 
 using DotCast.App.Shared;
+using DotCast.Infrastructure.Messaging.Base;
+using DotCast.Library;
 using DotCast.SharedKernel.Messages;
 using DotCast.SharedKernel.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
-using Wolverine;
 
 namespace DotCast.App.Pages
 {
     [Authorize]
-    public partial class AudioBooks : AppComponentBase
+    public partial class AudioBooks : AppPage
     {
         [Inject]
         public required IJSRuntime Js { get; set; }
 
         [Inject]
-        public required IMessageBus MessageBus { get; set; }
+        public required ILibraryApiInformationProvider LibraryApiInfoProvider { get; set; }
+
+        [Inject]
+        public required IMessagePublisher Messenger { get; set; }
+
 
         public IReadOnlyList<AudioBook> Data { get; set; } = new List<AudioBook>().AsReadOnly();
 
-        [Inject]
-        public required NavigationManager NavigationManager { get; set; }
-
         public required AudioBooksStatistics AudioBooksStatistics { get; set; }
 
+        public async Task CopyRssAsync(AudioBook info)
+        {
+            var url = await LibraryApiInfoProvider.GetFeedUrlAsync(info.Id);
+            await Js.InvokeVoidAsync("copyToClipboard", url);
+        }
         public async Task Download(AudioBook info)
         {
             if (!string.IsNullOrWhiteSpace(info.AudioBookInfo.ArchiveUrl))
@@ -35,21 +42,25 @@ namespace DotCast.App.Pages
 
         protected override async Task OnInitializedAsync()
         {
-            await LoadStatistics();
-            await LoadData();
             await base.OnInitializedAsync();
+            var tasks = new[]
+            {
+                LoadStatistics(),
+                LoadData()
+            };
+            await Task.WhenAll(tasks);
         }
 
         private async Task LoadStatistics()
         {
             var request = new AudioBooksStatisticsRequest();
-            AudioBooksStatistics = await MessageBus.InvokeAsync<AudioBooksStatistics>(request);
+            AudioBooksStatistics = await Messenger.RequestAsync<AudioBooksStatisticsRequest, AudioBooksStatistics>(request, PageCancellationTokenSource.Token);
         }
 
         private async Task LoadData(string? filter = null)
         {
             var request = new AudioBooksRetrievalRequest(filter);
-            var result = await MessageBus.InvokeAsync<IReadOnlyList<AudioBook>>(request);
+            var result = await Messenger.RequestAsync<AudioBooksRetrievalRequest, IReadOnlyList<AudioBook>>(request, PageCancellationTokenSource.Token);
             Data = result;
             await SaveStateHasChangedAsync();
         }

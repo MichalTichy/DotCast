@@ -1,13 +1,24 @@
-﻿using DotCast.SharedKernel.Messages;
+﻿using DotCast.Infrastructure.AppUser;
+using DotCast.Infrastructure.Messaging.Base;
+using DotCast.SharedKernel.Messages;
 using DotCast.Storage.Abstractions;
 using Microsoft.Extensions.Logging;
+using Shared.Infrastructure.AppUser.Identity;
+using Shared.Infrastructure.CurrentUserProvider;
 
 namespace DotCast.Storage.Handlers
 {
-    public class ReprocessAllAudioBooksRequestHandler(IStorage storage, ILogger<ReprocessAllAudioBooksRequestHandler> logger) : ICascadingMessageHandler<ReprocessAllAudioBooksRequest>
+    public class ReprocessAllAudioBooksRequestHandler(IStorage storage, ICurrentUserProvider<UserInfo> currentUserProvider, ILogger<ReprocessAllAudioBooksRequestHandler> logger)
+        : IAsyncCascadingMessageHandler<ReprocessAllAudioBooksRequest>
     {
-        public IEnumerable<object> Handle(ReprocessAllAudioBooksRequest message)
+        public async IAsyncEnumerable<object> Handle(ReprocessAllAudioBooksRequest message)
         {
+            var user = await currentUserProvider.GetCurrentUserRequiredAsync();
+            if (!user.IsAdmin)
+            {
+                throw new NotSupportedException("Only admins can do this action.");
+            }
+
             var storageEntries = storage.GetEntries().ToArray();
             logger.LogWarning("Reprocessing {Count} audiobooks", storageEntries.Length);
             foreach (var storageEntry in storageEntries)

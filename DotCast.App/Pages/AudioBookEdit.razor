@@ -1,6 +1,6 @@
 
 @page "/AudioBook/{Id}/edit"
-@inherits AppComponentBase
+@inherits AppPage
 @using DotCast.SharedKernel.Models
 
 <Row>
@@ -101,7 +101,6 @@
     </Column>
 
 </Row>
-
 <Row>
     <Column ColumnSize="ColumnSize.IsFull">
         @if (Data?.AudioBookInfo.Chapters.Count > 0)

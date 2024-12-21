@@ -7,15 +7,14 @@ namespace DotCast.Infrastructure.PresignedUrls
 {
     public class PresignedUrlManager(IOptions<PresignedUrlOptions> options) : IPresignedUrlManager
     {
-        public string GenerateUrl(string baseUrl)
+        public string GenerateUrl(string baseUrl, TimeSpan? validity = null)
         {
             var secretKey = options.Value.SecretKey;
-            var validity = TimeSpan.FromSeconds(options.Value.ValidityPeriodInSeconds);
-            var expiry = DateTimeOffset.UtcNow.Add(validity).ToUnixTimeSeconds();
+            var expiryDateTime = validity != null ? DateTimeOffset.UtcNow.Add(validity.Value) : DateTimeOffset.MaxValue;
+            var expiry = expiryDateTime.ToUnixTimeSeconds();
 
             var uriBuilder = new UriBuilder(baseUrl);
             var query = HttpUtility.ParseQueryString(uriBuilder.Query);
-            query["fileId"] = Guid.NewGuid().ToString();
             query["expiry"] = expiry.ToString();
             uriBuilder.Query = query.ToString();
 
@@ -53,19 +52,17 @@ namespace DotCast.Infrastructure.PresignedUrls
 
         public (bool result, string message) ValidateUrl(string presignedUrl)
         {
-            return (true, "Signature checking disabled");
-
-
             var secretKey = options.Value.SecretKey;
+
+            presignedUrl = FixEscaping(presignedUrl);
 
             var uri = new Uri(presignedUrl);
             var query = HttpUtility.ParseQueryString(uri.Query);
 
-            var fileId = query["fileId"]!;
             var expiry = query["expiry"];
             var receivedSignature = query["signature"];
 
-            if (string.IsNullOrEmpty(fileId) || string.IsNullOrEmpty(expiry) || string.IsNullOrEmpty(receivedSignature))
+            if (string.IsNullOrEmpty(expiry) || string.IsNullOrEmpty(receivedSignature))
             {
                 return (false, "One of required parameters is null.");
             }
@@ -82,7 +79,7 @@ namespace DotCast.Infrastructure.PresignedUrls
             }
 
             var signedUrl = uri.GetLeftPart(UriPartial.Path);
-            signedUrl += $"?fileId={fileId}&expiry={expiry}";
+            signedUrl += $"?expiry={expiry}";
 
             var computed = GetSignature(signedUrl, secretKey);
             var signaturesAreMatching = computed == receivedSignature;
@@ -92,6 +89,11 @@ namespace DotCast.Infrastructure.PresignedUrls
             }
 
             return (true, "OK");
+        }
+
+        private string FixEscaping(string escapedText)
+        {
+            return escapedText.Replace("&amp;", "&");
         }
     }
 }

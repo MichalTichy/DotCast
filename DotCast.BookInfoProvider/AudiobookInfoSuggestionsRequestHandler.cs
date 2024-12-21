@@ -1,4 +1,5 @@
 ﻿using DotCast.Infrastructure.BookInfoProvider.Base;
+using DotCast.Infrastructure.Messaging.Base;
 using DotCast.SharedKernel.Messages;
 using DotCast.SharedKernel.Models;
 

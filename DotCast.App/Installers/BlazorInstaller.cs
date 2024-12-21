@@ -1,6 +1,8 @@
 using Blazorise;
 using Blazorise.Bootstrap;
 using Blazorise.Icons.FontAwesome;
+using Microsoft.AspNetCore.Components.Server.Circuits;
+using Shared.Infrastructure.Blazor.ClaimsManagement;
 using Shared.Infrastructure.IoC;
 
 namespace DotCast.App.Installers
@@ -11,7 +13,7 @@ namespace DotCast.App.Installers
         {
             services.AddRazorPages();
             services.AddServerSideBlazor();
-
+            services.AddScoped<CircuitHandler, UserCircuitHandler>();
 
             services
                 .AddBlazorise(options => { options.Immediate = true; })

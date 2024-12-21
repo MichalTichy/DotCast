@@ -1,17 +1,19 @@
 using Blazorise;
 using DotCast.App.Services;
 using DotCast.App.Shared;
+using DotCast.Infrastructure.AppUser;
+using DotCast.Infrastructure.Messaging.Base;
 using DotCast.SharedKernel.Messages;
 using DotCast.SharedKernel.Models;
+using DotCast.Storage.Processing;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
-using Wolverine;
 
 namespace DotCast.App.Pages
 {
-    [Authorize(Roles = "Admin")]
-    public partial class Admin : AppComponentBase
+    [Authorize(Roles = UserRoleManager.AdminRoleName)]
+    public partial class Admin : AppPage
     {
         private const int TypingDelay = 1000; // Delay in millisecond
         private Modal uploadModalRef = null!;
@@ -28,7 +30,10 @@ namespace DotCast.App.Pages
         public string AudioBookName { get; set; } = null!;
 
         [Inject]
-        public required IMessageBus MessageBus { get; set; }
+        public required IMessagePublisher Messenger { get; set; }
+
+        [Inject]
+        public required ProcessingPipeline Test { get; set; }
 
         public bool IsProcessingRunning { get; set; }
         public int CountOfRunningProcessings { get; set; }
@@ -67,7 +72,7 @@ namespace DotCast.App.Pages
             }
 
             var restoreFromFileSystemRequest = new RestoreFromFileSystemRequest();
-            await MessageBus.SendAsync(restoreFromFileSystemRequest);
+            await Messenger.PublishAsync(restoreFromFileSystemRequest);
         }
 
         private async Task ReprocessAudioBooksFromStorage(bool unzipFirst)
@@ -78,7 +83,7 @@ namespace DotCast.App.Pages
             }
 
             var restoreFromFileSystemRequest = new ReprocessAllAudioBooksRequest(unzipFirst);
-            await MessageBus.SendAsync(restoreFromFileSystemRequest);
+            await Messenger.PublishAsync(restoreFromFileSystemRequest);
         }
 
         private void BookNameTextChanged(string text)
@@ -93,7 +98,7 @@ namespace DotCast.App.Pages
             {
                 AudioBookName = text;
                 var request = new NewAudioBookIdRequest(text);
-                newAudioBookId = await MessageBus.InvokeAsync<string>(request);
+                newAudioBookId = await Messenger.RequestAsync<NewAudioBookIdRequest, string>(request, PageCancellationTokenSource.Token);
                 await InvokeAsync(StateHasChanged);
             }
             catch (Exception)
@@ -105,7 +110,7 @@ namespace DotCast.App.Pages
         private async Task<Dictionary<string, string>> GetPresignedUrls(string audioBookId, ICollection<string> files)
         {
             var request = new AudioBookUploadStartRequest(audioBookId, files);
-            var result = await MessageBus.InvokeAsync<IReadOnlyCollection<PreuploadFileInformation>>(request);
+            var result = await Messenger.RequestAsync<AudioBookUploadStartRequest, IReadOnlyCollection<PreuploadFileInformation>>(request, PageCancellationTokenSource.Token);
 
             return result.ToDictionary(t => t.FileName, t => t.UploadUrl);
         }
@@ -117,9 +122,11 @@ namespace DotCast.App.Pages
             {
                 var name = Path.GetFileNameWithoutExtension(file);
                 var idRequest = new NewAudioBookIdRequest(name);
-                var audioBookId = await MessageBus.InvokeAsync<string>(idRequest);
+                var audioBookId = await Messenger.RequestAsync<NewAudioBookIdRequest, string>(idRequest);
+
                 var request = new AudioBookUploadStartRequest(audioBookId, new[] { file });
-                var result = await MessageBus.InvokeAsync<IReadOnlyCollection<PreuploadFileInformation>>(request);
+                var result = await Messenger.RequestAsync<AudioBookUploadStartRequest, IReadOnlyCollection<PreuploadFileInformation>>(request, PageCancellationTokenSource.Token);
+
                 var fileResult = result.Single();
                 urls.Add(fileResult.FileName, fileResult.UploadUrl);
             }

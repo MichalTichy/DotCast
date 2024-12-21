@@ -1,11 +1,11 @@
 ﻿using System.Collections.Concurrent;
+using DotCast.Infrastructure.Messaging.Base;
 using DotCast.SharedKernel.Messages;
 using DotCast.Storage.Abstractions;
-using Wolverine;
 
 namespace DotCast.Storage.Processing
 {
-    public class FileUploadTracker(IMessageBus messageBus, IFilesystemPathManager filesystemPathManager) :
+    public class FileUploadTracker(IMessagePublisher messenger, IFilesystemPathManager filesystemPathManager) :
         IMessageHandler<AudioBookUploadStartRequest>,
         IMessageHandler<FileUploaded>
     {
@@ -52,7 +52,7 @@ namespace DotCast.Storage.Processing
                     RunningUploads.TryRemove(message.AudioBookId, out _);
 
                     var newMessage = new AudioBookReadyForProcessing(message.AudioBookId, newFiles);
-                    await messageBus.PublishAsync(newMessage);
+                    await messenger.PublishAsync(newMessage);
                 }
             }
             finally

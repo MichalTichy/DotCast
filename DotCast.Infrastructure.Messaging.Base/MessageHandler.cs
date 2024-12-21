@@ -1,4 +1,4 @@
-﻿namespace DotCast.SharedKernel.Messages
+﻿namespace DotCast.Infrastructure.Messaging.Base
 {
     public interface IMessageHandler<TMessage>
     {

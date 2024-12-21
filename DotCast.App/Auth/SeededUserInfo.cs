@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace DotCast.App.Auth
 {
-    public class UserInfo
+    public class SeededUserInfo
     {
         [Required]
         public string Username { get; set; } = null!;

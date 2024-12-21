@@ -7,9 +7,10 @@
   </PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="Ardalis.ApiEndpoints" Version="4.1.0" />
-		<PackageReference Include="WolverineFx" Version="1.12.4" />
+		<PackageReference Include="WolverineFx" Version="3.3.0" />
 	</ItemGroup>
 	<ItemGroup>
+	  <ProjectReference Include="..\DotCast.Infrastructure.Messaging.Base\DotCast.Infrastructure.Messaging.Base.csproj" />
 	  <ProjectReference Include="..\DotCast.Storage\DotCast.Storage.csproj" />
 	</ItemGroup>
 </Project>

@@ -2,6 +2,6 @@
 {
     public interface IStorageApiInformationProvider
     {
-        string GetFileUrl(string audioBookId, string fileName, bool isArchive);
+        string GetFileUrl(string audioBookId, string fileName, bool isArchive, bool limitValidity = false);
     }
 }

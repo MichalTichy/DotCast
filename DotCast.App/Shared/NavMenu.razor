@@ -1,5 +1,18 @@
-@using Microsoft.AspNetCore.Mvc.Routing
-@using System.Text.Encodings.Web
+@using DotCast.Infrastructure.AppUser
+@inherits AppComponentBase
+
+@code
+{
+    public string UserName { get; set; } = string.Empty;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        var user = await CurrentUserProvider.GetCurrentUserAsync();
+        UserName = user?.Name ?? "User profile";
+        await base.OnAfterRenderAsync(firstRender);
+
+    }
+}
+
 <Bar
     Background="Background.Dark" TextColor="TextColor.Light" ThemeContrast="ThemeContrast.Dark"
     Breakpoint="Breakpoint.Desktop"
@@ -13,8 +26,14 @@
             </BarItem>
         </BarStart>
         <BarEnd>
-            <BarLink To="/Admin">Admin</BarLink>
-            <BarLink To="/Login">Login</BarLink>
+            <AuthorizeView>
+                <Authorized>
+                    <BarLink To="/UserProfile">@UserName</BarLink>
+                </Authorized>
+                <NotAuthorized>
+                    <BarLink To="/Login">Login</BarLink>
+                </NotAuthorized>
+            </AuthorizeView>
         </BarEnd>
     </BarMenu>
 </Bar>

@@ -1,25 +1,16 @@
-﻿using DotCast.Infrastructure.Gateway.Abstractions;
+﻿using DotCast.Infrastructure.PresignedUrls;
 using Microsoft.Extensions.Options;
+using Shared.Infrastructure.UrlBuilder;
 
 namespace DotCast.Storage
 {
-    public class StorageApiInformationProvider(IOptions<GatewayOptions> options) : IStorageApiInformationProvider
+    public class StorageApiInformationProvider(IUrlBuilder urlBuilder, IPresignedUrlManager presignedUrlManager) : IStorageApiInformationProvider
     {
-        public string GetFileUrl(string audioBookId, string fileName, bool isArchive)
+        public string GetFileUrl(string audioBookId, string fileName, bool isArchive, bool limitValidity)
         {
-            var baseUrl = options.Value.ApiBaseUrl;
-            var baseUri = new Uri(baseUrl);
-            Uri fullUri;
-            if (!isArchive)
-            {
-                fullUri = new Uri(baseUri, $"storage/file/{audioBookId}/{fileName}");
-            }
-            else
-            {
-                fullUri = new Uri(baseUri, $"storage/archive/{audioBookId}");
-            }
-
-            return fullUri.ToString();
+            var fullUri = urlBuilder.GetAbsoluteUrl(!isArchive ? $"storage/file/{audioBookId}/{fileName}" : $"storage/archive/{audioBookId}");
+            fullUri = presignedUrlManager.GenerateUrl(fullUri, limitValidity ? TimeSpan.FromHours(3) : null);
+            return fullUri;
         }
     }
 }

@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WolverineFx" Version="3.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DotCast.Infrastructure.AppUser\DotCast.Infrastructure.AppUser.csproj" />
+    <ProjectReference Include="..\DotCast.Infrastructure.Messaging.Base\DotCast.Infrastructure.Messaging.Base.csproj" />
+    <ProjectReference Include="..\infrastructure\Shared.Infrastructure.Blazor.ClaimsManagement\Shared.Infrastructure.Blazor.ClaimsManagement.csproj" />
+    <ProjectReference Include="..\infrastructure\Shared.Infrastructure.CurrentUserProvider\Shared.Infrastructure.CurrentUserProvider.csproj" />
+    <ProjectReference Include="..\infrastructure\Shared.Infrastructure.IoC\Shared.Infrastructure.IoC.csproj" />
+    <ProjectReference Include="..\infrastructure\Shared.Infrastructure.UserManagement.Abstractions\Shared.Infrastructure.UserManagement.Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>

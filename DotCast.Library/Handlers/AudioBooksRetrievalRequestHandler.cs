@@ -1,4 +1,5 @@
-﻿using DotCast.Library.Specifications;
+﻿using DotCast.Infrastructure.Messaging.Base;
+using DotCast.Library.Specifications;
 using DotCast.SharedKernel.Messages;
 using DotCast.SharedKernel.Models;
 using Shared.Infrastructure.Persistence.Repositories;

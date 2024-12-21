@@ -1,0 +1,127 @@
+﻿@page "/UserProfile"
+@using DotCast.App.API
+@using DotCast.Infrastructure.AppUser
+@inherits AppPage
+
+
+<Container>
+
+    <Row>
+        <Column TextAlignment="TextAlignment.Center" ColumnSize="ColumnSize.IsHalf">
+            <h3>@UserName</h3>
+        </Column>
+        <Column ColumnSize="ColumnSize.IsHalf">
+            <Link To="@LogoutEndpoint.Address">Logout</Link>
+        </Column>
+    </Row>
+
+    <Row>
+        <Buttons TextAlignment="TextAlignment.Center">
+            <Button Clicked="async () => await uploadModalRef.Show()" Color="Color.Success">
+                Upload new
+            </Button>
+            <Button Clicked="async () => await uploadMultipleModalRef.Show()" Color="Color.Success">
+                Upload multiple hew
+            </Button>
+        </Buttons>
+    </Row>
+
+            <Row>
+                <p><strong>Your Library Name:</strong> @LibraryName</p>
+            </Row>
+            <Row>
+                <Field>
+                    <FieldLabel>Share library:</FieldLabel>
+                    <FieldBody>
+                        <TextEdit @bind-Text="@NewShare" Placeholder="Other users library code."/>
+                    </FieldBody>
+                </Field>
+            </Row>
+        <Row>
+            <Button Color="Color.Success" Clicked="() => ShareAsync()">Share</Button>
+        </Row>
+
+    <Row>
+
+        @if (SharedLibrariesWith.Count > 0)
+        {
+            <Table Striped="true" Clearfix="true">
+                <TableHeader ThemeContrast="ThemeContrast.Dark">
+                    <TableHeaderCell>Username</TableHeaderCell>
+                    <TableHeaderCell></TableHeaderCell>
+                </TableHeader>
+                <TableBody>
+                    @foreach (var shareInfo in SharedLibrariesWith)
+                    {
+                        <TableRow>
+                            <TableRowCell>@shareInfo.UserName</TableRowCell>
+                            <TableRowCell>
+                                <Button Color="Color.Danger" Clicked="() => UnShareAsync(shareInfo)">UnShare</Button>
+                            </TableRowCell>
+                        </TableRow>
+                    }
+                </TableBody>
+            </Table>
+        }
+    </Row>
+
+
+    <AuthorizeView Roles="@UserRoleManager.AdminRoleName">
+        <hr/>
+        <Row>
+            <Buttons>
+
+                <Button Disabled="@IsProcessingRunning" Clicked="RestoreAudioBooksFromStorage" Color="Color.Warning">
+                    Restore audiobooks from Storage
+                </Button>
+                <Button Disabled="@IsProcessingRunning" Clicked="async () => await ReprocessAudioBooksFromStorage(false)" Color="Color.Warning">
+                    Reprocess audiobooks from Storage (No Unzip)
+                </Button>
+                <Button Disabled="@IsProcessingRunning" Clicked="async () => await ReprocessAudioBooksFromStorage(true)" Color="Color.Warning">
+                    Reprocess audiobooks from Storage (Unzip)
+                </Button>
+            </Buttons>
+
+            <hr/>
+        </Row>
+    </AuthorizeView>
+</Container>
+
+
+<Modal @ref="uploadModalRef">
+    <ModalContent Centered>
+        <ModalHeader>
+            <ModalTitle>Upload AudioBook</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+            <h3></h3>
+            <p>Enter AudioBook name</p>
+            <TextEdit TextChanged="BookNameTextChanged" />
+            <p>Id: @newAudioBookId</p>
+            @if (ReadyForUpload)
+            {
+                <p>
+                    <label>
+                        <FileUpload PresignedUrlFactory="files => GetPresignedUrls(newAudioBookId!,files)" />
+                    </label>
+                </p>
+            }
+        </ModalBody>
+    </ModalContent>
+</Modal>
+<Modal @ref="uploadMultipleModalRef">
+    <ModalContent Centered>
+        <ModalHeader>
+            <ModalTitle>Upload multiple audioBooks AudioBook</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+            <p>
+                <label>
+                    <FileUpload PresignedUrlFactory="GetPresignedUrls" />
+                </label>
+            </p>
+        </ModalBody>
+    </ModalContent>
+</Modal>

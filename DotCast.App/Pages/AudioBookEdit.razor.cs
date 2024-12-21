@@ -1,26 +1,25 @@
 using Blazorise;
 using DotCast.App.Shared;
+using DotCast.Infrastructure.Messaging.Base;
 using DotCast.SharedKernel.Messages;
 using DotCast.SharedKernel.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
-using Wolverine;
 
 namespace DotCast.App.Pages
 {
-    [Authorize(Roles = "Admin")]
-    public partial class AudioBookEdit : AppComponentBase
+    [Authorize]
+    public partial class AudioBookEdit : AppPage
     {
         [Inject]
-        public NavigationManager NavigationManager { get; set; } = null!;
+        public required IMessagePublisher Messenger { get; set; }
 
-        [Inject]
-        public required IMessageBus MessageBus { get; set; }
 
         [Parameter]
         public required string Id { get; set; }
 
-        public AudioBook Data { get; set; } = new() { Id = "TMP", AudioBookInfo = new AudioBookInfo { Id = "TMP", Name = "LOADING", AuthorName = "", Chapters = new List<Chapter>(0) } };
+        public AudioBook Data { get; set; } = new()
+            { Id = "TMP", AudioBookInfo = new AudioBookInfo { Id = "TMP", Name = "LOADING", AuthorName = "", Chapters = new List<Chapter>(0) }, LibraryId = "TMP" };
 
         public IReadOnlyCollection<FoundBookInfo> Suggestions { get; set; } = new List<FoundBookInfo>(0).AsReadOnly();
         public ICollection<Category> MissingCategories = new List<Category>();
@@ -39,7 +38,7 @@ namespace DotCast.App.Pages
         private async Task LoadData()
         {
             var request = new AudioBookDetailRequest(Id);
-            var response = await MessageBus.InvokeAsync<AudioBook>(request);
+            var response = await Messenger.RequestAsync<AudioBookDetailRequest, AudioBook>(request, PageCancellationTokenSource.Token);
 
             Data = response ?? throw new ArgumentException("Requested AudioBook not found");
         }
@@ -72,14 +71,14 @@ namespace DotCast.App.Pages
         public async Task Save()
         {
             var request = new AudioBookEdited(Data);
-            await MessageBus.InvokeAsync(request);
+            await Messenger.ExecuteAsync(request);
         }
 
 
         private async Task LoadSuggestions(string name)
         {
             var request = new AudiobookInfoSuggestionsRequest(name);
-            var response = await MessageBus.InvokeAsync<IReadOnlyCollection<FoundBookInfo>>(request);
+            var response = await Messenger.RequestAsync<AudiobookInfoSuggestionsRequest, IReadOnlyCollection<FoundBookInfo>>(request, PageCancellationTokenSource.Token);
             Suggestions = response.ToList();
         }
 
@@ -124,7 +123,8 @@ namespace DotCast.App.Pages
 
         private async Task<Dictionary<string, string>> CreatePresignedUrl(ICollection<string> files)
         {
-            var result = await MessageBus.InvokeAsync<IReadOnlyCollection<PreuploadFileInformation>>(new AudioBookUploadStartRequest(Id, files));
+            var result = await Messenger.RequestAsync<AudioBookUploadStartRequest, IReadOnlyCollection<PreuploadFileInformation>>(new AudioBookUploadStartRequest(Id, files),
+                PageCancellationTokenSource.Token);
             return result.ToDictionary(t => t.FileName, t => t.UploadUrl);
         }
     }

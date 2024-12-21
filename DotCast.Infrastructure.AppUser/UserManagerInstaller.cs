@@ -1,14 +1,16 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Shared.Infrastructure.IoC;
+using Shared.Infrastructure.UserManagement.Abstractions;
 
-namespace DotCast.Infrastructure.Gateway.Abstractions
+namespace DotCast.Infrastructure.AppUser
 {
-    public class GatewayInstaller : IInstaller
+    public class UserManagerInstaller : IInstaller
     {
         public void Install(IServiceCollection services, IConfiguration configuration, bool isProduction)
         {
-            services.Configure<GatewayOptions>(configuration.GetSection(nameof(GatewayOptions)));
+            services.AddScoped<IUserManager<UserInfo>, UserManager>();
+            services.AddScoped<UserManager>();
         }
     }
 }

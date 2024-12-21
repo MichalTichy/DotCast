@@ -1,12 +1,14 @@
 ﻿using Ardalis.ApiEndpoints;
+using DotCast.Infrastructure.PresignedUrls;
 using DotCast.Storage.Abstractions;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DotCast.Storage.API
 {
     [Authorize]
-    public class DownloadFileEndpoint(IStorage storage) : EndpointBaseSync.WithoutRequest.WithActionResult
+    public class DownloadFileEndpoint(IStorage storage, IPresignedUrlManager presignedUrlManager) : EndpointBaseSync.WithoutRequest.WithActionResult
     {
         [FromRoute(Name = "AudioBookId")]
         public required string AudioBookId { get; set; }
@@ -18,6 +20,12 @@ namespace DotCast.Storage.API
         [HttpGet("/storage/file/{AudioBookId}/{FileId}")]
         public override ActionResult Handle()
         {
+            var validation = presignedUrlManager.ValidateUrl(HttpContext.Request.GetEncodedUrl());
+            if (!validation.result)
+            {
+                return Unauthorized(validation.message);
+            }
+
             var entry = IsFileRequest() ? storage.GetFileForRead(AudioBookId, FileId!) : storage.GetArchiveForRead(AudioBookId);
 
             if (entry == null)

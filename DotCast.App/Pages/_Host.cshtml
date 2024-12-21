@@ -1,8 +1,25 @@
 @page "/"
+@using Microsoft.AspNetCore.Mvc.TagHelpers
 @namespace DotCast.App.Pages
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @{
     Layout = "_Layout";
 }
-
-<component type="typeof(App)" render-mode="ServerPrerendered" />
+<script>
+    window.loginUser = function (loginData) {
+    return fetch('/api/login', {
+    method: 'POST',
+    headers: {
+    'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(loginData)
+    })
+    .then(response => {
+    if (response.redirected) {
+    window.location.href = response.url;
+    }
+    return response.ok;
+    });
+    };
+</script>
+<component type="typeof(App)" render-mode="Server" />

@@ -1,4 +1,5 @@
-﻿using DotCast.SharedKernel.Messages;
+﻿using DotCast.Infrastructure.Messaging.Base;
+using DotCast.SharedKernel.Messages;
 
 namespace DotCast.App.Services
 {

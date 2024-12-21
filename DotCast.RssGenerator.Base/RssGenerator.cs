@@ -12,7 +12,7 @@ namespace DotCast.RssGenerator.Base
             var feed = await BuildFeed(param);
 
             var sb = new StringBuilder();
-            using (var xmlWriter = XmlWriter.Create(sb))
+            await using (var xmlWriter = XmlWriter.Create(sb))
             {
                 Generate(feed, xmlWriter);
             }

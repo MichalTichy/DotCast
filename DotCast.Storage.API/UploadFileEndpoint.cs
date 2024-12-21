@@ -1,4 +1,5 @@
 ﻿using Ardalis.ApiEndpoints;
+using DotCast.Infrastructure.Messaging.Base;
 using DotCast.Infrastructure.PresignedUrls;
 using DotCast.SharedKernel.Messages;
 using DotCast.Storage.Abstractions;
@@ -13,7 +14,10 @@ namespace DotCast.Storage.API
 {
     [Authorize]
     public class UploadFileEndpoint
-        (IStorage storage, IPresignedUrlManager presignedUrlManager, IMessageBus messageBus, ILogger<UploadFileEndpoint> logger) : EndpointBaseAsync.WithRequest<IFormFile>.WithActionResult<string>
+    (IStorage storage,
+        IPresignedUrlManager presignedUrlManager,
+        IMessagePublisher messenger,
+        ILogger<UploadFileEndpoint> logger) : EndpointBaseAsync.WithRequest<IFormFile>.WithActionResult<string>
     {
         [FromRoute(Name = "AudioBookId")]
         public required string AudioBookId { get; set; }
@@ -39,7 +43,7 @@ namespace DotCast.Storage.API
             await using var stream = request.OpenReadStream();
 
             var storageEntry = await storage.StoreAsync(stream, AudioBookId, request.FileName, cancellationToken);
-            await messageBus.PublishAsync(new FileUploaded(AudioBookId, request.FileName, Path.GetFileName(storageEntry.LocalPath)));
+            await messenger.PublishAsync(new FileUploaded(AudioBookId, request.FileName, Path.GetFileName(storageEntry.LocalPath)));
             return storageEntry.RemotePath;
         }
     }

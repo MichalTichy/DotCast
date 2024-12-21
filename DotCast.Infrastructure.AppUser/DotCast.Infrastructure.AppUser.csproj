@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\infrastructure\Shared.Infrastructure.AppUser.Identity\Shared.Infrastructure.AppUser.Identity.csproj" />
+    <ProjectReference Include="..\infrastructure\Shared.Infrastructure.CurrentUserProvider\Shared.Infrastructure.CurrentUserProvider.csproj" />
+    <ProjectReference Include="..\infrastructure\Shared.Infrastructure.Initializer\Shared.Infrastructure.Initializer.csproj" />
+    <ProjectReference Include="..\infrastructure\Shared.Infrastructure.UserManagement\Shared.Infrastructure.UserManagement.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Microsoft.Extensions.Identity.Stores">
+      <HintPath>..\..\..\Program Files\dotnet\packs\Microsoft.AspNetCore.App.Ref\8.0.8\ref\net8.0\Microsoft.Extensions.Identity.Stores.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

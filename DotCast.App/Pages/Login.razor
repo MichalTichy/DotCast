@@ -1,0 +1,60 @@
+@page "/Login"
+@using DotCast.App.API
+@using Microsoft.AspNetCore.Mvc
+
+@inject IJSRuntime js
+@inherits UnauthorizedAppPage
+
+<Div Margin="Margin.IsAuto.OnX" Padding="Padding.Is5.OnX" Width="Width.Is50">
+    <Heading Size="HeadingSize.Is2" Margin="Margin.Is3.FromBottom">
+        Login
+    </Heading>
+        <Field>
+            <FieldLabel>
+                Username
+            </FieldLabel>
+            <FieldBody>
+            <TextEdit @bind-Text="@Username" Placeholder="Enter your username" />
+            </FieldBody>
+        </Field>
+        <Field>
+            <FieldLabel>
+                Password
+            </FieldLabel>
+            <FieldBody>
+            <TextEdit @bind-Text="@Password" Role="TextRole.Password" Placeholder="Enter your password" />
+            </FieldBody>
+        </Field>
+        <Field>
+            <Check TValue="bool" Checked="@RememberMe">
+                Remember Me
+            </Check>
+        </Field>
+        <Field>
+            <Button Color="Color.Primary" Clicked="@LoginAsync">
+                Login
+            </Button>
+            @Message
+        </Field>
+</Div>
+@code {
+
+    public string Username { get; set; } = null!;
+    public string Password { get; set; } = null!;
+    public bool RememberMe { get; set; }
+
+    [FromQuery(Name = "Message")]
+    public string? Message { get; set; }
+
+    private async Task LoginAsync()
+    {
+        var loginModel = new LoginModel
+        {
+            Username = Username,
+            Password = Password,
+            RememberMe = RememberMe
+        };
+
+        await js.InvokeVoidAsync("loginUser", loginModel);
+    }
+}

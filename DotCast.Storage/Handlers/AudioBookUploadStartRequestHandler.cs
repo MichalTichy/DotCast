@@ -1,4 +1,5 @@
-﻿using DotCast.Infrastructure.PresignedUrls;
+﻿using DotCast.Infrastructure.Messaging.Base;
+using DotCast.Infrastructure.PresignedUrls;
 using DotCast.SharedKernel.Messages;
 using DotCast.SharedKernel.Models;
 using DotCast.Storage.Abstractions;
@@ -19,10 +20,9 @@ namespace DotCast.Storage.Handlers
             foreach (var messageFile in message.Files)
             {
                 var isArchive = messageFile.EndsWith(".zip");
-                var url = apiInformationProvider.GetFileUrl(message.AudioBookId, messageFile, isArchive);
-                var signedUrl = presignedUrlManager.GenerateUrl(url);
+                var url = apiInformationProvider.GetFileUrl(message.AudioBookId, messageFile, isArchive, true);
                 var exists = currentFiles != null && currentFiles.Contains(messageFile);
-                result.Add(new PreuploadFileInformation(messageFile, signedUrl, exists));
+                result.Add(new PreuploadFileInformation(messageFile, url, exists));
             }
 
             return Task.FromResult<IReadOnlyCollection<PreuploadFileInformation>>(result.AsReadOnly());

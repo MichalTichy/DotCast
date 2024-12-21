@@ -8,7 +8,7 @@ namespace DotCast.Library.Storage
     {
         public void Configure(StoreOptions options)
         {
-            options.Schema.For<AudioBook>().Identity(x => x.Id);
+            options.Schema.For<AudioBook>().Identity(x => x.Id).Duplicate(book => book.LibraryId);
         }
     }
 }

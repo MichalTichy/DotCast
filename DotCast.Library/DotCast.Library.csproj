@@ -8,15 +8,20 @@
 
   <ItemGroup>
     <PackageReference Include="Marten" Version="7.29.0" />
-    <PackageReference Include="WolverineFx" Version="1.12.4" />
+    <PackageReference Include="WolverineFx" Version="3.3.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DotCast.Infrastructure.AppUser\DotCast.Infrastructure.AppUser.csproj" />
+    <ProjectReference Include="..\DotCast.Infrastructure.Messaging.Base\DotCast.Infrastructure.Messaging.Base.csproj" />
+    <ProjectReference Include="..\DotCast.Infrastructure.PresignedUrls\DotCast.Infrastructure.PresignedUrls.csproj" />
     <ProjectReference Include="..\DotCast.RssGenerator.Base\DotCast.RssGenerator.Base.csproj" />
     <ProjectReference Include="..\DotCast.SharedKernel\DotCast.SharedKernel.csproj" />
+    <ProjectReference Include="..\infrastructure\Shared.Infrastructure.CurrentUserProvider\Shared.Infrastructure.CurrentUserProvider.csproj" />
     <ProjectReference Include="..\infrastructure\Shared.Infrastructure.IoC\Shared.Infrastructure.IoC.csproj" />
     <ProjectReference Include="..\infrastructure\Shared.Infrastructure.Persistence.Marten\Shared.Infrastructure.Persistence.Marten.csproj" />
     <ProjectReference Include="..\infrastructure\Shared.Infrastructure.Persistence\Shared.Infrastructure.Persistence.csproj" />
+    <ProjectReference Include="..\infrastructure\Shared.Infrastructure.UrlBuilder\Shared.Infrastructure.UrlBuilder.csproj" />
   </ItemGroup>
 
 </Project>
