@@ -17,7 +17,6 @@ namespace DotCast.App.Auth
         protected override async Task RunInitializationLogicAsync()
         {
             var usersToSeed = options.Value.Users;
-            var usr = await userManager.GetAllUsersAsync();
             foreach (var userToSeed in usersToSeed)
             {
                 var foundUser = await userManager.GetUserByUserNameAsync(userToSeed.Username);
