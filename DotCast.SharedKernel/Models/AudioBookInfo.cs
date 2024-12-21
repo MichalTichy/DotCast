@@ -16,7 +16,7 @@ namespace DotCast.SharedKernel.Models
         public TimeSpan Duration => TimeSpan.FromMilliseconds(Chapters.Sum(c => c.Duration.TotalMilliseconds));
 
         [JsonProperty]
-        public long DurationInMinutes => (long) Chapters.Sum(c => c.Duration.TotalMinutes);
+        public long DurationInMinutes => Chapters.Sum(c => (long) c.DurationInMinutes);
 
         public string? ArchiveUrl { get; set; }
         public string? ImageUrl { get; set; }
