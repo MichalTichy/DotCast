@@ -16,8 +16,11 @@ namespace DotCast.Storage.API
         [FromRoute(Name = "FileId")]
         public string? FileId { get; set; }
 
-        [HttpGet("/storage/archive/{AudioBookId}")]
-        [HttpGet("/storage/file/{AudioBookId}/{FileId}")]
+        [FromRoute]
+        public required string Signature { get; set; }
+
+        [HttpGet("/storage/archive/{AudioBookId}/{Signature}")]
+        [HttpGet("/storage/file/{AudioBookId}/{FileId}/{Signature}")]
         public override ActionResult Handle()
         {
             var validation = presignedUrlManager.ValidateUrl(HttpContext.Request.GetEncodedUrl());

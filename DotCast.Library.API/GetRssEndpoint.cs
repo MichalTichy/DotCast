@@ -17,7 +17,10 @@ namespace DotCast.Library.API
         [FromRoute]
         public required string UserId { get; set; }
 
-        [HttpGet("/library/{AudioBookId}/{UserId}/rss")]
+        [FromRoute]
+        public required string Signature { get; set; }
+
+        [HttpGet("/library/{AudioBookId}/{UserId}/rss/{Signature}")]
         public override async Task<ActionResult<string>> HandleAsync(CancellationToken cancellationToken = new())
         {
             var validation = presignedUrlManager.ValidateUrl(HttpContext.Request.GetEncodedUrl());
