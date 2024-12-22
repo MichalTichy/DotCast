@@ -25,11 +25,8 @@ namespace DotCast.Storage.API
         [FromRoute(Name = "FileId")]
         public string? FileId { get; set; }
 
-        [FromRoute]
-        public required string Signature { get; set; }
-
-        [HttpPut("/storage/archive/{AudioBookId}/{Signature}")]
-        [HttpPut("/storage/file/{AudioBookId}/{FileId}/{Signature}")]
+        [HttpPut("/storage/archive/{AudioBookId}")]
+        [HttpPut("/storage/file/{AudioBookId}/{FileId}")]
         [RequestFormLimits(MultipartBodyLengthLimit = long.MaxValue)]
         [RequestSizeLimit(long.MaxValue)]
         public override async Task<ActionResult<string>> HandleAsync(IFormFile request, CancellationToken cancellationToken = new())

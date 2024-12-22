@@ -8,86 +8,92 @@ namespace DotCast.Infrastructure.PresignedUrls
 {
     public class PresignedUrlManager(IOptions<PresignedUrlOptions> options) : IPresignedUrlManager
     {
+        private readonly PresignedUrlOptions options = options.Value;
+
         public string GenerateUrl(string baseUrl, TimeSpan? validity = null)
         {
-            var secretKey = options.Value.SecretKey;
+            var secretKey = options.SecretKey;
 
-            // Calculate expiry (Unix timestamp) -- default to max if not specified
+            // Compute expiry (Unix time)
             var expiryDateTime = validity.HasValue
                 ? DateTimeOffset.UtcNow.Add(validity.Value)
                 : DateTimeOffset.MaxValue;
             var expiry = expiryDateTime.ToUnixTimeSeconds();
 
-            // Remove trailing slash from baseUrl
-            baseUrl = baseUrl.TrimEnd('/');
+            // 1) Build the part that will be signed:
+            //    path + "?presignedUrl=" + expiry
+            //    (No scheme, no signature in this part)
+            var builderForSignature = new UriBuilder(baseUrl)
+            {
+                Query = "" // clear query so we only have the path
+            };
+            var pathOnly = builderForSignature.Uri.ToString().TrimEnd('/');
+            var urlToSign = pathOnly + "?presignedUrl=" + expiry;
 
-            // Create the "partial" URL that includes the expiry but not the signature
-            // e.g. https://example.com/path/1703241923
-            var partialUrl = $"{baseUrl}/{expiry}";
+            // 2) Calculate signature
+            var signatureText = GetSignature(urlToSign, secretKey);
 
-            // Compute signature for partialUrl
-            var signature = GetSignature(partialUrl, secretKey);
+            // 3) Final URL has a single query param: presignedUrl = <expiry>.<signature>
+            var finalBuilder = new UriBuilder(baseUrl)
+            {
+                Query = $"presignedUrl={expiry}.{signatureText}"
+            };
 
-            // Append signature so final URL is: https://example.com/path/1703241923-<signature>
-            var presignedUrl = $"{partialUrl}-{signature}";
-
-            return presignedUrl;
+            return finalBuilder.Uri.ToString();
         }
 
-        public (bool result, string message) ValidateUrl(string presignedUrl)
+        public (bool result, string message) ValidateUrl(string url)
         {
-            var secretKey = options.Value.SecretKey;
+            var secretKey = options.SecretKey;
 
 
-            // Parse the incoming Uri
-            var uri = new Uri(presignedUrl);
+            // Parse out the single presignedUrl param
+            var uri = new Uri(url);
+            var singleParam = HttpUtility.ParseQueryString(uri.Query)["presignedUrl"];
+            if (string.IsNullOrEmpty(singleParam))
+            {
+                return (false, "Query param 'presignedUrl' is missing.");
+            }
 
-            // The last segment contains both expiry and signature separated by '-'
-            // E.g. .../1703241923-2aed9b37b6...
-            var lastSegment = uri.Segments[^1]; // e.g. 1703241923-2aed9b37b6...
-            // Remove any trailing slash from the segment if it exists
-            lastSegment = lastSegment.TrimEnd('/');
-
-            // Split on '-'; we expect two parts: expiry and signature
-            var parts = lastSegment.Split(['-'], 2);
+            // The format we expect is: <expiry>.<signature>
+            var parts = singleParam.Split('.');
             if (parts.Length != 2)
             {
-                return (false, $"Invalid last segment. Expected 'expiry-signature' but got '{lastSegment}'");
+                return (false, "Invalid presignedUrl format (must be 'expiry.signature').");
             }
 
-            var expiryString = parts[0];
-            var receivedSignature = parts[1];
-
-            if (string.IsNullOrEmpty(expiryString) || string.IsNullOrEmpty(receivedSignature))
+            // Parse expiry
+            if (!long.TryParse(parts[0], out var expiryUnix))
             {
-                return (false, "One of required parts is null (expiry or signature).");
+                return (false, "Unable to parse link expiration (not a valid Unix timestamp).");
             }
 
-            if (!long.TryParse(expiryString, out var expiryUnix))
-            {
-                return (false, "Unable to parse link expiration as long.");
-            }
-
-            // Check if link has expired
             var expiryDateTime = DateTimeOffset.FromUnixTimeSeconds(expiryUnix);
+
+            // Expired?
             if (expiryDateTime < DateTimeOffset.UtcNow)
             {
-                return (false, "Link expired");
+                return (false, "Link is expired.");
             }
 
-            // Rebuild the "partial" URL (without the signature).
-            // Example: everything up to the last "/" + expiryString
-            //
-            // uri.GetLeftPart(UriPartial.Path) includes the trailing slash; we can remove it.
-            // Then re-append /<expiryString>
-            var rawPath = uri.ToString().Replace(lastSegment, "").TrimEnd('/');
-            var partialUrl = $"{rawPath}/{expiryString}";
+            // Received signature
+            var receivedSignature = parts[1];
 
-            // Compute a new signature from partialUrl, compare with the receivedSignature
-            var computedSignature = GetSignature(partialUrl, secretKey);
-            if (!string.Equals(computedSignature, receivedSignature, StringComparison.Ordinal))
+            // Rebuild the URL we originally signed: path + "?presignedUrl=" + expiry
+            var builderForSignature = new UriBuilder(url)
             {
-                return (false, $"Signatures do not match. Computed from: '{partialUrl}'.");
+                Query = "" // clear out any existing query
+            };
+            var pathOnly = builderForSignature.Uri.ToString().TrimEnd('/');
+            var urlToSign = pathOnly + "?presignedUrl=" + parts[0];
+
+            // Re-compute the signature
+            var computedSignature = GetSignature(urlToSign, secretKey);
+
+            // Compare the signatures
+            if (!string.Equals(receivedSignature, computedSignature, StringComparison.Ordinal))
+            {
+                return (false, "Signatures do not match.");
             }
 
             return (true, "OK");
@@ -95,39 +101,30 @@ namespace DotCast.Infrastructure.PresignedUrls
 
         private static string RemoveHttpOrHttps(string url)
         {
-            // Return as is if string is null/empty to avoid unnecessary processing.
             if (string.IsNullOrWhiteSpace(url))
                 return url;
 
-            // Pattern that matches "http://" or "https://" at the start of the string
+            // Pattern that matches "http://" or "https://" at the start
             var pattern = @"^https?:\/\/";
-
-            // Replace it with an empty string
             return Regex.Replace(url, pattern, string.Empty, RegexOptions.IgnoreCase);
         }
 
         private string GetSignature(string url, string secretKey)
         {
-            // Remove protocol (http:// or https://)
+            // Remove scheme from URL (http:// or https://)
             url = RemoveHttpOrHttps(url);
 
-            // The string to sign is the URL (without protocol) plus the secret key
+            // Append secretKey and compute HMAC-SHA256
             var stringToSign = url + secretKey;
+            using var hmacSha256 = new HMACSHA256(Encoding.UTF8.GetBytes(secretKey));
+            var signatureBytes = hmacSha256.ComputeHash(Encoding.UTF8.GetBytes(stringToSign));
 
-            var key = Encoding.UTF8.GetBytes(secretKey);
-            var data = Encoding.UTF8.GetBytes(stringToSign);
-
-            using var hmacSha256 = new HMACSHA256(key);
-            var signature = hmacSha256.ComputeHash(data);
-
-            // Use hex instead of Base64 or Base64-URL
-            return HexUrlEncode(signature);
+            return HexUrlEncode(signatureBytes);
         }
 
         private string HexUrlEncode(byte[] input)
         {
             // Convert the signature to a lowercase hex string
-            // (0-9, a-f) are URL-safe by default
             var hexString = BitConverter.ToString(input).Replace("-", "");
             return hexString.ToLowerInvariant();
         }

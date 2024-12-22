@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DotCast.Storage.API
 {
+    [AllowAnonymous]
     public class DownloadFileEndpoint(IStorage storage, IPresignedUrlManager presignedUrlManager) : EndpointBaseSync.WithoutRequest.WithActionResult
     {
         [FromRoute(Name = "AudioBookId")]
@@ -15,18 +16,15 @@ namespace DotCast.Storage.API
         [FromRoute(Name = "FileId")]
         public string? FileId { get; set; }
 
-        [FromRoute]
-        public required string Signature { get; set; }
-
-        [HttpGet("/storage/archive/{AudioBookId}/{Signature}")]
-        [HttpGet("/storage/file/{AudioBookId}/{FileId}/{Signature}")]
+        [HttpGet("/storage/archive/{AudioBookId}")]
+        [HttpGet("/storage/file/{AudioBookId}/{FileId}")]
         public override ActionResult Handle()
         {
-            var validation = presignedUrlManager.ValidateUrl(HttpContext.Request.GetEncodedUrl());
-            if (!validation.result)
-            {
-                return Unauthorized(validation.message);
-            }
+            //var validation = presignedUrlManager.ValidateUrl(HttpContext.Request.GetEncodedUrl());
+            //if (!validation.result)
+            //{
+            //    return Unauthorized(validation.message);
+            //}
 
             var entry = IsFileRequest() ? storage.GetFileForRead(AudioBookId, FileId!) : storage.GetArchiveForRead(AudioBookId);
 

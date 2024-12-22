@@ -12,5 +12,6 @@
 	<ItemGroup>
 	  <ProjectReference Include="..\DotCast.Infrastructure.Messaging.Base\DotCast.Infrastructure.Messaging.Base.csproj" />
 	  <ProjectReference Include="..\DotCast.Storage\DotCast.Storage.csproj" />
+	  <ProjectReference Include="..\infrastructure\Shared.Infrastructure.Blazor.ClaimsManagement\Shared.Infrastructure.Blazor.ClaimsManagement.csproj" />
 	</ItemGroup>
 </Project>

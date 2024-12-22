@@ -17,7 +17,7 @@ namespace DotCast.Library.Handlers
             }
 
             var rss = await rssGenerator.GenerateRss(audioBook);
-            return rss?.Replace("&amp;", "&");
+            return rss;
         }
     }
 }
