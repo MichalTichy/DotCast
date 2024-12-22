@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DotCast.Storage.API
 {
-    [Authorize]
     public class DownloadFileEndpoint(IStorage storage, IPresignedUrlManager presignedUrlManager) : EndpointBaseSync.WithoutRequest.WithActionResult
     {
         [FromRoute(Name = "AudioBookId")]
