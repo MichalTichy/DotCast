@@ -9,5 +9,6 @@ namespace DotCast.SharedKernel.Models
         public TimeSpan Duration => TimeSpan.FromMinutes(DurationInMinutes);
         public required double DurationInMinutes { get; init; }
         public long? Size { get; init; }
+        public string? FileType { get; set; }
     }
 }

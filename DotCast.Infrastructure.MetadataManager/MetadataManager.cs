@@ -147,6 +147,7 @@ namespace DotCast.Infrastructure.MetadataManager
                         Name = chapterName,
                         DurationInMinutes = fileInfo.metadata.Properties.Duration.TotalMinutes,
                         Url = fileInfo.info.RemotePath,
+                        FileType = fileInfo.metadata.MimeType,
                         Size = info.Length
                     };
                     chapters.Add(chapter);

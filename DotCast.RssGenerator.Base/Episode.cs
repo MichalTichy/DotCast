@@ -20,7 +20,7 @@ namespace DotCast.RssGenerator.Base
 
         public string? FileUrl { get; set; }
 
-        public int FileLength { get; set; }
+        public long FileLength { get; set; }
 
         public string? FileType { get; set; }
     }
