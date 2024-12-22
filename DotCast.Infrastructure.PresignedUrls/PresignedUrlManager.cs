@@ -49,14 +49,14 @@ namespace DotCast.Infrastructure.PresignedUrls
             lastSegment = lastSegment.TrimEnd('/');
 
             // Split on '-'; we expect two parts: expiry and signature
-            var parts = lastSegment.Split(new[] { '-' }, 2);
+            var parts = lastSegment.Split(['-'], 2);
             if (parts.Length != 2)
             {
                 return (false, $"Invalid last segment. Expected 'expiry-signature' but got '{lastSegment}'");
             }
 
-            var expiryString = parts[0];
-            var receivedSignature = parts[1];
+            var expiryString = parts[1];
+            var receivedSignature = parts[2];
 
             if (string.IsNullOrEmpty(expiryString) || string.IsNullOrEmpty(receivedSignature))
             {
@@ -80,7 +80,7 @@ namespace DotCast.Infrastructure.PresignedUrls
             //
             // uri.GetLeftPart(UriPartial.Path) includes the trailing slash; we can remove it.
             // Then re-append /<expiryString>
-            var rawPath = uri.GetLeftPart(UriPartial.Path).TrimEnd('/');
+            var rawPath = uri.ToString().Replace(lastSegment,"").TrimEnd('/');
             var partialUrl = $"{rawPath}/{expiryString}";
 
             // Compute a new signature from partialUrl, compare with the receivedSignature
