@@ -37,6 +37,8 @@ namespace DotCast.App.Pages
         [Inject]
         public required IMessagePublisher Messenger { get; set; }
 
+        public bool IsAdmin => UserRoleManager.AdminRoleName == "Admin";
+
         protected override async Task OnInitializedAsync()
         {
             await base.OnInitializedAsync();

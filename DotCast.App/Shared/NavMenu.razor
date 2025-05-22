@@ -4,12 +4,12 @@
 @code
 {
     public string UserName { get; set; } = string.Empty;
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnInitializedAsync()
     {
         var user = await CurrentUserProvider.GetCurrentUserAsync();
         UserName = user?.Name ?? "User profile";
-        await base.OnAfterRenderAsync(firstRender);
-
+        StateHasChanged();
+        await base.OnInitializedAsync();
     }
 }
 

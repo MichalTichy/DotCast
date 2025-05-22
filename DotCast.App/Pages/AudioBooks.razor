@@ -3,11 +3,28 @@
 <Layout Sider>
     <LayoutSider>
         <div class="authors">
-            <span>Authors</span>
-            @foreach (var authorName in Data.Select(t => t.AudioBookInfo.AuthorName).Distinct().OrderBy(t => t))
+            <span class="authors-title">Authors</span>
+            @{
+                var authors = Data.Select(t => t.AudioBookInfo.AuthorName)
+                    .Where(n => !string.IsNullOrWhiteSpace(n))
+                    .Distinct()
+                    .OrderBy(n => n)
+                    .ToList();
+                var grouped = authors
+                    .GroupBy(a => char.ToUpper(a[0]))
+                    .OrderBy(g => g.Key);
+            }
+            @foreach (var group in grouped)
             {
-                <a class="authorLink" onclick="@($"document.getElementById('{authorName.Replace(" ", "")}').scrollIntoView({{behavior:'smooth'}})")">
-                    <div>@authorName</div></a>
+                <div class="author-group">
+                    <div class="author-letter">@group.Key</div>
+                    @foreach (var authorName in group)
+                    {
+                        <a class="authorLink" onclick="@($"document.getElementById('{authorName.Replace(" ", "") }').scrollIntoView({{behavior:'smooth'}})")">
+                            <div>@authorName</div>
+                        </a>
+                    }
+                </div>
             }
         </div>
     </LayoutSider>
@@ -23,8 +40,7 @@
 
         @foreach (var author in Data.GroupBy(t => t.AudioBookInfo.AuthorName).OrderBy(t => t.Key))
         {
-            <a id="@author.Key.Replace(" ", "")">
-            </a>
+            <a id="@author.Key.Replace(" ", "")"></a>
             <Divider DividerType="DividerType.TextContent" Text="@author.Key"></Divider>
             @foreach (var series in author.GroupBy(info => info.AudioBookInfo.SeriesName?.ToLower().Trim()))
             {
@@ -33,7 +49,6 @@
                     <div class="seriesDivider">@series.Key</div>
                 }
                 <div class="c-container">
-
                     @foreach (var audioBook in series.OrderBy(info => info.AudioBookInfo.OrderInSeries).ThenBy(info => info.AudioBookInfo.Name))
                     {
                         <div class="c-card">
@@ -41,7 +56,6 @@
                                 <img src="@audioBook.AudioBookInfo.ImageUrl" />
                             </div>
                             <div class="c-card-body">
-
                                 <h3>@audioBook.AudioBookInfo.Name</h3>
                                 <div id="categories">
                                     @foreach (var category in audioBook.AudioBookInfo.Categories)
@@ -56,7 +70,6 @@
                                 {
                                     <b>@audioBook.AudioBookInfo.SeriesName - @audioBook.AudioBookInfo.OrderInSeries</b>
                                 }
-
                                 <p class="description" title="@audioBook.AudioBookInfo.Description">
                                     @audioBook.AudioBookInfo.Description
                                 </p>
@@ -74,11 +87,9 @@
                                         <Icon Name="IconName.Download"></Icon>
                                     </Button>
                                 }
-
                                 <Button Clicked="async () => await CopyRssAsync(audioBook)">
                                     <Icon Name="IconName.Rss"></Icon>
                                 </Button>
-
                                 <a class="button" href="@($"AudioBook/{audioBook.Id}/edit")">
                                     <Icon Name="IconName.Pen"></Icon>
                                 </a>
@@ -86,7 +97,6 @@
                         </div>
                     }
                 </div>
-
             }
         }
         <script>

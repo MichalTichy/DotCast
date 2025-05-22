@@ -3,125 +3,58 @@
 @using DotCast.Infrastructure.AppUser
 @inherits AppPage
 
+<div class="user-profile-container">
+    <!-- User Profile Section -->
+    <div class="user-profile-card" style="width: 100%; max-width: 800px;">
+        <h2>User Profile</h2>
+        <h3>@UserName</h3>
+        <button class="logout-button" @onclick="() => NavigationManager.NavigateTo(LogoutEndpoint.Address)">Logout</button>
+    </div>
 
-<Container>
-
-    <Row>
-        <Column TextAlignment="TextAlignment.Center" ColumnSize="ColumnSize.IsHalf">
-            <h3>@UserName</h3>
-        </Column>
-        <Column ColumnSize="ColumnSize.IsHalf">
-            <Link To="@LogoutEndpoint.Address">Logout</Link>
-        </Column>
-    </Row>
-
-    <Row>
-        <Buttons TextAlignment="TextAlignment.Center">
-            <Button Clicked="async () => await uploadModalRef.Show()" Color="Color.Success">
-                Upload new
-            </Button>
-            <Button Clicked="async () => await uploadMultipleModalRef.Show()" Color="Color.Success">
-                Upload multiple hew
-            </Button>
-        </Buttons>
-    </Row>
-
-            <Row>
-                <p><strong>Your Library Name:</strong> @LibraryName</p>
-            </Row>
-            <Row>
-                <Field>
-                    <FieldLabel>Share library:</FieldLabel>
-                    <FieldBody>
-                        <TextEdit @bind-Text="@NewShare" Placeholder="Other users library code."/>
-                    </FieldBody>
-                </Field>
-            </Row>
-        <Row>
-            <Button Color="Color.Success" Clicked="() => ShareAsync()">Share</Button>
-        </Row>
-
-    <Row>
+    <!-- Library Sharing Section -->
+    <div class="library-sharing-card">
+        <h2>Library Sharing</h2>
+        <p><strong>Your Library Code:</strong> @LibraryName</p>
+        <div class="share-library-form">
+            <label for="share-input">Share library:</label>
+            <input id="share-input" type="text" @bind="NewShare" placeholder="Enter library code" />
+            <button class="share-button" @onclick="ShareAsync">Share</button>
+        </div>
 
         @if (SharedLibrariesWith.Count > 0)
         {
-            <Table Striped="true" Clearfix="true">
-                <TableHeader ThemeContrast="ThemeContrast.Dark">
-                    <TableHeaderCell>Username</TableHeaderCell>
-                    <TableHeaderCell></TableHeaderCell>
-                </TableHeader>
-                <TableBody>
+            <table class="shared-libraries-table">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
                     @foreach (var shareInfo in SharedLibrariesWith)
                     {
-                        <TableRow>
-                            <TableRowCell>@shareInfo.UserName</TableRowCell>
-                            <TableRowCell>
-                                <Button Color="Color.Danger" Clicked="() => UnShareAsync(shareInfo)">UnShare</Button>
-                            </TableRowCell>
-                        </TableRow>
+                        <tr>
+                            <td>@shareInfo.UserName</td>
+                            <td>
+                                <button class="unshare-button" @onclick="() => UnShareAsync(shareInfo)">Unshare</button>
+                            </td>
+                        </tr>
                     }
-                </TableBody>
-            </Table>
+                </tbody>
+            </table>
         }
-    </Row>
+    </div>
 
-
-    <AuthorizeView Roles="@UserRoleManager.AdminRoleName">
-        <hr/>
-        <Row>
-            <Buttons>
-
-                <Button Disabled="@IsProcessingRunning" Clicked="RestoreAudioBooksFromStorage" Color="Color.Warning">
-                    Restore audiobooks from Storage
-                </Button>
-                <Button Disabled="@IsProcessingRunning" Clicked="async () => await ReprocessAudioBooksFromStorage(false)" Color="Color.Warning">
-                    Reprocess audiobooks from Storage (No Unzip)
-                </Button>
-                <Button Disabled="@IsProcessingRunning" Clicked="async () => await ReprocessAudioBooksFromStorage(true)" Color="Color.Warning">
-                    Reprocess audiobooks from Storage (Unzip)
-                </Button>
-            </Buttons>
-
-            <hr/>
-        </Row>
-    </AuthorizeView>
-</Container>
-
-
-<Modal @ref="uploadModalRef">
-    <ModalContent Centered>
-        <ModalHeader>
-            <ModalTitle>Upload AudioBook</ModalTitle>
-            <CloseButton />
-        </ModalHeader>
-        <ModalBody>
-            <h3></h3>
-            <p>Enter AudioBook name</p>
-            <TextEdit TextChanged="BookNameTextChanged" />
-            <p>Id: @newAudioBookId</p>
-            @if (ReadyForUpload)
-            {
-                <p>
-                    <label>
-                        <FileUpload PresignedUrlFactory="files => GetPresignedUrls(newAudioBookId!,files)" />
-                    </label>
-                </p>
-            }
-        </ModalBody>
-    </ModalContent>
-</Modal>
-<Modal @ref="uploadMultipleModalRef">
-    <ModalContent Centered>
-        <ModalHeader>
-            <ModalTitle>Upload multiple audioBooks AudioBook</ModalTitle>
-            <CloseButton />
-        </ModalHeader>
-        <ModalBody>
-            <p>
-                <label>
-                    <FileUpload PresignedUrlFactory="GetPresignedUrls" />
-                </label>
-            </p>
-        </ModalBody>
-    </ModalContent>
-</Modal>
+    <!-- Admin Actions Section -->
+    @if (IsAdmin)
+    {
+        <div class="admin-actions-card">
+            <h2>Admin Actions</h2>
+            <div class="button-group">
+                <button id="restore-button" class="admin-button" @onclick="RestoreAudioBooksFromStorage" disabled="@IsProcessingRunning">Restore Audiobooks</button>
+                <button id="reprocess-no-unzip" class="admin-button" @onclick="async () => await ReprocessAudioBooksFromStorage(false)" disabled="@IsProcessingRunning">Reprocess (No Unzip)</button>
+                <button id="reprocess-unzip" class="admin-button" @onclick="async () => await ReprocessAudioBooksFromStorage(true)" disabled="@IsProcessingRunning">Reprocess (Unzip)</button>
+            </div>
+        </div>
+    }
+</div>
