@@ -1,6 +1,6 @@
-﻿using System.Security.Claims;
-using Shared.Infrastructure.AppUser;
-using Shared.Infrastructure.AppUser.Identity;
+using System.Security.Claims;
+using DotCast.Infrastructure.AppUser;
+using DotCast.Infrastructure.AppUser.Identity;
 
 namespace DotCast.Infrastructure.AppUser
 {

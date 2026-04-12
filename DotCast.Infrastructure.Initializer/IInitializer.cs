@@ -1,11 +1,17 @@
 using Microsoft.Extensions.Configuration;
 
-namespace DotCast.Infrastructure.Initializer
+namespace DotCast.Infrastructure.Initializer;
+
+public interface IInitializer
 {
-    public interface IInitializer
-    {
-        int Priority { get; }
-        public Task InitializeAsync(IConfiguration configuration);
-        string Name { get; }
-    }
+    /// <summary>
+    ///     The Initializers are first grouped by Trigger and than Sorted by priority.
+    /// </summary>
+    int Priority { get; }
+
+    InitializerTrigger Trigger { get; }
+
+    bool RunOnlyInLeaderInstance { get; }
+    string Name { get; }
+    public Task InitializeAsync(IConfiguration configuration);
 }

@@ -1,27 +1,31 @@
 using Microsoft.Extensions.Configuration;
 
-namespace DotCast.Infrastructure.Initializer
+namespace DotCast.Infrastructure.Initializer;
+
+public abstract class InitializerBase : IInitializer
 {
-    public abstract class InitializerBase : IInitializer
+    public bool DidRun { get; private set; }
+
+    /// <inheritdoc />
+    public abstract int Priority { get; }
+
+    public abstract InitializerTrigger Trigger { get; }
+
+    public abstract bool RunOnlyInLeaderInstance { get; }
+
+    public async Task InitializeAsync(IConfiguration configuration)
     {
-        public bool DidRun { get; private set; }
-
-        public abstract int Priority { get; }
-
-        public async Task InitializeAsync(IConfiguration configuration)
+        if (DidRun)
         {
-            if (DidRun)
-            {
-                throw new InitializerWasAlreadyExecutedException();
-            }
-
-            await RunInitializationLogicAsync();
-
-            DidRun = true;
+            throw new InitializerWasAlreadyExecutedException();
         }
 
-        protected abstract Task RunInitializationLogicAsync();
+        await RunInitializationLogicAsync();
 
-        public virtual string Name => GetType().Name;
+        DidRun = true;
     }
+
+    public virtual string Name => GetType().Name;
+
+    protected abstract Task RunInitializationLogicAsync();
 }

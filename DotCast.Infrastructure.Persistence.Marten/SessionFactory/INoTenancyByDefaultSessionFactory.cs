@@ -1,0 +1,3 @@
+namespace DotCast.Infrastructure.Persistence.Marten.SessionFactory;
+
+public interface INoTenancyByDefaultSessionFactory : ISessionFactoryWithAlternateTenantSettings;

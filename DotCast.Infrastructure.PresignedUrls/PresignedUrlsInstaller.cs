@@ -1,6 +1,6 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Shared.Infrastructure.IoC;
+using DotCast.Infrastructure.IoC;
 
 namespace DotCast.Infrastructure.PresignedUrls
 {

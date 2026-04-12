@@ -6,11 +6,11 @@ using DotCast.Storage.Processing;
 using DotCast.App.Services;
 using DotCast.Library.API;
 using DotCast.Storage.API;
-using Shared.Infrastructure.Initializer;
-using Shared.Infrastructure.IoC;
+using DotCast.Infrastructure.Initializer;
+using DotCast.Infrastructure.IoC;
 using Wolverine;
 using DotCast.Infrastructure.Messaging.Wolverine;
-using Shared.Infrastructure.Blazor.ClaimsManagement;
+using DotCast.Infrastructure.Blazor.ClaimsManagement;
 
 namespace DotCast.App
 {

@@ -1,4 +1,4 @@
-﻿using Shared.Infrastructure.Initializer;
+using DotCast.Infrastructure.Initializer;
 using Xabe.FFmpeg;
 using Xabe.FFmpeg.Downloader;
 

@@ -1,9 +1,9 @@
-﻿using DotCast.Infrastructure.AppUser;
+using DotCast.Infrastructure.AppUser;
 using DotCast.Infrastructure.Messaging.Base;
 using DotCast.SharedKernel.Messages;
 using DotCast.SharedKernel.Models;
-using Shared.Infrastructure.CurrentUserProvider;
-using Shared.Infrastructure.Persistence.Repositories;
+using DotCast.Infrastructure.CurrentUserProvider;
+using DotCast.Infrastructure.Persistence.Repositories;
 using Wolverine;
 
 namespace DotCast.Library.Handlers

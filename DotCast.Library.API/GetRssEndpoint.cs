@@ -1,12 +1,12 @@
-﻿using Ardalis.ApiEndpoints;
+using Ardalis.ApiEndpoints;
 using DotCast.Infrastructure.AppUser;
 using DotCast.Infrastructure.Messaging.Base;
 using DotCast.Infrastructure.PresignedUrls;
 using DotCast.SharedKernel.Messages;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
-using Shared.Infrastructure.Blazor.ClaimsManagement;
-using Shared.Infrastructure.UserManagement.Abstractions;
+using DotCast.Infrastructure.Blazor.ClaimsManagement;
+using DotCast.Infrastructure.UserManagement.Abstractions;
 using Wolverine;
 
 namespace DotCast.Library.API

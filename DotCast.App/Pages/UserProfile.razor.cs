@@ -1,4 +1,4 @@
-﻿using Blazorise;
+using Blazorise;
 using DotCast.App.Services;
 using DotCast.App.Shared;
 using DotCast.Infrastructure.AppUser;
@@ -6,7 +6,7 @@ using DotCast.Infrastructure.Messaging.Base;
 using DotCast.SharedKernel.Messages;
 using DotCast.SharedKernel.Models;
 using Microsoft.AspNetCore.Components;
-using Shared.Infrastructure.CurrentUserProvider;
+using DotCast.Infrastructure.CurrentUserProvider;
 
 namespace DotCast.App.Pages
 {

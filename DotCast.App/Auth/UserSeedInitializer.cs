@@ -1,10 +1,9 @@
-﻿using DotCast.Infrastructure.AppUser;
+using DotCast.Infrastructure.AppUser;
 using DotCast.SharedKernel.Models;
 using Microsoft.Extensions.Options;
-using Shared.Infrastructure.AppUser;
-using Shared.Infrastructure.AppUser.Identity;
-using Shared.Infrastructure.Initializer;
-using Shared.Infrastructure.UserManagement.Abstractions;
+using DotCast.Infrastructure.AppUser.Identity;
+using DotCast.Infrastructure.Initializer;
+using DotCast.Infrastructure.UserManagement.Abstractions;
 
 namespace DotCast.App.Auth
 {

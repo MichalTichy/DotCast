@@ -1,4 +1,4 @@
-﻿using DotCast.Infrastructure.AppUser;
+using DotCast.Infrastructure.AppUser;
 using DotCast.Library.RSS;
 using DotCast.Library.Storage;
 using DotCast.SharedKernel.Models;
@@ -6,12 +6,12 @@ using JasperFx.Core.Reflection;
 using Marten.Linq;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Shared.Infrastructure.CurrentUserProvider;
-using Shared.Infrastructure.IoC;
-using Shared.Infrastructure.Persistence.Marten.Repository.Document;
-using Shared.Infrastructure.Persistence.Marten.SessionFactory;
-using Shared.Infrastructure.Persistence.Marten.StorageConfiguration;
-using Shared.Infrastructure.Persistence.Repositories;
+using DotCast.Infrastructure.CurrentUserProvider;
+using DotCast.Infrastructure.IoC;
+using DotCast.Infrastructure.Persistence.Marten.Repository.Document;
+using DotCast.Infrastructure.Persistence.Marten.SessionFactory;
+using DotCast.Infrastructure.Persistence.Marten.StorageConfiguration;
+using DotCast.Infrastructure.Persistence.Repositories;
 
 namespace DotCast.Library
 {

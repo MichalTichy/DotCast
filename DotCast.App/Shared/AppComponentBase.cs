@@ -1,7 +1,7 @@
-﻿using DotCast.Infrastructure.AppUser;
+using DotCast.Infrastructure.AppUser;
 using Microsoft.AspNetCore.Components;
-using Shared.Infrastructure.AppUser.Identity;
-using Shared.Infrastructure.CurrentUserProvider;
+using DotCast.Infrastructure.AppUser.Identity;
+using DotCast.Infrastructure.CurrentUserProvider;
 
 namespace DotCast.App.Shared
 {

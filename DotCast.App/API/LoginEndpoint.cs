@@ -1,10 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.Web;
 using Ardalis.ApiEndpoints;
 using DotCast.Infrastructure.AppUser;
 using Microsoft.AspNetCore.Mvc;
-using Shared.Infrastructure.UIException;
-using Shared.Infrastructure.UserManagement.Abstractions;
+using DotCast.Infrastructure.UIException;
+using DotCast.Infrastructure.UserManagement.Abstractions;
 
 namespace DotCast.App.API
 {

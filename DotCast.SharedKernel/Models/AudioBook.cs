@@ -1,4 +1,4 @@
-using Shared.Infrastructure.Persistence;
+using DotCast.Infrastructure.Persistence;
 
 namespace DotCast.SharedKernel.Models
 {

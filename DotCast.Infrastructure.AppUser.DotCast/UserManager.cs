@@ -1,8 +1,8 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
-using Shared.Infrastructure.AppUser;
-using Shared.Infrastructure.AppUser.Identity;
-using Shared.Infrastructure.UserManagement;
+using DotCast.Infrastructure.AppUser;
+using DotCast.Infrastructure.AppUser.Identity;
+using DotCast.Infrastructure.UserManagement;
 
 namespace DotCast.Infrastructure.AppUser
 {

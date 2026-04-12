@@ -1,3 +1,0 @@
-[submodule "infrastructure"]
-	path = infrastructure
-	url = https://rigantitfs@dev.azure.com/rigantitfs/Infrastructure/_git/Shared.Infrastructure

@@ -1,7 +1,7 @@
-﻿using DotCast.Infrastructure.Messaging.Base;
+using DotCast.Infrastructure.Messaging.Base;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Shared.Infrastructure.IoC;
+using DotCast.Infrastructure.IoC;
 
 namespace DotCast.Infrastructure.Messaging.Wolverine
 {

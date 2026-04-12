@@ -1,70 +1,143 @@
-using System;
-using Ardalis.GuardClauses;
-using DotCast.Infrastructure.Persistence.Base.Repositories;
-using DotCast.Infrastructure.Persistence.Marten.Repository.Document;
-using DotCast.Infrastructure.Persistence.Marten.SessionFactory;
-using DotCast.Infrastructure.Persistence.Marten.UnitOfWorks;
-using DotCast.Infrastructure.UnitOfWorkBase;
+using System.Reflection;
+using JasperFx.Events.Daemon;
 using Marten;
+using Marten.Events.Daemon;
 using Marten.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
+using DotCast.Infrastructure.Persistence.Marten.Migration;
+using DotCast.Infrastructure.Persistence.Marten.Repository.Document;
+using DotCast.Infrastructure.Persistence.Marten.Repository.Events;
+using DotCast.Infrastructure.Persistence.Marten.SessionFactory;
+using DotCast.Infrastructure.Persistence.Marten.StorageConfiguration;
+using DotCast.Infrastructure.Persistence.Marten.UnitOfWorks;
+using DotCast.Infrastructure.Persistence.Repositories;
+using DotCast.Infrastructure.UnitOfWork;
 using Weasel.Core;
 
-namespace DotCast.Infrastructure.Persistence.Marten.Extensions
+namespace DotCast.Infrastructure.Persistence.Marten.Extensions;
+
+public static class ServiceCollectionExtensions
 {
-    public static class ServiceCollectionExtensions
+    [Obsolete("Use AddMartenPostgresPersistence without connectionString parameter instead. You need to register Npgsql datasource (AddNpgsqlDataSource).")]
+    public static IServiceCollection AddMartenPostgresPersistence(this IServiceCollection services,
+        string connectionString,
+        Action<StoreOptions>? configureStore = null,
+        Action<JsonSerializerSettings>? configureSerialization = null,
+        bool supportEventSourcing = false,
+        bool useTenancy = false)
     {
-        public static IServiceCollection AddMartenPostgresPersistence(this IServiceCollection services,
-            string connectionString,
-            Action<StoreOptions> configureStore)
+        services.AddNpgsqlDataSource(connectionString);
+        return AddMartenPostgresPersistence(services, configureStore, configureSerialization, supportEventSourcing, useTenancy);
+    }
+
+    public static IServiceCollection AddMartenPostgresPersistence(this IServiceCollection services,
+        Action<StoreOptions>? configureStore = null,
+        Action<JsonSerializerSettings>? configureSerialization = null,
+        bool supportEventSourcing = false,
+        bool useTenancy = false)
+    {
+        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
+        var serializer = new JsonNetSerializer
         {
-            Guard.Against.NullOrWhiteSpace(connectionString, nameof(connectionString));
+            EnumStorage = EnumStorage.AsString
+        };
 
-            var serializer = new JsonNetSerializer
+        serializer.Configure(jsonSerializer =>
+        {
+            jsonSerializer.TypeNameHandling = TypeNameHandling.Objects;
+
+            jsonSerializer.DateTimeZoneHandling = DateTimeZoneHandling.Unspecified;
+            configureSerialization?.Invoke(jsonSerializer);
+        });
+
+        var configurationExpression = services.AddMarten((IServiceProvider serviceProvider) =>
+        {
+            var storageConfigurations = serviceProvider.GetServices<IStorageConfiguration>().ToArray();
+            if (storageConfigurations.Length == 0)
             {
-                EnumStorage = EnumStorage.AsString
-            };
+                throw new ArgumentException(
+                    $"No {nameof(IStorageConfiguration)} found in services. {nameof(AddMartenPostgresPersistence)} must be called after {nameof(IStorageConfiguration)} are registered.");
+            }
 
-            serializer.Customize(jsonSerializer =>
+            var options = new StoreOptions();
+            options.Serializer(serializer);
+
+            options.Policies.AllDocumentsAreMultiTenanted();
+
+            foreach (var storageConfiguration in storageConfigurations)
             {
-                //some serialization options are set inside the resolver!
+                storageConfiguration.Configure(options);
+            }
 
-                jsonSerializer.TypeNameHandling = TypeNameHandling.Objects;
+            configureStore?.Invoke(options);
 
-                jsonSerializer.DateTimeZoneHandling = DateTimeZoneHandling.Unspecified;
-            });
+            return options;
+        });
 
-            var configurationExpression = services.AddMarten(options =>
-            {
-                options.Serializer(serializer);
+        configurationExpression.UseNpgsqlDataSource();
 
-                options.Connection(connectionString);
+        configurationExpression.ApplyAllDatabaseChangesOnStartup();
+        configurationExpression.AssertDatabaseMatchesConfigurationOnStartup();
 
-                configureStore.Invoke(options);
+        services.Scan(
+            selector => selector.FromAssemblies(Assembly.GetCallingAssembly())
+                .AddClasses(filter =>
+                    filter.AssignableTo(typeof(MartenReadEventRepository<>)))
+                .As(typeof(IReadEventRepository<>))
+                .WithScopedLifetime());
 
-                options.AutoCreateSchemaObjects = AutoCreate.None;
+        services.AddTransient<INoTenancyByDefaultSessionFactory, NoTenancyByDefaultSessionFactory>();
+        services.AddTransient<ISessionFactoryWithAlternateTenantSettings, SessionFactoryWithAlternateTenantSettings>();
+        services.AddTransient<IAsyncSessionFactory, AppMartenSessionFactory>();
 
-                options.CreateDatabasesForTenants(expressions => { expressions.ForTenant().ConnectionLimit(-1).CheckAgainstPgDatabase(); });
-            });
-            configurationExpression.ApplyAllDatabaseChangesOnStartup();
-            configurationExpression.AssertDatabaseMatchesConfigurationOnStartup();
-            //configurationExpression.AddAsyncDaemon(DaemonMode.HotCold);
+        if (useTenancy)
+        {
+            services.AddScoped(typeof(IRepository<>), typeof(MartenRepository<>));
+            services.AddScoped(typeof(IReadOnlyRepository<>), typeof(MartenRepository<>));
+        }
+        else
+        {
+            services.AddScoped(typeof(IRepository<>), typeof(NoTenancyMartenRepository<>));
+            services.AddScoped(typeof(IReadOnlyRepository<>), typeof(NoTenancyMartenRepository<>));
+        }
 
-            services.AddTransient<IAsyncSessionFactory, AppMartenSessionFactory>();
-            services.AddSingleton<IConnectionFactory, ConnectionFactory>(provider => new ConnectionFactory(connectionString));
+        services.AddScoped(typeof(INoTenancyRepository<>), typeof(NoTenancyMartenRepository<>));
+        services.AddScoped(typeof(INoTenancyReadOnlyRepository<>), typeof(NoTenancyMartenRepository<>));
+
+        services.AddSingleton<IUnitOfWorkExecutor, UnitOfWorkExecutor>();
+        services.AddTransient<IDatabaseMigrator, DatabaseMigrator>();
+
+        if (supportEventSourcing)
+        {
+            configurationExpression.AddAsyncDaemon(DaemonMode.HotCold);
+            services.AddScoped<IWriteEventRepository, MartenWriteEventRepository>();
 
             services.Scan(
-                selector => selector.FromCallingAssembly()
+                selector => selector.FromAssemblies(Assembly.GetCallingAssembly())
                     .AddClasses(filter =>
-                        filter.AssignableTo(typeof(MartenRepository<>)))
-                    .As(typeof(IRepository<>))
-                    .As(typeof(IReadOnlyRepository<>))
+                        filter.AssignableTo(typeof(MartenReadEventRepository<>)))
+                    .As(typeof(IReadEventRepository<>))
                     .WithScopedLifetime());
+        }
 
+        services.Scan(x => x
+            .FromApplicationDependencies()
+            .AddClasses(c => c.AssignableTo<IMartenMigration>())
+            .AsImplementedInterfaces());
 
-            services.AddSingleton<IUnitOfWorkExecutor, UnitOfWorkExecutor>();
-            return services;
+        return services;
+    }
+
+    public static void AutoDiscoverStorageConfigurations(this IServiceCollection services, Assembly assembly)
+    {
+        foreach (var t in assembly.GetTypes()
+                     .Where(t => t.IsClass
+                                 && !t.IsAbstract
+                                 && typeof(IStorageConfiguration).IsAssignableFrom(t)))
+        {
+            services.AddSingleton(typeof(IStorageConfiguration), t);
         }
     }
 }

@@ -1,5 +1,5 @@
-﻿using Shared.Infrastructure.AppUser;
-using Shared.Infrastructure.AppUser.Identity;
+using DotCast.Infrastructure.AppUser;
+using DotCast.Infrastructure.AppUser.Identity;
 
 namespace DotCast.Infrastructure.AppUser
 {

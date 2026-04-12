@@ -1,12 +1,8 @@
-using System.Threading;
-using System.Threading.Tasks;
+namespace DotCast.Infrastructure.Persistence.Marten.Migration;
 
-namespace DotCast.Infrastructure.Persistence.Marten.Migration
+public interface IDatabaseMigrator
 {
-    public interface IDatabaseMigrator
-    {
-        Task EnsureMigrationHistoryTableAsync(CancellationToken ct = default);
-        Task SaveLastMigrationToHistoryAsync(CancellationToken ct = default);
-        Task RunMigrationsAsync(CancellationToken ct = default);
-    }
+    Task<bool> EnsureMigrationHistoryTableAsync(CancellationToken ct = default);
+    Task SaveLastMigrationToHistoryAsync(CancellationToken ct = default);
+    Task RunMigrationsAsync(CancellationToken ct = default);
 }

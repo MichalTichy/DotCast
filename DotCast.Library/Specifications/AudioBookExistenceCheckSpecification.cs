@@ -1,6 +1,6 @@
-﻿using DotCast.SharedKernel.Models;
+using DotCast.SharedKernel.Models;
 using Marten;
-using Shared.Infrastructure.Persistence.Specifications;
+using DotCast.Infrastructure.Persistence.Specifications;
 
 namespace DotCast.Library.Specifications
 {

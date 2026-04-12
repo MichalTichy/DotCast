@@ -1,57 +1,61 @@
 using System.Data;
-using System.Threading.Tasks;
-using DotCast.Infrastructure.Persistence.Marten.UnitOfWorks;
 using Marten;
 using Marten.Services;
 using Npgsql;
+using DotCast.Infrastructure.CurrentTenancyProvider;
 
-namespace DotCast.Infrastructure.Persistence.Marten.SessionFactory
+namespace DotCast.Infrastructure.Persistence.Marten.SessionFactory;
+
+public class AppMartenSessionFactory(IDocumentStore store, ICurrentTenancyProvider currentTenancyProvider) : IAsyncSessionFactory
 {
-    public class AppMartenSessionFactory : IAsyncSessionFactory
+    protected readonly ICurrentTenancyProvider CurrentTenancyProvider = currentTenancyProvider;
+    protected readonly IDocumentStore Store = store;
+
+    public virtual async Task<IQuerySession> QuerySessionAsync(UnitOfWorks.UnitOfWork unitOfWork)
     {
-        private readonly IConnectionFactory connectionFactory;
-        protected readonly IDocumentStore Store;
+        var tenantId = await GetTenantIdAsync();
+        var sessionOptions = await CreateSessionOptionsAsync(tenantId, unitOfWork);
 
-        public AppMartenSessionFactory(IDocumentStore store, IConnectionFactory connectionFactory)
+        return Store.QuerySession(sessionOptions);
+    }
+
+    public virtual async Task<IDocumentSession> OpenSessionAsync(UnitOfWorks.UnitOfWork unitOfWork)
+    {
+        var tenantId = await GetTenantIdAsync();
+        var sessionOptions = await CreateSessionOptionsAsync(tenantId, unitOfWork);
+
+        return await Store.OpenSerializableSessionAsync(sessionOptions);
+    }
+
+    protected virtual async Task<SessionOptions> CreateSessionOptionsAsync(string? tenantId, UnitOfWorks.UnitOfWork unitOfWork)
+    {
+        await unitOfWork.EnsureInitializedAsync(GetOpenConnectionAsync, GetIsolationLevel());
+        var options = SessionOptions.ForTransaction(unitOfWork.Transaction!);
+
+        options.IsolationLevel = GetIsolationLevel();
+
+        if (tenantId != null)
         {
-            Store = store;
-            this.connectionFactory = connectionFactory;
+            options.TenantId = tenantId;
         }
 
-        public virtual async Task<IQuerySession> QuerySessionAsync(UnitOfWork unitOfWork)
-        {
-            var sessionOptions = await CreateSessionOptionsAsync(unitOfWork);
+        return options;
+    }
 
-            return Store.QuerySession(sessionOptions);
-        }
+    private async Task<NpgsqlConnection> GetOpenConnectionAsync()
+    {
+        var connection = Store.Storage.Database.CreateConnection();
+        await connection.OpenAsync();
+        return connection;
+    }
 
-        public virtual async Task<IDocumentSession> OpenSessionAsync(UnitOfWork unitOfWork)
-        {
-            var sessionOptions = await CreateSessionOptionsAsync(unitOfWork);
+    private IsolationLevel GetIsolationLevel()
+    {
+        return IsolationLevel.ReadCommitted;
+    }
 
-            return await Store.OpenSerializableSessionAsync(sessionOptions);
-        }
-
-        protected virtual async Task<SessionOptions> CreateSessionOptionsAsync(UnitOfWork unitOfWork)
-        {
-            await unitOfWork.EnsureInitializedAsync(CreateNewConnectionAsync, GetIsolationLevel());
-            var options = SessionOptions.ForTransaction(unitOfWork.Transaction!);
-
-            options.IsolationLevel = GetIsolationLevel();
-
-            return options;
-        }
-
-        private async Task<NpgsqlConnection> CreateNewConnectionAsync()
-        {
-            var connection = connectionFactory.Create();
-            await connection.OpenAsync();
-            return connection;
-        }
-
-        private IsolationLevel GetIsolationLevel()
-        {
-            return IsolationLevel.ReadCommitted;
-        }
+    private async Task<string> GetTenantIdAsync()
+    {
+        return await CurrentTenancyProvider.GetUserTenantAsync();
     }
 }

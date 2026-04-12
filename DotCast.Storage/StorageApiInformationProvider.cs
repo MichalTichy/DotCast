@@ -1,6 +1,6 @@
-﻿using DotCast.Infrastructure.PresignedUrls;
+using DotCast.Infrastructure.PresignedUrls;
 using Microsoft.Extensions.Options;
-using Shared.Infrastructure.UrlBuilder;
+using DotCast.Infrastructure.UrlBuilder;
 
 namespace DotCast.Storage
 {

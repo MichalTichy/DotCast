@@ -1,4 +1,4 @@
-using Shared.Infrastructure.IoC;
+using DotCast.Infrastructure.IoC;
 
 namespace DotCast.App.Installers
 {

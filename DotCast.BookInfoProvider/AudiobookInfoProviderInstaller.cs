@@ -1,8 +1,8 @@
-﻿using DotCast.Infrastructure.BookInfoProvider.Base;
+using DotCast.Infrastructure.BookInfoProvider.Base;
 using DotCast.Infrastructure.BookInfoProvider.DatabazeKnih;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Shared.Infrastructure.IoC;
+using DotCast.Infrastructure.IoC;
 
 namespace DotCast.BookInfoProvider
 {

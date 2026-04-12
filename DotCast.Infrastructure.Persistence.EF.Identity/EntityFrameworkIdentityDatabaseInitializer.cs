@@ -1,8 +1,7 @@
-﻿using DotCast.Infrastructure.AppUser;
+using DotCast.Infrastructure.AppUser;
 using Microsoft.AspNetCore.Identity;
-using Shared.Infrastructure.AppUser;
-using Shared.Infrastructure.AppUser.Identity;
-using Shared.Infrastructure.Persistence.EF.Identity;
+using DotCast.Infrastructure.AppUser.Identity;
+using DotCast.Infrastructure.Persistence.EF.Identity;
 
 namespace DotCast.Infrastructure.Persistence.EF.Identity
 {

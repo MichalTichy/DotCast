@@ -1,6 +1,6 @@
-﻿using DotCast.SharedKernel.Models;
+using DotCast.SharedKernel.Models;
 using Marten;
-using Shared.Infrastructure.Persistence.Marten.StorageConfiguration;
+using DotCast.Infrastructure.Persistence.Marten.StorageConfiguration;
 
 namespace DotCast.Library.Storage
 {

@@ -1,36 +1,27 @@
-using System;
 using Marten;
 using Marten.Schema.Identity;
 
-namespace DotCast.Infrastructure.Persistence.Marten.StorageConfiguration
+namespace DotCast.Infrastructure.Persistence.Marten.StorageConfiguration;
+
+public abstract class StorageConfigurationBase<T>(IMartenLogger? martenLogger) : IStorageConfiguration where T : IItemWithId
 {
-    public abstract class StorageConfigurationBase<T> : IStorageConfiguration where T : notnull
+    public virtual void Configure(StoreOptions options)
     {
-        private readonly IMartenLogger? martenLogger;
+        ConfigureInternal(options);
 
-        public StorageConfigurationBase(IMartenLogger? martenLogger)
+        options.Policies.ForAllDocuments(m =>
         {
-            this.martenLogger = martenLogger;
-        }
-
-        public virtual void Configure(StoreOptions options)
-        {
-            ConfigureInternal(options);
-
-            options.Policies.ForAllDocuments(m =>
+            if (m.IdType == typeof(Guid))
             {
-                if (m.IdType == typeof(Guid))
-                {
-                    m.IdStrategy = new NoOpIdGeneration();
-                }
-            });
-
-            if (martenLogger != null)
-            {
-                options.Logger(martenLogger);
+                m.IdStrategy = new NoOpIdGeneration();
             }
-        }
+        });
 
-        protected abstract void ConfigureInternal(StoreOptions options);
+        if (martenLogger != null)
+        {
+            options.Logger(martenLogger);
+        }
     }
+
+    protected abstract void ConfigureInternal(StoreOptions options);
 }

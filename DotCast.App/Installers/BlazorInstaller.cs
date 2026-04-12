@@ -2,8 +2,8 @@ using Blazorise;
 using Blazorise.Bootstrap;
 using Blazorise.Icons.FontAwesome;
 using Microsoft.AspNetCore.Components.Server.Circuits;
-using Shared.Infrastructure.Blazor.ClaimsManagement;
-using Shared.Infrastructure.IoC;
+using DotCast.Infrastructure.Blazor.ClaimsManagement;
+using DotCast.Infrastructure.IoC;
 
 namespace DotCast.App.Installers
 {

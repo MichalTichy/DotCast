@@ -1,6 +1,6 @@
-﻿using DotCast.Infrastructure.AppUser;
+using DotCast.Infrastructure.AppUser;
 using Microsoft.EntityFrameworkCore;
-using Shared.Infrastructure.Persistence.EF.Identity;
+using DotCast.Infrastructure.Persistence.EF.Identity;
 
 namespace DotCast.Infrastructure.Persistence.EF.Identity
 {

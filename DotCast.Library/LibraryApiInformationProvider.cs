@@ -1,6 +1,6 @@
-﻿using DotCast.Infrastructure.PresignedUrls;
-using Shared.Infrastructure.CurrentUserProvider;
-using Shared.Infrastructure.UrlBuilder;
+using DotCast.Infrastructure.PresignedUrls;
+using DotCast.Infrastructure.CurrentUserProvider;
+using DotCast.Infrastructure.UrlBuilder;
 
 namespace DotCast.Library
 {

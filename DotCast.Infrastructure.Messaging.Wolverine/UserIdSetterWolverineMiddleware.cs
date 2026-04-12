@@ -1,9 +1,9 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using DotCast.Infrastructure.AppUser;
 using Microsoft.Extensions.DependencyInjection;
-using Shared.Infrastructure.Blazor.ClaimsManagement;
-using Shared.Infrastructure.CurrentUserProvider;
-using Shared.Infrastructure.UserManagement.Abstractions;
+using DotCast.Infrastructure.Blazor.ClaimsManagement;
+using DotCast.Infrastructure.CurrentUserProvider;
+using DotCast.Infrastructure.UserManagement.Abstractions;
 using Wolverine;
 
 namespace DotCast.Infrastructure.Messaging.Wolverine

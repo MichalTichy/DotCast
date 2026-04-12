@@ -1,7 +1,7 @@
-﻿using Ardalis.ApiEndpoints;
+using Ardalis.ApiEndpoints;
 using DotCast.Infrastructure.AppUser;
 using Microsoft.AspNetCore.Mvc;
-using Shared.Infrastructure.UserManagement.Abstractions;
+using DotCast.Infrastructure.UserManagement.Abstractions;
 
 namespace DotCast.App.API
 {

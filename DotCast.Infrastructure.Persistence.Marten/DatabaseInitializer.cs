@@ -1,112 +1,117 @@
-using System.Threading.Tasks;
 using Ardalis.GuardClauses;
-using DotCast.Infrastructure.Initializer;
-using DotCast.Infrastructure.Persistence.Marten.Migration;
 using Marten;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Npgsql;
+using Polly;
+using DotCast.Infrastructure.Initializer;
+using DotCast.Infrastructure.Persistence.Marten.Migration;
+using System.Reflection;
+using JasperFx;
 using Weasel.Core;
 
-namespace DotCast.Infrastructure.Persistence.Marten
+namespace DotCast.Infrastructure.Persistence.Marten;
+
+public class DatabaseInitializer(IDocumentStore store, ILogger<DatabaseInitializer> logger, NpgsqlDataSource dataSource, IDatabaseMigrator databaseMigration) : InitializerBase
 {
-    public class DatabaseInitializer : InitializerBase
+    public override int Priority => int.MaxValue;
+    public override InitializerTrigger Trigger => InitializerTrigger.OnStartup;
+
+    public override bool RunOnlyInLeaderInstance => true;
+
+    protected override async Task RunInitializationLogicAsync()
     {
-        private readonly IDocumentStore store;
-        private readonly IConfiguration configuration;
-        private readonly ILogger<DatabaseInitializer> logger;
-        private readonly IDatabaseMigrator databaseMigrator;
-
-        public override int Priority => int.MaxValue;
-
-        public DatabaseInitializer(IDocumentStore store, IConfiguration configuration, ILogger<DatabaseInitializer> logger, IDatabaseMigrator databaseMigrator)
+        var documentTypes = store.Options.AllKnownDocumentTypes();
+        foreach (var documentType in documentTypes)
         {
-            this.store = store;
-            this.configuration = configuration;
-            this.logger = logger;
-            this.databaseMigrator = databaseMigrator;
+            logger.LogInformation("Found document {name}", documentType.Alias);
         }
 
-        protected override async Task RunInitializationLogicAsync()
+
+        var isNewDbCreated = await Policy
+            .Handle<NpgsqlException>()
+            .WaitAndRetryAsync(6, _ => TimeSpan.FromSeconds(5))
+            .ExecuteAsync(CreateDatabaseIfItDoesNotExistsAsync);
+
+        await ApplySchemaChangesAsync();
+        await ApplyMigrationsAsync(isNewDbCreated);
+    }
+
+    /// <summary>
+    ///     Temporary hack while following issue is not resolved:
+    ///     https://github.com/JasperFx/marten/issues/2786
+    /// </summary>
+    private async Task<bool> CreateDatabaseIfItDoesNotExistsAsync()
+    {
+        // Parse the connection string and replace the database name with 'postgres' temporarily
+
+        var builder = new NpgsqlConnectionStringBuilder(dataSource.ConnectionString);
+
+        if (string.IsNullOrWhiteSpace(builder.Password))
         {
-            var documentTypes = store.Options.AllKnownDocumentTypes();
-            foreach (var documentType in documentTypes)
+            // Use reflection to get the private field 'settings'
+            var settingsField = typeof(NpgsqlDataSource).GetProperty("Settings", BindingFlags.NonPublic | BindingFlags.Instance);
+            var value = settingsField?.GetValue(dataSource);
+            if (value is NpgsqlConnectionStringBuilder settings)
             {
-                logger.LogInformation("Found document {name}", documentType.Alias);
-            }
-
-            var connectionString = configuration.GetConnectionString(DatabaseConstants.ConnectionStringName);
-            Guard.Against.NullOrWhiteSpace(connectionString, nameof(connectionString));
-
-            var isNewDbCreated = await CreateDatabaseIfItDoesNotExistsAsync(connectionString);
-
-            await ApplySchemaChangesAsync();
-            await ApplyMigrationsAsync(isNewDbCreated);
-        }
-
-        /// <summary>
-        ///     Temporary hack while following issue is not resolved:
-        ///     https://github.com/JasperFx/marten/issues/2786
-        /// </summary>
-        private async Task<bool> CreateDatabaseIfItDoesNotExistsAsync(string connectionString)
-        {
-            // Parse the connection string and replace the database name with 'postgres' temporarily
-            var builder = new NpgsqlConnectionStringBuilder(connectionString);
-            var newDatabaseName = builder.Database;
-            Guard.Against.NullOrWhiteSpace(newDatabaseName, nameof(newDatabaseName));
-
-            builder.Database = "postgres";
-            var adminConnectionString = builder.ConnectionString;
-
-            try
-            {
-                await using var conn = new NpgsqlConnection(adminConnectionString);
-                await conn.OpenAsync();
-
-                // Check if the database already exists
-                await using var checkDbCommand = new NpgsqlCommand($"SELECT 1 FROM pg_database WHERE datname = '{newDatabaseName}'", conn);
-                var databaseExists = await checkDbCommand.ExecuteScalarAsync() != null;
-                if (databaseExists)
-                {
-                    return false;
-                }
-
-                logger.LogWarning("Database does not exists. Creating new one.");
-                // Create new database
-                await using var createDbCommand = new NpgsqlCommand($"CREATE DATABASE \"{newDatabaseName}\"", conn);
-                await createDbCommand.ExecuteNonQueryAsync();
-                return true;
-            }
-            catch (NpgsqlException ex)
-            {
-                logger.LogCritical(ex, "Error while ensuring that database exists.");
-                throw;
-            }
-        }
-
-        private async Task ApplySchemaChangesAsync()
-        {
-            logger.LogInformation("Applying database schema changes.");
-
-            await store.Storage.ApplyAllConfiguredChangesToDatabaseAsync(AutoCreate.CreateOrUpdate);
-
-            await store.Options.Tenancy.Default.Database.ApplyAllConfiguredChangesToDatabaseAsync(AutoCreate.CreateOrUpdate);
-        }
-
-        private async Task ApplyMigrationsAsync(bool isNewDb)
-        {
-            await databaseMigrator.EnsureMigrationHistoryTableAsync();
-
-            if (isNewDb)
-            {
-                logger.LogInformation("Saving the latest migration version to the history, because database was created just now and model is assumed to be up to date.");
-                await databaseMigrator.SaveLastMigrationToHistoryAsync();
+                builder = new NpgsqlConnectionStringBuilder(settings.ConnectionString);
             }
             else
             {
-                logger.LogInformation("Applying database migrations.");
-                await databaseMigrator.RunMigrationsAsync();
+                throw new ArgumentException("Unable to determine password to DB.");
             }
+        }
+
+        var newDatabaseName = builder.Database;
+        Guard.Against.NullOrWhiteSpace(newDatabaseName, nameof(newDatabaseName));
+        builder.Database = "postgres";
+
+        try
+        {
+            await using var connection = new NpgsqlConnection(builder.ToString());
+            await connection.OpenAsync();
+            // Check if the database already exists
+            await using var checkDbCommand = new NpgsqlCommand($"SELECT 1 FROM pg_database WHERE datname = '{newDatabaseName}'", connection);
+            var databaseExists = await checkDbCommand.ExecuteScalarAsync() != null;
+            if (databaseExists)
+            {
+                return false;
+            }
+
+            logger.LogWarning("Database does not exists. Creating new one.");
+            // Create new database
+            await using var createDbCommand = new NpgsqlCommand($"CREATE DATABASE \"{newDatabaseName}\"", connection);
+            await createDbCommand.ExecuteNonQueryAsync();
+            return true;
+        }
+        catch (NpgsqlException ex)
+        {
+            logger.LogCritical(ex, "Error while ensuring that database exists.");
+            throw;
+        }
+    }
+
+    private async Task ApplySchemaChangesAsync()
+    {
+        logger.LogInformation("Applying database schema changes.");
+
+        await store.Storage.ApplyAllConfiguredChangesToDatabaseAsync(AutoCreate.CreateOrUpdate);
+
+        await store.Options.Tenancy.Default.Database.ApplyAllConfiguredChangesToDatabaseAsync(AutoCreate.CreateOrUpdate);
+    }
+
+    private async Task ApplyMigrationsAsync(bool isNewDb)
+    {
+        await databaseMigration.EnsureMigrationHistoryTableAsync();
+
+        if (isNewDb)
+        {
+            logger.LogInformation("Saving the latest migration version to the history, because database was created just now and model is assumed to be up to date.");
+            await databaseMigration.SaveLastMigrationToHistoryAsync();
+        }
+        else
+        {
+            logger.LogInformation("Applying database migrations.");
+            await databaseMigration.RunMigrationsAsync();
         }
     }
 }

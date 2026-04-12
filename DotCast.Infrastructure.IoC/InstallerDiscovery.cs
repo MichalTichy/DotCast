@@ -2,90 +2,69 @@ using System.Reflection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace DotCast.Infrastructure.IoC
+namespace DotCast.Infrastructure.IoC;
+
+public static class InstallerDiscovery
 {
-    public static class InstallerDiscovery
+    public static void RunInstallersFromAllReferencedAssemblies(IServiceCollection serviceCollection,
+        IConfiguration configuration,
+        bool isProduction,
+        string dllPrefix,
+        bool forceLoadAssemblies = true,
+        FullAssemblyLoader? forceAssemblyLoader = null)
     {
-        public static void RunInstallersFromAllReferencedAssemblies(IServiceCollection serviceCollection,
-            IConfiguration configuration,
-            bool isProduction,
-            bool forceLoadAssemblies = true,
-            string dllPrefix = "DotCast")
+        if (forceLoadAssemblies)
         {
-            if (forceLoadAssemblies)
+            forceAssemblyLoader ??= FullAssemblyLoader.Default;
+            forceAssemblyLoader.Load(dllPrefix);
+            forceAssemblyLoader.Load("DotCast.Infrastructure");
+        }
+
+        var type = typeof(IInstaller);
+        var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+        var highPriorityInstallers = new List<IInstaller>();
+        var normalPriorityInstallers = new List<IInstaller>();
+        var lowPriorityInstallers = new List<IInstaller>();
+
+        foreach (var assembly in assemblies.Where(t => 
+                                     (t.GetName().Name?.StartsWith(dllPrefix) ?? true)
+                                     || (t.GetName().Name?.StartsWith("DotCast.Infrastructure") ?? true)))
+        {
+            foreach (var installerType in assembly.GetTypes().Where(p => type.GetTypeInfo().IsAssignableFrom(p) && p.IsClass && !p.IsAbstract))
             {
-                ForceLoadAssemblies(dllPrefix);
-            }
-
-            var type = typeof(IInstaller);
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-
-            var highPriorityInstallers = new List<IInstaller>();
-            var normalPriorityInstallers = new List<IInstaller>();
-            var lowPriorityInstallers = new List<IInstaller>();
-
-            foreach (var assembly in assemblies.Where(t => t.GetName().Name?.StartsWith(dllPrefix) ?? true))
-            {
-                foreach (var installerType in assembly.GetTypes().Where(p => type.GetTypeInfo().IsAssignableFrom(p) && p.IsClass && !p.IsAbstract))
+                if (Activator.CreateInstance(installerType) is not IInstaller installer)
                 {
-                    if (Activator.CreateInstance(installerType) is not IInstaller installer)
-                    {
-                        continue;
-                    }
-
-                    if (installer is IHighPriorityInstaller)
-                    {
-                        highPriorityInstallers.Add(installer);
-                    }
-                    else if (installer is ILowPriorityInstaller)
-                    {
-                        lowPriorityInstallers.Add(installer);
-                    }
-                    else
-                    {
-                        normalPriorityInstallers.Add(installer);
-                    }
+                    continue;
                 }
-            }
 
-
-            foreach (var installer in highPriorityInstallers)
-            {
-                installer.Install(serviceCollection, configuration, isProduction);
-            }
-
-
-            foreach (var installer in normalPriorityInstallers)
-            {
-                installer.Install(serviceCollection, configuration, isProduction);
-            }
-
-
-            foreach (var installer in lowPriorityInstallers)
-            {
-                installer.Install(serviceCollection, configuration, isProduction);
+                if (installer is IHighPriorityInstaller)
+                {
+                    highPriorityInstallers.Add(installer);
+                }
+                else if (installer is ILowPriorityInstaller)
+                {
+                    lowPriorityInstallers.Add(installer);
+                }
+                else
+                {
+                    normalPriorityInstallers.Add(installer);
+                }
             }
         }
 
-
-        private static void ForceLoadAssemblies(string? startsWith)
+        foreach (var installer in highPriorityInstallers)
         {
-            var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies().ToList();
-            var loadedPaths = loadedAssemblies.Select(a => a.Location).ToArray();
+            installer.Install(serviceCollection, configuration, isProduction);
+        }
 
-            string[] referencedPaths;
-            if (string.IsNullOrWhiteSpace(startsWith))
-            {
-                referencedPaths = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.dll");
-            }
-            else
-            {
-                referencedPaths = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, $"{startsWith}*.dll");
-            }
+        foreach (var installer in normalPriorityInstallers)
+        {
+            installer.Install(serviceCollection, configuration, isProduction);
+        }
 
-            var toLoad = referencedPaths.Where(r => !loadedPaths.Contains(r, StringComparer.InvariantCultureIgnoreCase)).ToList();
-
-            toLoad.ForEach(path => loadedAssemblies.Add(AppDomain.CurrentDomain.Load(AssemblyName.GetAssemblyName(path))));
+        foreach (var installer in lowPriorityInstallers)
+        {
+            installer.Install(serviceCollection, configuration, isProduction);
         }
     }
 }

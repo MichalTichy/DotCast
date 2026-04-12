@@ -1,12 +1,9 @@
-using System.Threading;
-using System.Threading.Tasks;
 using Marten;
 
-namespace DotCast.Infrastructure.Persistence.Marten.Migration
+namespace DotCast.Infrastructure.Persistence.Marten.Migration;
+
+public interface IMartenMigration
 {
-    public interface IMartenMigration
-    {
-        int Version { get; }
-        Task MigrateAsync(IDocumentSession session, CancellationToken ct);
-    }
+    int Version { get; }
+    Task MigrateAsync(IDocumentSession session, CancellationToken ct);
 }

@@ -1,6 +1,6 @@
-﻿using DotCast.Infrastructure.Messaging.Base;
+using DotCast.Infrastructure.Messaging.Base;
 using JasperFx.Core;
-using Shared.Infrastructure.CurrentUserProvider;
+using DotCast.Infrastructure.CurrentUserProvider;
 using System.Reflection.PortableExecutable;
 using DotCast.Infrastructure.AppUser;
 using Wolverine;

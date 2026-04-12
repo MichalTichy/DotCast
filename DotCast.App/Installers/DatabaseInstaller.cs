@@ -1,5 +1,5 @@
-using Shared.Infrastructure.IoC;
-using Shared.Infrastructure.Persistence.Marten.Extensions;
+using DotCast.Infrastructure.IoC;
+using DotCast.Infrastructure.Persistence.Marten.Extensions;
 
 namespace DotCast.App.Installers
 {

@@ -1,9 +1,9 @@
-﻿using DotCast.Infrastructure.AppUser;
+using DotCast.Infrastructure.AppUser;
 using DotCast.Infrastructure.Messaging.Base;
 using DotCast.SharedKernel.Messages;
 using DotCast.Storage.Abstractions;
 using Microsoft.Extensions.Logging;
-using Shared.Infrastructure.CurrentUserProvider;
+using DotCast.Infrastructure.CurrentUserProvider;
 
 namespace DotCast.Storage.Handlers
 {

@@ -9,13 +9,11 @@ using Microsoft.AspNetCore.Components.Server;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Shared.Infrastructure.AppUser;
-using Shared.Infrastructure.AppUser.Identity;
-using Shared.Infrastructure.CurrentTenancyProvider;
-using Shared.Infrastructure.CurrentUserProvider;
-using Shared.Infrastructure.CurrentUserProvider.Blazor;
-using Shared.Infrastructure.IoC;
-using Shared.Infrastructure.Persistence.EF.Identity;
+using DotCast.Infrastructure.AppUser.Identity;
+using DotCast.Infrastructure.CurrentTenancyProvider;
+using DotCast.Infrastructure.CurrentUserProvider;
+using DotCast.Infrastructure.CurrentUserProvider.Blazor;
+using DotCast.Infrastructure.IoC;
 using UserInfo = DotCast.Infrastructure.AppUser.UserInfo;
 
 namespace DotCast.App.Installers

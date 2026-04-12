@@ -1,7 +1,7 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Shared.Infrastructure.IoC;
-using Shared.Infrastructure.UserManagement.Abstractions;
+using DotCast.Infrastructure.IoC;
+using DotCast.Infrastructure.UserManagement.Abstractions;
 
 namespace DotCast.Infrastructure.AppUser
 {

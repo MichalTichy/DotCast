@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+<ItemGroup>
+    <ProjectReference Include="..\DotCast.Infrastructure.AppUser\DotCast.Infrastructure.AppUser.csproj" />
+    <ProjectReference Include="..\DotCast.Infrastructure.Blazor.ClaimsManagement\DotCast.Infrastructure.Blazor.ClaimsManagement.csproj" />
+    <ProjectReference Include="..\DotCast.Infrastructure.CurrentTenancyProvider\DotCast.Infrastructure.CurrentTenancyProvider.csproj" />
+    <ProjectReference Include="..\DotCast.Infrastructure.CurrentUserProvider\DotCast.Infrastructure.CurrentUserProvider.csproj" />
+  </ItemGroup>
+
+</Project>
