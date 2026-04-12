@@ -12,6 +12,11 @@ namespace DotCast.BookInfoProvider
             var result = new List<FoundBookInfo>();
             await foreach (var info in bookInfoProvider.GetBookInfoAsync(message.Name))
             {
+                if (!IsValidSuggestion(info))
+                {
+                    continue;
+                }
+
                 if (message.Count == null || result.Count < message.Count)
                 {
                     result.Add(info);
@@ -23,6 +28,14 @@ namespace DotCast.BookInfoProvider
             }
 
             return result;
+        }
+
+        private static bool IsValidSuggestion(FoundBookInfo info)
+        {
+            return !string.IsNullOrWhiteSpace(info.Title)
+                   && !string.Equals(info.Title, "ERROR", StringComparison.OrdinalIgnoreCase)
+                   && !string.IsNullOrWhiteSpace(info.Author)
+                   && !string.Equals(info.Author, "ERROR", StringComparison.OrdinalIgnoreCase);
         }
     }
 }

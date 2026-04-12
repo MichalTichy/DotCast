@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using System.Web;
 using Ardalis.ApiEndpoints;
 using DotCast.Infrastructure.AppUser;
 using Microsoft.AspNetCore.Mvc;
@@ -36,13 +35,18 @@ namespace DotCast.App.API
                 }
 
                 await userManager.LogoutAsync();
-                return Redirect($"/Login?Message={HttpUtility.UrlEncode("Login failed")}");
+                return RedirectToLoginWithMessage("Login failed");
             }
             catch (UiException exception)
             {
                 await userManager.LogoutAsync();
-                return Redirect($"/Login?Message={HttpUtility.UrlEncode(exception.MessageForUser)}");
+                return RedirectToLoginWithMessage(exception.MessageForUser);
             }
+        }
+
+        private static RedirectResult RedirectToLoginWithMessage(string message)
+        {
+            return new RedirectResult($"/Login/{Uri.EscapeDataString(message)}");
         }
     }
 }

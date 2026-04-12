@@ -84,6 +84,7 @@
                                 @if (!string.IsNullOrWhiteSpace(audioBook.AudioBookInfo.ArchiveUrl))
                                 {
                                     <Button class="button" Clicked="async () => await Download(audioBook)">
+                                        <span class="sr-only">Download audiobook</span>
                                         <Icon Name="IconName.Download"></Icon>
                                     </Button>
                                 }

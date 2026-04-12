@@ -1,6 +1,7 @@
 @page "/Login"
+@page "/Login/{Message}"
 @using DotCast.App.API
-@using Microsoft.AspNetCore.Mvc
+@using Microsoft.AspNetCore.WebUtilities
 
 @inject IJSRuntime js
 @inherits UnauthorizedAppPage
@@ -34,7 +35,12 @@
             <Button Color="Color.Primary" Clicked="@LoginAsync">
                 Login
             </Button>
-            @Message
+            @if (!string.IsNullOrWhiteSpace(Message))
+            {
+                <div class="alert alert-danger mt-3" role="alert">
+                    @Message
+                </div>
+            }
         </Field>
 </Div>
 @code {
@@ -43,8 +49,24 @@
     public string Password { get; set; } = null!;
     public bool RememberMe { get; set; }
 
-    [FromQuery(Name = "Message")]
+    [Parameter]
     public string? Message { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        if (!string.IsNullOrWhiteSpace(Message))
+        {
+            return;
+        }
+
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        var query = QueryHelpers.ParseQuery(uri.Query);
+
+        if (query.TryGetValue("Message", out var message))
+        {
+            Message = message.ToString();
+        }
+    }
 
     private async Task LoginAsync()
     {

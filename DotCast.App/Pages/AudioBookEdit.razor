@@ -135,24 +135,30 @@
         </ModalHeader>
         <ModalBody>
             <div class="suggestions">
-                @foreach (var suggestion in Suggestions)
+                @if (Suggestions.Count == 0)
                 {
-
-                    <Card Class="suggestion">
-                        <CardImage Source="@suggestion.ImgUrl"/>
-                        <CardBody>
-                            <h1>@suggestion.Title</h1>
-                            <b>@suggestion.Author</b>
-                            <p>@string.Join(" ; ",suggestion.Categories.Select(t=>t.Name))</p>
-                            @if (!string.IsNullOrWhiteSpace(suggestion.SeriesName))
-                            {
-                                <div><span>@suggestion.SeriesName</span> - <span>@suggestion.OrderInSeries</span></div>
-                            }
-                            <p>@suggestion.Description</p>
-                            <Rating ReadOnly="true" SelectedValue="@((int) Math.Round(suggestion.PercentageRating / 20.0))"/> <br/>
-                            <Button Color="Color.Link" Clicked="@(async () => await Prefill(suggestion))">Select</Button>
-                        </CardBody>
-                    </Card>
+                    <p>No valid suggestions found.</p>
+                }
+                else
+                {
+                    @foreach (var suggestion in Suggestions)
+                    {
+                        <Card Class="suggestion">
+                            <CardImage Source="@suggestion.ImgUrl"/>
+                            <CardBody>
+                                <h1>@suggestion.Title</h1>
+                                <b>@suggestion.Author</b>
+                                <p>@string.Join(" ; ",suggestion.Categories.Select(t=>t.Name))</p>
+                                @if (!string.IsNullOrWhiteSpace(suggestion.SeriesName))
+                                {
+                                    <div><span>@suggestion.SeriesName</span> - <span>@suggestion.OrderInSeries</span></div>
+                                }
+                                <p>@suggestion.Description</p>
+                                <Rating ReadOnly="true" SelectedValue="@((int) Math.Round(suggestion.PercentageRating / 20.0))"/> <br/>
+                                <Button Color="Color.Link" Clicked="@(async () => await Prefill(suggestion))">Select</Button>
+                            </CardBody>
+                        </Card>
+                    }
                 }
             </div>
         </ModalBody>

@@ -24,6 +24,7 @@ namespace DotCast.App.Pages
         public required UserManager UserManager { get; set; }
 
         public bool IsProcessingRunning { get; set; }
+        public bool IsAdmin { get; set; }
         public string AudioBookName { get; set; } = null!;
         private const int TypingDelay = 1000; // Delay in millisecond
 
@@ -37,14 +38,13 @@ namespace DotCast.App.Pages
         [Inject]
         public required IMessagePublisher Messenger { get; set; }
 
-        public bool IsAdmin => UserRoleManager.AdminRoleName == "Admin";
-
         protected override async Task OnInitializedAsync()
         {
             await base.OnInitializedAsync();
             var user = await UserProvider.GetCurrentUserRequiredAsync();
             UserName = user.Name!;
             LibraryName = user.UsersLibraryName;
+            IsAdmin = user.IsAdmin;
 
             _ = Task.Run(LoadSharingInfo);
         }

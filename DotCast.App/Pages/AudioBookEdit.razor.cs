@@ -51,6 +51,11 @@ namespace DotCast.App.Pages
 
         public async Task Prefill(FoundBookInfo suggestion)
         {
+            if (!IsValidSuggestion(suggestion))
+            {
+                return;
+            }
+
             Data.AudioBookInfo.Name = suggestion.Title;
             Data.AudioBookInfo.AuthorName = suggestion.Author;
             Data.AudioBookInfo.SeriesName = suggestion.SeriesName;
@@ -60,6 +65,14 @@ namespace DotCast.App.Pages
             Data.Rating = suggestion.PercentageRating;
 
             await suggestionsModalRef.Close(CloseReason.None);
+        }
+
+        private static bool IsValidSuggestion(FoundBookInfo suggestion)
+        {
+            return !string.IsNullOrWhiteSpace(suggestion.Title)
+                   && !string.Equals(suggestion.Title, "ERROR", StringComparison.OrdinalIgnoreCase)
+                   && !string.IsNullOrWhiteSpace(suggestion.Author)
+                   && !string.Equals(suggestion.Author, "ERROR", StringComparison.OrdinalIgnoreCase);
         }
 
         public async Task SaveAndExit()

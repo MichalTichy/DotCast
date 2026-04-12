@@ -8,7 +8,7 @@
     <div class="user-profile-card" style="width: 100%; max-width: 800px;">
         <h2>User Profile</h2>
         <h3>@UserName</h3>
-        <button class="logout-button" @onclick="() => NavigationManager.NavigateTo(LogoutEndpoint.Address)">Logout</button>
+        <button class="logout-button" @onclick="() => NavigationManager.NavigateTo(LogoutEndpoint.Address, forceLoad: true)">Logout</button>
     </div>
 
     <!-- Library Sharing Section -->
