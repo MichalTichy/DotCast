@@ -128,7 +128,20 @@
                             <h2>Suggestions</h2>
                             <p>Compare provider metadata before applying it.</p>
                         </div>
-                        <Button Color="Color.Info" Clicked="RefreshSuggestions" Disabled="@IsLoadingSuggestions">Refresh</Button>
+                    </div>
+                    <div class="metadata-grid">
+                        <Field>
+                            <FieldLabel>Search name</FieldLabel>
+                            <FieldBody><TextEdit @bind-Text="SuggestionSearchName" /></FieldBody>
+                        </Field>
+                        <Field>
+                            <FieldLabel>Search author</FieldLabel>
+                            <FieldBody><TextEdit @bind-Text="SuggestionSearchAuthor" /></FieldBody>
+                        </Field>
+                        <Field>
+                            <FieldLabel>&nbsp;</FieldLabel>
+                            <FieldBody><Button Color="Color.Info" Clicked="RefreshSuggestions" Disabled="@IsLoadingSuggestions">Search again</Button></FieldBody>
+                        </Field>
                     </div>
                     @if (IsLoadingSuggestions)
                     {

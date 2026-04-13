@@ -10,7 +10,7 @@ namespace DotCast.BookInfoProvider
         public async Task<IReadOnlyCollection<FoundBookInfo>> Handle(AudiobookInfoSuggestionsRequest message)
         {
             var result = new List<FoundBookInfo>();
-            await foreach (var info in bookInfoProvider.GetBookInfoAsync(message.Name))
+            await foreach (var info in bookInfoProvider.GetBookInfoAsync(message.Name, message.AuthorName))
             {
                 if (!IsValidSuggestion(info))
                 {

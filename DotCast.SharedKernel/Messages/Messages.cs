@@ -23,7 +23,7 @@ namespace DotCast.SharedKernel.Messages
 
     public record ReprocessAllAudioBooksRequest(bool Unzip = false);
 
-    public record AudiobookInfoSuggestionsRequest(string Name, int? Count = null);
+    public record AudiobookInfoSuggestionsRequest(string Name, int? Count = null, string? AuthorName = null);
 
     public record ApplyAudiobookSuggestionsToAllRequest;
 

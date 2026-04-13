@@ -33,7 +33,7 @@ namespace DotCast.BookInfoProvider
 
             foreach (var audioBook in audioBooks)
             {
-                var suggestions = await GetSuggestions(audioBook.AudioBookInfo.Name);
+                var suggestions = await GetSuggestions(audioBook.AudioBookInfo.Name, audioBook.AudioBookInfo.AuthorName);
                 if (suggestions.Count == 0)
                 {
                     noSuggestions++;
@@ -66,10 +66,10 @@ namespace DotCast.BookInfoProvider
             return new ApplyAudiobookSuggestionsToAllResult(audioBooks.Count, strongMatches, updated, noSuggestions, weakMatches);
         }
 
-        private async Task<IReadOnlyList<FoundBookInfo>> GetSuggestions(string name)
+        private async Task<IReadOnlyList<FoundBookInfo>> GetSuggestions(string name, string author)
         {
             var suggestions = new List<FoundBookInfo>();
-            await foreach (var suggestion in bookInfoProvider.GetBookInfoAsync(name))
+            await foreach (var suggestion in bookInfoProvider.GetBookInfoAsync(name, author))
             {
                 if (IsValidSuggestion(suggestion))
                 {

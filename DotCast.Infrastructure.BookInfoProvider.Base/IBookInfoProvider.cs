@@ -4,6 +4,6 @@ namespace DotCast.Infrastructure.BookInfoProvider.Base
 {
     public interface IBookInfoProvider
     {
-        IAsyncEnumerable<FoundBookInfo> GetBookInfoAsync(string name);
+        IAsyncEnumerable<FoundBookInfo> GetBookInfoAsync(string name, string? author = null);
     }
 }

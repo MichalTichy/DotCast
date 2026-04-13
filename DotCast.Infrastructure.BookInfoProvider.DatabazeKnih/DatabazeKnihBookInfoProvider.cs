@@ -13,10 +13,10 @@ namespace DotCast.Infrastructure.BookInfoProvider.DatabazeKnih
         private readonly Uri baseUri = new("https://www.databazeknih.cz/");
         private readonly CategoryMapper categoryMapper = new();
 
-        public async IAsyncEnumerable<FoundBookInfo> GetBookInfoAsync(string name)
+        public async IAsyncEnumerable<FoundBookInfo> GetBookInfoAsync(string name, string? author = null)
         {
             var count = 0;
-            await foreach (var foundBook in SearchAsync(name))
+            await foreach (var foundBook in SearchAsync(name, author))
             {
                 count++;
                 yield return await GetBookInfoAsync(foundBook);
@@ -154,16 +154,33 @@ namespace DotCast.Infrastructure.BookInfoProvider.DatabazeKnih
             return ParseFirstInteger(FirstText(page, "#bdetail_rest > span > span"));
         }
 
-        private async IAsyncEnumerable<BookSearchResult> SearchAsync(string bookName)
+        private async IAsyncEnumerable<BookSearchResult> SearchAsync(string bookName, string? author)
         {
-            var htmlEncodedName = Uri.EscapeDataString(bookName);
+            var seenUrls = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            if (!string.IsNullOrWhiteSpace(author))
+            {
+                await foreach (var result in SearchSingleQueryAsync($"{bookName} {author}", seenUrls))
+                {
+                    yield return result;
+                }
+            }
+
+            await foreach (var result in SearchSingleQueryAsync(bookName, seenUrls))
+            {
+                yield return result;
+            }
+        }
+
+        private async IAsyncEnumerable<BookSearchResult> SearchSingleQueryAsync(string query, HashSet<string> seenUrls)
+        {
+            var htmlEncodedName = Uri.EscapeDataString(query);
             var searchUrl = new Uri(baseUri, $"/search?q={htmlEncodedName}").ToString();
             var searchPage = await LoadPageAsync(searchUrl);
             var foundBookLinks = searchPage
                 .QuerySelectorAll("a[type=\"book\"], #left_less a[href*=\"/prehled-knihy/\"], #left_less a[href*=\"/knihy/\"]")
                 .OfType<IHtmlAnchorElement>();
 
-            var seenUrls = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var link in foundBookLinks)
             {
                 var href = link.GetAttribute("href");

@@ -38,6 +38,8 @@ namespace DotCast.App.Pages
         public bool IsLoadingSuggestions { get; set; }
         public bool SuggestionsLoaded { get; set; }
         public string? SuggestionsStatusMessage { get; set; }
+        public string SuggestionSearchName { get; set; } = string.Empty;
+        public string SuggestionSearchAuthor { get; set; } = string.Empty;
 
         public bool ApplyTitle { get; set; } = true;
         public bool ApplyAuthor { get; set; } = true;
@@ -59,6 +61,8 @@ namespace DotCast.App.Pages
             var response = await Messenger.RequestAsync<AudioBookDetailRequest, AudioBook>(request, PageCancellationTokenSource.Token);
 
             Data = response ?? throw new ArgumentException("Requested AudioBook not found");
+            SuggestionSearchName = Data.AudioBookInfo.Name;
+            SuggestionSearchAuthor = Data.AudioBookInfo.AuthorName;
         }
 
         public void UpdateMissingCategories()
@@ -126,7 +130,8 @@ namespace DotCast.App.Pages
 
             try
             {
-                var request = new AudiobookInfoSuggestionsRequest(Data.AudioBookInfo.Name);
+                EnsureSuggestionSearchFields();
+                var request = new AudiobookInfoSuggestionsRequest(SuggestionSearchName, AuthorName: SuggestionSearchAuthor);
                 var response = await Messenger.RequestAsync<AudiobookInfoSuggestionsRequest, IReadOnlyCollection<FoundBookInfo>>(request, PageCancellationTokenSource.Token);
                 Suggestions = response.Where(IsValidSuggestion).ToList();
                 SelectedSuggestion = Suggestions.FirstOrDefault();
@@ -160,9 +165,23 @@ namespace DotCast.App.Pages
             await ShowSuggestions(true);
         }
 
+        private void EnsureSuggestionSearchFields()
+        {
+            if (string.IsNullOrWhiteSpace(SuggestionSearchName))
+            {
+                SuggestionSearchName = Data.AudioBookInfo.Name;
+            }
+
+            if (string.IsNullOrWhiteSpace(SuggestionSearchAuthor))
+            {
+                SuggestionSearchAuthor = Data.AudioBookInfo.AuthorName;
+            }
+        }
+
         private async Task ShowSuggestions(bool force)
         {
             ActiveTab = "suggestions";
+            EnsureSuggestionSearchFields();
 
             if (IsLoadingSuggestions || SuggestionsLoaded && !force)
             {
