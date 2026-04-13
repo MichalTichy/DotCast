@@ -31,18 +31,22 @@ namespace DotCast.App.Pages
         public AudioBook? SelectedAudioBook { get; set; }
 
         private string? SearchText { get; set; }
+        private string? AuthorFacetSearchText { get; set; }
+        private string? CategoryFacetSearchText { get; set; }
         private HashSet<string> SelectedAuthors { get; } = new(StringComparer.InvariantCultureIgnoreCase);
         private HashSet<string> SelectedCategories { get; } = new(StringComparer.InvariantCultureIgnoreCase);
-        private HashSet<string> SelectedSeries { get; } = new(StringComparer.InvariantCultureIgnoreCase);
         private int? MinRating { get; set; }
         private int? MaxRating { get; set; }
         private bool IsLoading { get; set; }
+
+        private IEnumerable<string> FilteredAuthors => FilterFacets(Facets.Authors, AuthorFacetSearchText);
+        private IEnumerable<string> FilteredCategories => FilterFacets(Facets.Categories, CategoryFacetSearchText);
 
         private AudioBookLibraryFilter CurrentFilter => new(
             SearchText,
             SelectedAuthors.ToArray(),
             SelectedCategories.ToArray(),
-            SelectedSeries.ToArray(),
+            [],
             MinRating,
             MaxRating);
 
@@ -120,7 +124,6 @@ namespace DotCast.App.Pages
 
         private void ToggleAuthor(string author) => ToggleValue(SelectedAuthors, author);
         private void ToggleCategory(string category) => ToggleValue(SelectedCategories, category);
-        private void ToggleSeries(string series) => ToggleValue(SelectedSeries, series);
 
         private void ToggleValue(HashSet<string> target, string value)
         {
@@ -142,9 +145,10 @@ namespace DotCast.App.Pages
         private void ClearFilters()
         {
             SearchText = null;
+            AuthorFacetSearchText = null;
+            CategoryFacetSearchText = null;
             SelectedAuthors.Clear();
             SelectedCategories.Clear();
-            SelectedSeries.Clear();
             MinRating = null;
             MaxRating = null;
             UpdateUrlFromFilter();
@@ -166,7 +170,6 @@ namespace DotCast.App.Pages
             AddQuery(query, "q", SearchText);
             AddQuery(query, "authors", SelectedAuthors);
             AddQuery(query, "categories", SelectedCategories);
-            AddQuery(query, "series", SelectedSeries);
             AddQuery(query, "minRating", MinRating?.ToString());
             AddQuery(query, "maxRating", MaxRating?.ToString());
 
@@ -182,9 +185,18 @@ namespace DotCast.App.Pages
             SearchText = query.TryGetValue("q", out var searchText) ? searchText.ToString() : null;
             ReplaceValues(SelectedAuthors, query.TryGetValue("authors", out var authors) ? authors.ToString() : null);
             ReplaceValues(SelectedCategories, query.TryGetValue("categories", out var categories) ? categories.ToString() : null);
-            ReplaceValues(SelectedSeries, query.TryGetValue("series", out var series) ? series.ToString() : null);
             MinRating = query.TryGetValue("minRating", out var minRating) && int.TryParse(minRating, out var min) ? min : null;
             MaxRating = query.TryGetValue("maxRating", out var maxRating) && int.TryParse(maxRating, out var max) ? max : null;
+        }
+
+        private static IEnumerable<string> FilterFacets(IEnumerable<string> values, string? searchText)
+        {
+            if (string.IsNullOrWhiteSpace(searchText))
+            {
+                return values;
+            }
+
+            return values.Where(value => value.Contains(searchText.Trim(), StringComparison.InvariantCultureIgnoreCase));
         }
 
         private static void ReplaceValues(HashSet<string> target, string? value)

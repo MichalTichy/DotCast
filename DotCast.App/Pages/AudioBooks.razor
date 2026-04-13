@@ -30,45 +30,58 @@
                 }
             </div>
 
-            <section class="filter-section">
-                <h3>Rating</h3>
-                <button type="button" class="filter-pill @(MinRating == 80 ? "is-active" : "")" @onclick="() => SetRatingRange(80, null)">80%+</button>
-                <button type="button" class="filter-pill @(MinRating == 60 && MaxRating == 79 ? "is-active" : "")" @onclick="() => SetRatingRange(60, 79)">60-79%</button>
-                <button type="button" class="filter-pill @(MaxRating == 59 ? "is-active" : "")" @onclick="() => SetRatingRange(null, 59)">Below 60%</button>
-            </section>
-
-            <section class="filter-section">
-                <h3>Authors</h3>
-                @foreach (var author in Facets.Authors)
-                {
-                    <button type="button" class="filter-choice @(SelectedAuthors.Contains(author) ? "is-active" : "")" @onclick="() => ToggleAuthor(author)">
-                        @author
-                    </button>
-                }
-            </section>
-
-            <section class="filter-section">
-                <h3>Categories</h3>
-                @foreach (var category in Facets.Categories.Take(18))
-                {
-                    <button type="button" class="filter-choice @(SelectedCategories.Contains(category) ? "is-active" : "")" @onclick="() => ToggleCategory(category)">
-                        @category
-                    </button>
-                }
-            </section>
-
-            @if (Facets.Series.Count > 0)
-            {
-                <section class="filter-section">
-                    <h3>Series</h3>
-                    @foreach (var series in Facets.Series)
+            <details class="filter-collapse" open>
+                <summary>
+                    <span>Rating</span>
+                    @if (MinRating is not null || MaxRating is not null)
                     {
-                        <button type="button" class="filter-choice @(SelectedSeries.Contains(series) ? "is-active" : "")" @onclick="() => ToggleSeries(series)">
-                            @series
+                        <small>Active</small>
+                    }
+                </summary>
+                <div class="filter-section">
+                    <button type="button" class="filter-pill @(MinRating == 80 ? "is-active" : "")" @onclick="() => SetRatingRange(80, null)">80%+</button>
+                    <button type="button" class="filter-pill @(MinRating == 60 && MaxRating == 79 ? "is-active" : "")" @onclick="() => SetRatingRange(60, 79)">60-79%</button>
+                    <button type="button" class="filter-pill @(MaxRating == 59 ? "is-active" : "")" @onclick="() => SetRatingRange(null, 59)">Below 60%</button>
+                </div>
+            </details>
+
+            <details class="filter-collapse" open>
+                <summary>
+                    <span>Authors</span>
+                    @if (SelectedAuthors.Count > 0)
+                    {
+                        <small>@SelectedAuthors.Count</small>
+                    }
+                </summary>
+                <div class="filter-section">
+                    <TextEdit Class="filter-search" Placeholder="Search authors" @bind-Text="@AuthorFacetSearchText" />
+                    @foreach (var author in FilteredAuthors)
+                    {
+                        <button type="button" class="filter-choice @(SelectedAuthors.Contains(author) ? "is-active" : "")" @onclick="() => ToggleAuthor(author)">
+                            @author
                         </button>
                     }
-                </section>
-            }
+                </div>
+            </details>
+
+            <details class="filter-collapse" open>
+                <summary>
+                    <span>Categories</span>
+                    @if (SelectedCategories.Count > 0)
+                    {
+                        <small>@SelectedCategories.Count</small>
+                    }
+                </summary>
+                <div class="filter-section">
+                    <TextEdit Class="filter-search" Placeholder="Search categories" @bind-Text="@CategoryFacetSearchText" />
+                    @foreach (var category in FilteredCategories)
+                    {
+                        <button type="button" class="filter-choice @(SelectedCategories.Contains(category) ? "is-active" : "")" @onclick="() => ToggleCategory(category)">
+                            @category
+                        </button>
+                    }
+                </div>
+            </details>
         </aside>
 
         <main class="library-content">
@@ -131,27 +144,47 @@
                             <h2>@author.Key</h2>
                             <span>@author.Count() title(s)</span>
                         </div>
-                        <div class="poster-row">
-                            @foreach (var audioBook in author.OrderBy(book => book.AudioBookInfo.SeriesName).ThenBy(book => book.AudioBookInfo.OrderInSeries).ThenBy(book => book.AudioBookInfo.Name))
-                            {
-                                <article class="poster-card">
-                                    <button type="button" class="poster-button" @onclick="() => ShowDetails(audioBook)">
-                                        @if (!string.IsNullOrWhiteSpace(audioBook.AudioBookInfo.ImageUrl))
-                                        {
-                                            <img src="@audioBook.AudioBookInfo.ImageUrl" alt="@audioBook.AudioBookInfo.Name cover" />
-                                        }
-                                        else
-                                        {
-                                            <span>@audioBook.AudioBookInfo.Name</span>
-                                        }
-                                    </button>
-                                    <div class="poster-info">
-                                        <h3>@audioBook.AudioBookInfo.Name</h3>
-                                        <p>@audioBook.Rating % - @($"{audioBook.AudioBookInfo.Duration.TotalHours:F0}:{audioBook.AudioBookInfo.Duration.Minutes:D2}")</p>
-                                    </div>
-                                </article>
-                            }
-                        </div>
+
+                        @foreach (var series in author
+                            .GroupBy(book => string.IsNullOrWhiteSpace(book.AudioBookInfo.SeriesName) ? "Standalone titles" : book.AudioBookInfo.SeriesName)
+                            .OrderBy(group => group.Key == "Standalone titles" ? 1 : 0)
+                            .ThenBy(group => group.Key))
+                        {
+                            <div class="series-splitter">
+                                <span>@series.Key</span>
+                            </div>
+
+                            <div class="poster-row">
+                                @foreach (var audioBook in series.OrderBy(book => book.AudioBookInfo.OrderInSeries).ThenBy(book => book.AudioBookInfo.Name))
+                                {
+                                    <article class="poster-card">
+                                        <button type="button" class="poster-button" @onclick="() => ShowDetails(audioBook)">
+                                            @if (!string.IsNullOrWhiteSpace(audioBook.AudioBookInfo.ImageUrl))
+                                            {
+                                                <img src="@audioBook.AudioBookInfo.ImageUrl" alt="@audioBook.AudioBookInfo.Name cover" />
+                                            }
+                                            else
+                                            {
+                                                <span>@audioBook.AudioBookInfo.Name</span>
+                                            }
+                                        </button>
+                                        <div class="poster-info">
+                                            <h3>@audioBook.AudioBookInfo.Name</h3>
+                                            <p>@audioBook.Rating % - @($"{audioBook.AudioBookInfo.Duration.TotalHours:F0}:{audioBook.AudioBookInfo.Duration.Minutes:D2}")</p>
+                                            @if (audioBook.AudioBookInfo.Categories.Count > 0)
+                                            {
+                                                <div class="poster-tags" aria-label="@($"{audioBook.AudioBookInfo.Name} categories")">
+                                                    @foreach (var category in audioBook.AudioBookInfo.Categories)
+                                                    {
+                                                        <span>@category.Name</span>
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
+                                    </article>
+                                }
+                            </div>
+                        }
                     </section>
                 }
 

@@ -275,10 +275,50 @@ select {
     margin: 0;
 }
 
+.filter-collapse {
+    margin-top: 18px;
+}
+
+.filter-collapse summary {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 36px;
+    color: var(--dc-muted);
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    cursor: pointer;
+    list-style: none;
+}
+
+.filter-collapse summary::-webkit-details-marker {
+    display: none;
+}
+
+.filter-collapse summary::after {
+    color: var(--dc-accent-2);
+    content: "+";
+}
+
+.filter-collapse[open] summary::after {
+    content: "-";
+}
+
+.filter-collapse summary small {
+    margin-left: auto;
+    padding: 2px 7px;
+    border: 1px solid rgba(216, 137, 47, 0.34);
+    border-radius: 999px;
+    color: var(--dc-accent-2);
+    font-size: 0.68rem;
+}
+
 .filter-section {
     display: grid;
     gap: 8px;
-    margin-top: 18px;
+    margin-top: 6px;
 }
 
 .filter-section h3 {
@@ -305,6 +345,12 @@ select {
 
 .filter-choice {
     padding: 6px 0;
+}
+
+.filter-search {
+    min-height: 36px;
+    margin-bottom: 4px;
+    padding: 6px 10px;
 }
 
 .filter-pill:hover,
@@ -418,6 +464,33 @@ select {
     color: var(--dc-muted);
 }
 
+.series-splitter {
+    display: grid;
+    grid-template-columns: minmax(24px, 1fr) auto minmax(24px, 1fr);
+    gap: 12px;
+    align-items: center;
+    margin: 14px 0 12px;
+    color: var(--dc-muted);
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.series-splitter::before,
+.series-splitter::after {
+    display: block;
+    height: 1px;
+    background: var(--dc-border);
+    content: "";
+}
+
+.series-splitter span {
+    max-width: min(52vw, 520px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .poster-row {
     display: grid;
     grid-auto-columns: 148px;
@@ -467,6 +540,31 @@ select {
     overflow: hidden;
     color: var(--dc-muted);
     font-size: 0.82rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.poster-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 7px;
+    max-height: 46px;
+    overflow: hidden;
+}
+
+.poster-tags span {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    min-height: 20px;
+    padding: 2px 7px;
+    overflow: hidden;
+    border: 1px solid var(--dc-border);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #d7deea;
+    font-size: 0.72rem;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
