@@ -13,57 +13,6 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
-- task: Bash@3
-  displayName: 'Replace submodule URLs with PAT and pull submodules'
-  inputs:
-    targetType: 'inline'
-    script: |
-      echo "Adding PAT to submodule URLs"
-
-      # Ensure the PAT environment variable is available
-      if [ -z "$PAT" ]; then
-        echo "Error: PAT environment variable is not set."
-        exit 1
-      fi
-
-      # Get the submodule URLs from .gitmodules
-      submodules=$(git config -f .gitmodules --get-regexp '^submodule\..*\.url$')
-
-      # Loop through each line of submodule data
-      echo "$submodules" | while IFS= read -r line; do
-        # Skip empty lines
-        if [ -z "$line" ]; then
-          continue
-        fi
-
-        # Split the line into key and value
-        key=$(echo "$line" | awk '{print $1}')
-        url=$(echo "$line" | awk '{print $2}')
-        echo "Processing $key"
-
-        # Insert the PAT into the URL
-        # Replace existing authentication info (if any) with the PAT
-        new_url=$(echo "$url" | sed -E "s|https://[^@]*@|https://$PAT@|")
-
-        # If there was no existing auth info, insert the PAT after https://
-        if [ "$new_url" = "$url" ]; then
-          new_url=$(echo "$url" | sed -E "s|https://|https://$PAT@|")
-        fi
-
-        # Update the .gitmodules file
-        git config -f .gitmodules "$key" "$new_url"
-      done
-
-      # Synchronize the submodule URLs
-      git submodule sync
-
-      # Pull the submodule code
-      git submodule update --init --recursive
-
-      # Reset the .gitmodules file to avoid committing the PAT
-      git checkout .gitmodules
-  env:
-    PAT: $(PAT)
 
 - task: DotNetCoreCLI@2
   inputs:
