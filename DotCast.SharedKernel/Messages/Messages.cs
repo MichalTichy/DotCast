@@ -38,5 +38,7 @@ namespace DotCast.SharedKernel.Messages
     //LIBRARY
     public record AudioBookRssRequest(string Id);
 
+    public record AudioBookRssLinkGenerated(string AudioBookId);
+
     public record AudioBookDeleted(string Id);
 }
