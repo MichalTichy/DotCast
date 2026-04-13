@@ -47,8 +47,8 @@ namespace DotCast.Infrastructure.BookInfoProvider.DatabazeKnih
                                                ?? GetMetaContent(page, "meta[name=\"description\"]"));
             description = StripAuthorSuffix(description, author);
 
-            var seriesName = FirstText(page, "#bdetail_rest > div.detail_description > h3 > a", "#bdetail_rest > h3 > a");
-            var orderInSeries = ParseFirstInteger(FirstText(page, "#bdetail_rest > span > span"));
+            var seriesName = ExtractSeriesName(page);
+            var orderInSeries = ExtractOrderInSeries(page);
 
             var imgUrl = ToAbsoluteUrl(schema?.ImgUrl
                                        ?? FirstAttribute(page, "#icover_mid > a > img", "src")
@@ -119,6 +119,39 @@ namespace DotCast.Infrastructure.BookInfoProvider.DatabazeKnih
             }
 
             return string.Concat(node.ChildNodes.Select(TextContentWithoutToggle));
+        }
+
+        private static string? ExtractSeriesName(IDocument page)
+        {
+            foreach (var link in page.QuerySelectorAll("#bdetail_rest .orangeBoxSmall a[href*=\"/serie/\"]"))
+            {
+                var text = NormalizeWhitespace(link.GetAttribute("title")) ?? NormalizeWhitespace(link.TextContent);
+                if (!string.IsNullOrWhiteSpace(text))
+                {
+                    return text;
+                }
+            }
+
+            return FirstText(page, "#bdetail_rest > div.detail_description > h3 > a", "#bdetail_rest > h3 > a");
+        }
+
+        private static int ExtractOrderInSeries(IDocument page)
+        {
+            foreach (var seriesBox in page.QuerySelectorAll("#bdetail_rest .orangeBoxSmall"))
+            {
+                if (seriesBox.QuerySelector("a[href*=\"/serie/\"]") == null)
+                {
+                    continue;
+                }
+
+                var order = ParseFirstInteger(FirstText(seriesBox, ".nowrap span", ".nowrap"));
+                if (order > 0)
+                {
+                    return order;
+                }
+            }
+
+            return ParseFirstInteger(FirstText(page, "#bdetail_rest > span > span"));
         }
 
         private async IAsyncEnumerable<BookSearchResult> SearchAsync(string bookName)
@@ -265,6 +298,20 @@ namespace DotCast.Infrastructure.BookInfoProvider.DatabazeKnih
             foreach (var selector in selectors)
             {
                 var text = NormalizeWhitespace(page.QuerySelector(selector)?.TextContent);
+                if (!string.IsNullOrWhiteSpace(text))
+                {
+                    return text;
+                }
+            }
+
+            return null;
+        }
+
+        private static string? FirstText(IElement element, params string[] selectors)
+        {
+            foreach (var selector in selectors)
+            {
+                var text = NormalizeWhitespace(element.QuerySelector(selector)?.TextContent);
                 if (!string.IsNullOrWhiteSpace(text))
                 {
                     return text;

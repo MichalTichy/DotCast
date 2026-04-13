@@ -37,6 +37,8 @@ namespace DotCast.App.Pages
 
         public bool IsProcessingRunning { get; set; }
         public int CountOfRunningProcessings { get; set; }
+        public bool IsApplyingSuggestions { get; set; }
+        public string? SuggestionUpdateMessage { get; set; }
 
 
         protected override void OnAfterRender(bool firstRender)
@@ -84,6 +86,37 @@ namespace DotCast.App.Pages
 
             var restoreFromFileSystemRequest = new ReprocessAllAudioBooksRequest(unzipFirst);
             await Messenger.PublishAsync(restoreFromFileSystemRequest);
+        }
+
+        private async Task ApplyStrongSuggestions()
+        {
+            if (IsProcessingRunning || IsApplyingSuggestions)
+            {
+                return;
+            }
+
+            IsApplyingSuggestions = true;
+            SuggestionUpdateMessage = "Looking up strong metadata matches...";
+            await SaveStateHasChangedAsync();
+
+            try
+            {
+                var result = await Messenger.RequestAsync<ApplyAudiobookSuggestionsToAllRequest, ApplyAudiobookSuggestionsToAllResult>(
+                    new ApplyAudiobookSuggestionsToAllRequest(),
+                    PageCancellationTokenSource.Token);
+
+                SuggestionUpdateMessage =
+                    $"Checked {result.Total} audiobook(s). Strong matches: {result.StrongMatches}. Updated: {result.Updated}. No suggestions: {result.NoSuggestions}. Weak matches skipped: {result.WeakMatches}.";
+            }
+            catch (Exception exception) when (!PageCancellationTokenSource.IsCancellationRequested)
+            {
+                SuggestionUpdateMessage = $"Suggestion update failed: {exception.Message}";
+            }
+            finally
+            {
+                IsApplyingSuggestions = false;
+                await SaveStateHasChangedAsync();
+            }
         }
 
         private void BookNameTextChanged(string text)

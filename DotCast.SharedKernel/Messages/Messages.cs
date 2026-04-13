@@ -25,6 +25,10 @@ namespace DotCast.SharedKernel.Messages
 
     public record AudiobookInfoSuggestionsRequest(string Name, int? Count = null);
 
+    public record ApplyAudiobookSuggestionsToAllRequest;
+
+    public record ApplyAudiobookSuggestionsToAllResult(int Total, int StrongMatches, int Updated, int NoSuggestions, int WeakMatches);
+
 
     //STORAGE
     public record AudioBookStorageMetadataUpdated(AudioBookInfo AudioBookInfo);

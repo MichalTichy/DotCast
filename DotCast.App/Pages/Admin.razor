@@ -32,10 +32,17 @@
                 <button id="reprocess-unzip" class="secondary-action as-button" @onclick="async () => await ReprocessAudioBooksFromStorage(true)" disabled="@IsProcessingRunning">
                     Reprocess with unzip
                 </button>
+                <button id="apply-strong-suggestions" class="secondary-action as-button" @onclick="ApplyStrongSuggestions" disabled="@(IsProcessingRunning || IsApplyingSuggestions)">
+                    @(IsApplyingSuggestions ? "Applying suggestions..." : "Apply strong suggestions")
+                </button>
             </div>
             @if (IsProcessingRunning)
             {
                 <p class="inline-status">Maintenance actions are disabled while processing is running.</p>
+            }
+            @if (!string.IsNullOrWhiteSpace(SuggestionUpdateMessage))
+            {
+                <p class="inline-status">@SuggestionUpdateMessage</p>
             }
         </section>
     </main>
