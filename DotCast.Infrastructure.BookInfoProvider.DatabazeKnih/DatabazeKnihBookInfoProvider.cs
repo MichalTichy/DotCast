@@ -41,8 +41,8 @@ namespace DotCast.Infrastructure.BookInfoProvider.DatabazeKnih
                          ?? FirstText(page, ".orangeBoxLight span.author a", "span.author a", ".jmenaautoru a")
                          ?? ExtractAuthorFromPageTitle(page);
 
-            var description = RemoveWhitespace(schema?.Description
-                                               ?? FirstText(page, "p[itemprop=\"description\"] span.start_text", "p.justify.new2.odtop")
+            var description = RemoveWhitespace(ExtractDescription(page)
+                                               ?? schema?.Description
                                                ?? GetMetaContent(page, "meta[property=\"og:description\"]")
                                                ?? GetMetaContent(page, "meta[name=\"description\"]"));
             description = StripAuthorSuffix(description, author);
@@ -82,6 +82,43 @@ namespace DotCast.Infrastructure.BookInfoProvider.DatabazeKnih
         private static string? RemoveWhitespace(string? input)
         {
             return NormalizeWhitespace(input);
+        }
+
+        private static string? ExtractDescription(IDocument page)
+        {
+            foreach (var selector in new[] { "p[itemprop=\"description\"]", "p.new2.odtop", "p.justify.new2.odtop" })
+            {
+                foreach (var paragraph in page.QuerySelectorAll(selector))
+                {
+                    if (paragraph.ClassList.Contains("comment-text"))
+                    {
+                        continue;
+                    }
+
+                    var text = NormalizeWhitespace(TextContentWithoutToggle(paragraph));
+                    if (!string.IsNullOrWhiteSpace(text))
+                    {
+                        return text;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private static string TextContentWithoutToggle(INode node)
+        {
+            if (node is IElement element && element.Matches("a.show_hide_more"))
+            {
+                return string.Empty;
+            }
+
+            if (node.NodeType == NodeType.Text)
+            {
+                return node.TextContent;
+            }
+
+            return string.Concat(node.ChildNodes.Select(TextContentWithoutToggle));
         }
 
         private async IAsyncEnumerable<BookSearchResult> SearchAsync(string bookName)
