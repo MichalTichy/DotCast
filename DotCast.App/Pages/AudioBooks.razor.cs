@@ -14,6 +14,7 @@ namespace DotCast.App.Pages
     public partial class AudioBooks : AppPage
     {
         private const int TypingDelay = 450;
+        private const string StandaloneSeriesName = "Standalone titles";
         private Timer? typingTimer;
 
         [Inject]

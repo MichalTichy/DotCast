@@ -12,7 +12,6 @@
 <section class="library-page">
     <header class="library-topbar">
         <div>
-            <p class="cinema-eyebrow">Audiobook server</p>
             <h1>Your library</h1>
         </div>
         <Field Class="library-search">
@@ -30,7 +29,7 @@
                 }
             </div>
 
-            <details class="filter-collapse" open>
+            <details class="filter-collapse">
                 <summary>
                     <span>Rating</span>
                     @if (MinRating is not null || MaxRating is not null)
@@ -45,7 +44,7 @@
                 </div>
             </details>
 
-            <details class="filter-collapse" open>
+            <details class="filter-collapse">
                 <summary>
                     <span>Authors</span>
                     @if (SelectedAuthors.Count > 0)
@@ -64,7 +63,7 @@
                 </div>
             </details>
 
-            <details class="filter-collapse" open>
+            <details class="filter-collapse">
                 <summary>
                     <span>Categories</span>
                     @if (SelectedCategories.Count > 0)
@@ -146,43 +145,48 @@
                         </div>
 
                         @foreach (var series in author
-                            .GroupBy(book => string.IsNullOrWhiteSpace(book.AudioBookInfo.SeriesName) ? "Standalone titles" : book.AudioBookInfo.SeriesName)
-                            .OrderBy(group => group.Key == "Standalone titles" ? 1 : 0)
+                            .GroupBy(book => string.IsNullOrWhiteSpace(book.AudioBookInfo.SeriesName) ? StandaloneSeriesName : book.AudioBookInfo.SeriesName)
+                            .OrderBy(group => group.Key == StandaloneSeriesName ? 1 : 0)
                             .ThenBy(group => group.Key))
                         {
-                            <div class="series-splitter">
-                                <span>@series.Key</span>
-                            </div>
-
-                            <div class="poster-row">
-                                @foreach (var audioBook in series.OrderBy(book => book.AudioBookInfo.OrderInSeries).ThenBy(book => book.AudioBookInfo.Name))
+                            <div class="series-section @(series.Key == StandaloneSeriesName ? "series-section-standalone" : "")">
+                                @if (series.Key != StandaloneSeriesName)
                                 {
-                                    <article class="poster-card">
-                                        <button type="button" class="poster-button" @onclick="() => ShowDetails(audioBook)">
-                                            @if (!string.IsNullOrWhiteSpace(audioBook.AudioBookInfo.ImageUrl))
-                                            {
-                                                <img src="@audioBook.AudioBookInfo.ImageUrl" alt="@audioBook.AudioBookInfo.Name cover" />
-                                            }
-                                            else
-                                            {
-                                                <span>@audioBook.AudioBookInfo.Name</span>
-                                            }
-                                        </button>
-                                        <div class="poster-info">
-                                            <h3>@audioBook.AudioBookInfo.Name</h3>
-                                            <p>@audioBook.Rating % - @($"{audioBook.AudioBookInfo.Duration.TotalHours:F0}:{audioBook.AudioBookInfo.Duration.Minutes:D2}")</p>
-                                            @if (audioBook.AudioBookInfo.Categories.Count > 0)
-                                            {
-                                                <div class="poster-tags" aria-label="@($"{audioBook.AudioBookInfo.Name} categories")">
-                                                    @foreach (var category in audioBook.AudioBookInfo.Categories)
-                                                    {
-                                                        <span>@category.Name</span>
-                                                    }
-                                                </div>
-                                            }
-                                        </div>
-                                    </article>
+                                    <div class="series-splitter">
+                                        <span>@series.Key</span>
+                                    </div>
                                 }
+
+                                <div class="poster-row">
+                                    @foreach (var audioBook in series.OrderBy(book => book.AudioBookInfo.OrderInSeries).ThenBy(book => book.AudioBookInfo.Name))
+                                    {
+                                        <article class="poster-card">
+                                            <button type="button" class="poster-button" @onclick="() => ShowDetails(audioBook)">
+                                                @if (!string.IsNullOrWhiteSpace(audioBook.AudioBookInfo.ImageUrl))
+                                                {
+                                                    <img src="@audioBook.AudioBookInfo.ImageUrl" alt="@audioBook.AudioBookInfo.Name cover" />
+                                                }
+                                                else
+                                                {
+                                                    <span>@audioBook.AudioBookInfo.Name</span>
+                                                }
+                                            </button>
+                                            <div class="poster-info">
+                                                <h3>@audioBook.AudioBookInfo.Name</h3>
+                                                <p>@audioBook.Rating % - @($"{audioBook.AudioBookInfo.Duration.TotalHours:F0}:{audioBook.AudioBookInfo.Duration.Minutes:D2}")</p>
+                                                @if (audioBook.AudioBookInfo.Categories.Count > 0)
+                                                {
+                                                    <div class="poster-tags" aria-label="@($"{audioBook.AudioBookInfo.Name} categories")">
+                                                        @foreach (var category in audioBook.AudioBookInfo.Categories)
+                                                        {
+                                                            <span>@category.Name</span>
+                                                        }
+                                                    </div>
+                                                }
+                                            </div>
+                                        </article>
+                                    }
+                                </div>
                             </div>
                         }
                     </section>
