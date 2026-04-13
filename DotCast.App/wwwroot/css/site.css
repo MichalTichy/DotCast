@@ -389,16 +389,16 @@ select {
     overflow: hidden;
 }
 
-.featured-poster img,
-.poster-button img,
-.edit-cover img,
-.drawer-hero img,
-.suggestion-result img {
-    display: block;
-    width: 100%;
-    aspect-ratio: 2 / 3;
-    object-fit: cover;
-}
+    .featured-poster img,
+    .poster-button img,
+    .edit-cover img,
+    .drawer-hero img,
+    .suggestion-result img {
+        display: block;
+        width: 100%;
+        aspect-ratio: 2 / 3;
+        object-fit: contain;
+    }
 
 .featured-copy h2 {
     margin: 0;
