@@ -11,7 +11,7 @@ namespace DotCast.SharedKernel.Messages
 
     public record AudioBookEdited(AudioBook AudioBook);
 
-    public record AudioBookDeleted(string Id);
+    public record AudioBookDeleteRequest(string Id);
 
     public record NewAudioBookIdRequest(string Name);
 
@@ -37,4 +37,6 @@ namespace DotCast.SharedKernel.Messages
 
     //LIBRARY
     public record AudioBookRssRequest(string Id);
+
+    public record AudioBookDeleted(string Id);
 }

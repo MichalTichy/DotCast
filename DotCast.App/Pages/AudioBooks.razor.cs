@@ -92,7 +92,7 @@ namespace DotCast.App.Pages
 
             try
             {
-                await Messenger.ExecuteAsync(new AudioBookDeleted(audioBook.Id), PageCancellationTokenSource.Token);
+                await Messenger.ExecuteAsync(new AudioBookDeleteRequest(audioBook.Id), PageCancellationTokenSource.Token);
                 CloseDetails();
                 await Task.WhenAll(LoadStatistics(), LoadFacets(), LoadData());
             }

@@ -101,7 +101,7 @@ namespace DotCast.App.Pages
 
             try
             {
-                await Messenger.ExecuteAsync(new AudioBookDeleted(Data.Id), PageCancellationTokenSource.Token);
+                await Messenger.ExecuteAsync(new AudioBookDeleteRequest(Data.Id), PageCancellationTokenSource.Token);
                 NavigationManager.NavigateTo("/");
             }
             catch (Exception exception) when (!PageCancellationTokenSource.IsCancellationRequested)
