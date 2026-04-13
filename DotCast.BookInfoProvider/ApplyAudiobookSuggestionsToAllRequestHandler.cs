@@ -11,7 +11,7 @@ using System.Text;
 namespace DotCast.BookInfoProvider
 {
     public class ApplyAudiobookSuggestionsToAllRequestHandler(
-        IBookInfoProvider bookInfoProvider,
+        IEnumerable<IBookInfoProvider> bookInfoProviders,
         IMessagePublisher messenger,
         ICurrentUserProvider<UserInfo> currentUserProvider,
         ILogger<ApplyAudiobookSuggestionsToAllRequestHandler> logger)
@@ -69,11 +69,14 @@ namespace DotCast.BookInfoProvider
         private async Task<IReadOnlyList<FoundBookInfo>> GetSuggestions(string name, string author)
         {
             var suggestions = new List<FoundBookInfo>();
-            await foreach (var suggestion in bookInfoProvider.GetBookInfoAsync(name, author))
+            foreach (var bookInfoProvider in bookInfoProviders)
             {
-                if (IsValidSuggestion(suggestion))
+                await foreach (var suggestion in bookInfoProvider.GetBookInfoAsync(name, author))
                 {
-                    suggestions.Add(suggestion);
+                    if (IsValidSuggestion(suggestion))
+                    {
+                        suggestions.Add(suggestion);
+                    }
                 }
             }
 

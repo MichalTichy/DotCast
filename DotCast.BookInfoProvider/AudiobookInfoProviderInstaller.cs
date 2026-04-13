@@ -1,5 +1,6 @@
 using DotCast.Infrastructure.BookInfoProvider.Base;
 using DotCast.Infrastructure.BookInfoProvider.DatabazeKnih;
+using DotCast.Infrastructure.BookInfoProvider.Goodreads;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using DotCast.Infrastructure.IoC;
@@ -11,6 +12,7 @@ namespace DotCast.BookInfoProvider
         public void Install(IServiceCollection services, IConfiguration configuration, bool isProduction)
         {
             services.AddSingleton<IBookInfoProvider, DatabazeKnihBookInfoProvider>();
+            services.AddSingleton<IBookInfoProvider, GoodreadsBookInfoProvider>();
         }
     }
 }

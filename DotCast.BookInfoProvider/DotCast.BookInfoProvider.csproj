@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DotCast.Infrastructure.BookInfoProvider.DatabazeKnih\DotCast.Infrastructure.BookInfoProvider.DatabazeKnih.csproj" />
+    <ProjectReference Include="..\DotCast.Infrastructure.BookInfoProvider.Goodreads\DotCast.Infrastructure.BookInfoProvider.Goodreads.csproj" />
     <ProjectReference Include="..\DotCast.Infrastructure.AppUser.DotCast\DotCast.Infrastructure.AppUser.DotCast.csproj" />
     <ProjectReference Include="..\DotCast.Infrastructure.CurrentUserProvider\DotCast.Infrastructure.CurrentUserProvider.csproj" />
     <ProjectReference Include="..\DotCast.Infrastructure.Messaging.Base\DotCast.Infrastructure.Messaging.Base.csproj" />

@@ -10,6 +10,7 @@ namespace DotCast.Infrastructure.BookInfoProvider.DatabazeKnih
 {
     public class DatabazeKnihBookInfoProvider : IBookInfoProvider
     {
+        private const string SourceName = "Databáze knih";
         private readonly Uri baseUri = new("https://www.databazeknih.cz/");
         private readonly CategoryMapper categoryMapper = new();
 
@@ -76,7 +77,7 @@ namespace DotCast.Infrastructure.BookInfoProvider.DatabazeKnih
                 }
             }
 
-            return new FoundBookInfo(title, author ?? "ERROR", description, seriesName, orderInSeries, imgUrl, rating, categories);
+            return new FoundBookInfo(title, author ?? "ERROR", description, seriesName, orderInSeries, imgUrl, rating, categories, SourceName);
         }
 
         private static string? RemoveWhitespace(string? input)

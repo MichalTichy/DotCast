@@ -5,25 +5,28 @@ using DotCast.SharedKernel.Models;
 
 namespace DotCast.BookInfoProvider
 {
-    public class AudiobookInfoSuggestionsRequestHandler(IBookInfoProvider bookInfoProvider) : IMessageHandler<AudiobookInfoSuggestionsRequest, IReadOnlyCollection<FoundBookInfo>>
+    public class AudiobookInfoSuggestionsRequestHandler(IEnumerable<IBookInfoProvider> bookInfoProviders) : IMessageHandler<AudiobookInfoSuggestionsRequest, IReadOnlyCollection<FoundBookInfo>>
     {
         public async Task<IReadOnlyCollection<FoundBookInfo>> Handle(AudiobookInfoSuggestionsRequest message)
         {
             var result = new List<FoundBookInfo>();
-            await foreach (var info in bookInfoProvider.GetBookInfoAsync(message.Name, message.AuthorName))
+            foreach (var bookInfoProvider in bookInfoProviders)
             {
-                if (!IsValidSuggestion(info))
+                await foreach (var info in bookInfoProvider.GetBookInfoAsync(message.Name, message.AuthorName))
                 {
-                    continue;
-                }
+                    if (!IsValidSuggestion(info))
+                    {
+                        continue;
+                    }
 
-                if (message.Count == null || result.Count < message.Count)
-                {
-                    result.Add(info);
-                }
-                else
-                {
-                    break;
+                    if (message.Count == null || result.Count < message.Count)
+                    {
+                        result.Add(info);
+                    }
+                    else
+                    {
+                        return result;
+                    }
                 }
             }
 

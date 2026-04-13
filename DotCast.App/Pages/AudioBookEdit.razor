@@ -167,6 +167,7 @@
                                 <span>
                                     <strong>@suggestion.Title</strong>
                                     <small>@suggestion.Author</small>
+                                    <small>@suggestion.Source</small>
                                 </span>
                             </button>
                         }
@@ -177,6 +178,8 @@
                 {
                     <div class="suggestion-compare">
                         <h2>Apply fields</h2>
+                        <div class="compare-row"><span>Source</span><strong>@SelectedSuggestion.Source</strong></div>
+
                         <label><Check TValue="bool" @bind-Checked="ApplyTitle" /> Title</label>
                         <div class="compare-row"><span>@Data.AudioBookInfo.Name</span><strong>@SelectedSuggestion.Title</strong></div>
 
