@@ -16,6 +16,7 @@ namespace DotCast.App.Pages
         public string LibraryName { get; set; } = string.Empty;
         public ICollection<ShareInfo> SharedLibrariesWith { get; set; } = Array.Empty<ShareInfo>();
         public string NewShare { get; set; } = string.Empty;
+        public string? ShareMessage { get; set; }
 
         [Inject]
         public required ICurrentUserProvider<UserInfo> UserProvider { get; set; }
@@ -158,10 +159,13 @@ namespace DotCast.App.Pages
             try
             {
                 await UserManager.ShareLibraryAsync(currentUser.Id, NewShare);
+                ShareMessage = "Library shared.";
+                NewShare = string.Empty;
+                await LoadSharingInfo();
             }
             catch (ArgumentException e)
             {
-                //Invalid code
+                ShareMessage = e.Message;
             }
         }
 
@@ -171,10 +175,12 @@ namespace DotCast.App.Pages
             try
             {
                 await UserManager.UnShareLibraryAsync(currentUser.Id, shareInfo.LibraryCode);
+                ShareMessage = "Library access removed.";
+                await LoadSharingInfo();
             }
             catch (ArgumentException e)
             {
-                //Invalid code
+                ShareMessage = e.Message;
             }
         }
 

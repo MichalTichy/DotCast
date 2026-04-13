@@ -1,114 +1,217 @@
 @page "/"
 @inherits AppPage
-<Layout Sider>
-    <LayoutSider>
-        <div class="authors">
-            <span class="authors-title">Authors</span>
-            @{
-                var authors = Data.Select(t => t.AudioBookInfo.AuthorName)
-                    .Where(n => !string.IsNullOrWhiteSpace(n))
-                    .Distinct()
-                    .OrderBy(n => n)
-                    .ToList();
-                var grouped = authors
-                    .GroupBy(a => char.ToUpper(a[0]))
-                    .OrderBy(g => g.Key);
-            }
-            @foreach (var group in grouped)
+
+@{
+    var featured = FeaturedAudioBook;
+    var authorGroups = Data
+        .GroupBy(book => string.IsNullOrWhiteSpace(book.AudioBookInfo.AuthorName) ? "Unknown author" : book.AudioBookInfo.AuthorName)
+        .OrderBy(group => group.Key)
+        .ToList();
+}
+
+<section class="library-page">
+    <header class="library-topbar">
+        <div>
+            <p class="cinema-eyebrow">Audiobook server</p>
+            <h1>Your library</h1>
+        </div>
+        <Field Class="library-search">
+            <TextEdit Placeholder="Search titles, authors, series" Text="@SearchText" TextChanged="SearchTextChanged" />
+        </Field>
+    </header>
+
+    <div class="library-layout">
+        <aside class="library-filters" aria-label="Library filters">
+            <div class="filter-header">
+                <h2>Filters</h2>
+                @if (HasActiveFilters)
+                {
+                    <button type="button" class="text-button" @onclick="ClearFilters">Clear</button>
+                }
+            </div>
+
+            <section class="filter-section">
+                <h3>Rating</h3>
+                <button type="button" class="filter-pill @(MinRating == 80 ? "is-active" : "")" @onclick="() => SetRatingRange(80, null)">80%+</button>
+                <button type="button" class="filter-pill @(MinRating == 60 && MaxRating == 79 ? "is-active" : "")" @onclick="() => SetRatingRange(60, 79)">60-79%</button>
+                <button type="button" class="filter-pill @(MaxRating == 59 ? "is-active" : "")" @onclick="() => SetRatingRange(null, 59)">Below 60%</button>
+            </section>
+
+            <section class="filter-section">
+                <h3>Authors</h3>
+                @foreach (var author in Facets.Authors)
+                {
+                    <button type="button" class="filter-choice @(SelectedAuthors.Contains(author) ? "is-active" : "")" @onclick="() => ToggleAuthor(author)">
+                        @author
+                    </button>
+                }
+            </section>
+
+            <section class="filter-section">
+                <h3>Categories</h3>
+                @foreach (var category in Facets.Categories.Take(18))
+                {
+                    <button type="button" class="filter-choice @(SelectedCategories.Contains(category) ? "is-active" : "")" @onclick="() => ToggleCategory(category)">
+                        @category
+                    </button>
+                }
+            </section>
+
+            @if (Facets.Series.Count > 0)
             {
-                <div class="author-group">
-                    <div class="author-letter">@group.Key</div>
-                    @foreach (var authorName in group)
+                <section class="filter-section">
+                    <h3>Series</h3>
+                    @foreach (var series in Facets.Series)
                     {
-                        <a class="authorLink" onclick="@($"document.getElementById('{authorName.Replace(" ", "") }').scrollIntoView({{behavior:'smooth'}})")">
-                            <div>@authorName</div>
-                        </a>
+                        <button type="button" class="filter-choice @(SelectedSeries.Contains(series) ? "is-active" : "")" @onclick="() => ToggleSeries(series)">
+                            @series
+                        </button>
+                    }
+                </section>
+            }
+        </aside>
+
+        <main class="library-content">
+            @if (featured is not null)
+            {
+                <section class="featured-strip">
+                    <button type="button" class="featured-poster" @onclick="() => ShowDetails(featured)">
+                        @if (!string.IsNullOrWhiteSpace(featured.AudioBookInfo.ImageUrl))
+                        {
+                            <img src="@featured.AudioBookInfo.ImageUrl" alt="@featured.AudioBookInfo.Name cover" />
+                        }
+                        else
+                        {
+                            <span>@featured.AudioBookInfo.Name</span>
+                        }
+                    </button>
+                    <div class="featured-copy">
+                        <p class="cinema-eyebrow">Featured audiobook</p>
+                        <h2>@featured.AudioBookInfo.Name</h2>
+                        <p>@featured.AudioBookInfo.AuthorName</p>
+                        <div class="media-meta-row">
+                            <span>@featured.Rating %</span>
+                            <span>@($"{featured.AudioBookInfo.Duration.TotalHours:F0}:{featured.AudioBookInfo.Duration.Minutes:D2}")</span>
+                            @if (!string.IsNullOrWhiteSpace(featured.AudioBookInfo.SeriesName))
+                            {
+                                <span>@featured.AudioBookInfo.SeriesName @featured.AudioBookInfo.OrderInSeries</span>
+                            }
+                        </div>
+                    </div>
+                </section>
+            }
+
+            <section class="library-stats">
+                <article><strong>@AudioBooksStatistics.TotalCount</strong><span>Titles</span></article>
+                <article><strong>@AudioBooksStatistics.AuthorCount</strong><span>Authors</span></article>
+                <article><strong>@($"{AudioBooksStatistics.TotalDuration.TotalHours:F0}h")</strong><span>Total listening</span></article>
+            </section>
+
+            @if (IsLoading)
+            {
+                <div class="library-state">Loading audiobooks...</div>
+            }
+            else if (Data.Count == 0)
+            {
+                <div class="library-state">
+                    <h2>No audiobooks found</h2>
+                    <p>Adjust filters or clear the current search.</p>
+                    @if (HasActiveFilters)
+                    {
+                        <button type="button" class="primary-action" @onclick="ClearFilters">Clear filters</button>
                     }
                 </div>
             }
-        </div>
-    </LayoutSider>
-    <LayoutContent>
-        <div class="header">
-            <div class="stat"> Titles: <Icon Name="IconName.Book" /> @AudioBooksStatistics?.TotalCount</div>
-            <div class="stat"> Authors: <Icon Name="IconName.Users" />@AudioBooksStatistics?.AuthorCount</div>
-            <div class="stat">Duration: <Icon Name="IconName.Clock" />@($"{AudioBooksStatistics?.TotalDuration.TotalDays:F0}days {AudioBooksStatistics?.TotalDuration.Hours} hours")</div>
-            <Field >
-                <TextEdit Placeholder="Search" TextChanged="SearchTextChanged"/>
-            </Field>
+            else
+            {
+                @foreach (var author in authorGroups)
+                {
+                    <section class="media-rail">
+                        <div class="rail-heading">
+                            <h2>@author.Key</h2>
+                            <span>@author.Count() title(s)</span>
+                        </div>
+                        <div class="poster-row">
+                            @foreach (var audioBook in author.OrderBy(book => book.AudioBookInfo.SeriesName).ThenBy(book => book.AudioBookInfo.OrderInSeries).ThenBy(book => book.AudioBookInfo.Name))
+                            {
+                                <article class="poster-card">
+                                    <button type="button" class="poster-button" @onclick="() => ShowDetails(audioBook)">
+                                        @if (!string.IsNullOrWhiteSpace(audioBook.AudioBookInfo.ImageUrl))
+                                        {
+                                            <img src="@audioBook.AudioBookInfo.ImageUrl" alt="@audioBook.AudioBookInfo.Name cover" />
+                                        }
+                                        else
+                                        {
+                                            <span>@audioBook.AudioBookInfo.Name</span>
+                                        }
+                                    </button>
+                                    <div class="poster-info">
+                                        <h3>@audioBook.AudioBookInfo.Name</h3>
+                                        <p>@audioBook.Rating % - @($"{audioBook.AudioBookInfo.Duration.TotalHours:F0}:{audioBook.AudioBookInfo.Duration.Minutes:D2}")</p>
+                                    </div>
+                                </article>
+                            }
+                        </div>
+                    </section>
+                }
+
+            }
+        </main>
+    </div>
+</section>
+
+@if (SelectedAudioBook is not null)
+{
+    <div class="quick-drawer-backdrop" @onclick="CloseDetails"></div>
+    <aside class="quick-drawer" role="dialog" aria-modal="true" aria-label="Audiobook details">
+        <button type="button" class="drawer-close" @onclick="CloseDetails">Close</button>
+        <div class="drawer-hero">
+            @if (!string.IsNullOrWhiteSpace(SelectedAudioBook.AudioBookInfo.ImageUrl))
+            {
+                <img src="@SelectedAudioBook.AudioBookInfo.ImageUrl" alt="@SelectedAudioBook.AudioBookInfo.Name cover" />
+            }
+            <div>
+                <p class="cinema-eyebrow">Audiobook</p>
+                <h2>@SelectedAudioBook.AudioBookInfo.Name</h2>
+                <p>@SelectedAudioBook.AudioBookInfo.AuthorName</p>
+                <div class="media-meta-row">
+                    <span>@SelectedAudioBook.Rating %</span>
+                    <span>@($"{SelectedAudioBook.AudioBookInfo.Duration.TotalHours:F0}:{SelectedAudioBook.AudioBookInfo.Duration.Minutes:D2}")</span>
+                    @if (!string.IsNullOrWhiteSpace(SelectedAudioBook.AudioBookInfo.SeriesName))
+                    {
+                        <span>@SelectedAudioBook.AudioBookInfo.SeriesName @SelectedAudioBook.AudioBookInfo.OrderInSeries</span>
+                    }
+                </div>
+            </div>
         </div>
 
-        @foreach (var author in Data.GroupBy(t => t.AudioBookInfo.AuthorName).OrderBy(t => t.Key))
-        {
-            <a id="@author.Key.Replace(" ", "")"></a>
-            <Divider DividerType="DividerType.TextContent" Text="@author.Key"></Divider>
-            @foreach (var series in author.GroupBy(info => info.AudioBookInfo.SeriesName?.ToLower().Trim()))
+        <div class="drawer-tags">
+            @foreach (var category in SelectedAudioBook.AudioBookInfo.Categories)
             {
-                @if (!string.IsNullOrWhiteSpace(series.Key))
-                {
-                    <div class="seriesDivider">@series.Key</div>
-                }
-                <div class="c-container">
-                    @foreach (var audioBook in series.OrderBy(info => info.AudioBookInfo.OrderInSeries).ThenBy(info => info.AudioBookInfo.Name))
-                    {
-                        <div class="c-card">
-                            <div class="c-card-header">
-                                <img src="@audioBook.AudioBookInfo.ImageUrl" />
-                            </div>
-                            <div class="c-card-body">
-                                <h3>@audioBook.AudioBookInfo.Name</h3>
-                                <div id="categories">
-                                    @foreach (var category in audioBook.AudioBookInfo.Categories)
-                                    {
-                                        <Badge Color="Color.Info">@category.Name</Badge>
-                                    }
-                                </div>
-                                <div class="user">
-                                    <b>@author.Key</b>
-                                </div>
-                                @if (!string.IsNullOrWhiteSpace(audioBook.AudioBookInfo.SeriesName))
-                                {
-                                    <b>@audioBook.AudioBookInfo.SeriesName - @audioBook.AudioBookInfo.OrderInSeries</b>
-                                }
-                                <p class="description" title="@audioBook.AudioBookInfo.Description">
-                                    @audioBook.AudioBookInfo.Description
-                                </p>
-                                <div>
-                                    <Rating ReadOnly="true" SelectedValue="@((int)Math.Round(audioBook.Rating / 20.0))"/> <span>@audioBook.Rating %</span>
-                                </div>
-                            </div>
-                            <div class="c-card-footer">
-                                <span>
-                                    <Icon Name="IconName.Clock" /> @($"{audioBook.AudioBookInfo.Duration.TotalHours:F0}:{audioBook.AudioBookInfo.Duration.Minutes:D2}")
-                                </span>
-                                @if (!string.IsNullOrWhiteSpace(audioBook.AudioBookInfo.ArchiveUrl))
-                                {
-                                    <Button class="button" Clicked="async () => await Download(audioBook)">
-                                        <span class="sr-only">Download audiobook</span>
-                                        <Icon Name="IconName.Download"></Icon>
-                                    </Button>
-                                }
-                                <Button Clicked="async () => await CopyRssAsync(audioBook)">
-                                    <Icon Name="IconName.Rss"></Icon>
-                                </Button>
-                                <a class="button" href="@($"AudioBook/{audioBook.Id}/edit")">
-                                    <Icon Name="IconName.Pen"></Icon>
-                                </a>
-                            </div>
-                        </div>
-                    }
-                </div>
+                <span>@category.Name</span>
             }
-        }
-        <script>
-            function copyToClipboard(link) {
-                navigator.clipboard.writeText(link).then(() => {
-                    alert("Link copied to clipboard!");
-                }).catch(err => {
-                    window.open(link,'_blank');
-                    console.error("Failed to copy link: ", err);
-                });
+        </div>
+
+        <p class="drawer-description">@SelectedAudioBook.AudioBookInfo.Description</p>
+
+        <div class="drawer-actions">
+            <Button Color="Color.Primary" Clicked="async () => await CopyRssAsync(SelectedAudioBook)">Copy RSS</Button>
+            @if (!string.IsNullOrWhiteSpace(SelectedAudioBook.AudioBookInfo.ArchiveUrl))
+            {
+                <Button Color="Color.Secondary" Clicked="async () => await Download(SelectedAudioBook)">Download</Button>
             }
-        </script>
-    </LayoutContent>
-</Layout>
+            <a class="secondary-action" href="@($"AudioBook/{SelectedAudioBook.Id}/edit")">Edit</a>
+        </div>
+    </aside>
+}
+
+<script>
+    function copyToClipboard(link) {
+        navigator.clipboard.writeText(link).then(() => {
+            alert("Link copied to clipboard!");
+        }).catch(err => {
+            window.open(link,'_blank');
+            console.error("Failed to copy link: ", err);
+        });
+    }
+</script>

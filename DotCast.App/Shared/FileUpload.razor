@@ -1,56 +1,38 @@
-﻿@inject IJSRuntime js
+@inject IJSRuntime js
 
-<!-- Include this in your HTML where you want the file picker and progress bars -->
-<input type="file" id="filePicker" multiple />
-<div id="progressBars"></div>
-<script>
-    document.getElementById('filePicker').addEventListener('change', async function (e) {
-        const files = e.target.files;
-        const fileNames = Array.from(files).map(file => file.name);
-
-        // Get pre-signed URLs from the server for all files at once
-        try {
-            const presignedUrls = await window.UploadHelpers.dotNetHelper.invokeMethodAsync('GeneratePresignedUrls', fileNames);
-
-            for (let file of files) {
-                // Create a progress bar for each file
-                const progressBar = document.createElement("progress");
-                progressBar.id = `progress_${file.name}`;
-                progressBar.value = 0;
-                progressBar.max = 100;
-                document.getElementById('progressBars').appendChild(progressBar);
-
-                // Get the pre-signed URL for this file
-                const presignedUrl = presignedUrls[file.name];
-                if (presignedUrl) {
-                    await uploadFile(file, presignedUrl);
-                    console.log(file.name + " uploaded successfully!");
-                } else {
-                    console.error("No pre-signed URL for " + file.name);
-                }
-            }
-        } catch (error) {
-            console.error("Error generating or retrieving pre-signed URLs: ", error);
-        }
-    });
-
-</script>
+<div class="file-upload" id="@containerId">
+    <label class="file-upload-dropzone" for="@filePickerId">
+        <span>@Label</span>
+        <small>Select one or more files to upload.</small>
+    </label>
+    <input type="file" id="@filePickerId" multiple="@Multiple" />
+    <div id="@progressContainerId" class="file-upload-progress"></div>
+</div>
 
 @code {
-
+    private readonly string componentId = $"upload_{Guid.NewGuid():N}";
+    private string containerId => $"{componentId}_container";
+    private string filePickerId => $"{componentId}_filePicker";
+    private string progressContainerId => $"{componentId}_progressBars";
     private DotNetObjectReference<FileUpload>? dotNetHelper;
+
+    [Parameter]
+    public Func<ICollection<string>, Task<Dictionary<string, string>>> PresignedUrlFactory { get; set; } = null!;
+
+    [Parameter]
+    public string Label { get; set; } = "Upload files";
+
+    [Parameter]
+    public bool Multiple { get; set; } = true;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
             dotNetHelper = DotNetObjectReference.Create(this);
-            await js.InvokeVoidAsync("UploadHelpers.setDotNetHelper",
-                dotNetHelper);
+            await js.InvokeVoidAsync("UploadHelpers.register", componentId, dotNetHelper, filePickerId, progressContainerId);
         }
     }
-    [Parameter]
-    public Func<ICollection<string>, Task<Dictionary<string, string>>> PresignedUrlFactory { get; set; } = null!;
 
     [JSInvokable]
     public async Task<Dictionary<string, string>> GeneratePresignedUrls(List<string> fileNames)

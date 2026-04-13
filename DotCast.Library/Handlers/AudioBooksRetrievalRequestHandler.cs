@@ -10,7 +10,7 @@ namespace DotCast.Library.Handlers
     {
         public async Task<IReadOnlyList<AudioBook>> Handle(AudioBooksRetrievalRequest message)
         {
-            var specification = new AudioBookRetrievalSpecification(message.Filter);
+            var specification = new AudioBookRetrievalSpecification(message.Filter ?? AudioBookLibraryFilter.Empty);
             return await repository.ListAsync(specification);
         }
     }

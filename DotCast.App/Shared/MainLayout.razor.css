@@ -1,70 +1,164 @@
-.page {
-    position: relative;
+.app-shell {
+    min-height: 100vh;
+    background:
+        radial-gradient(circle at 15% 0%, rgba(216, 137, 47, 0.16), transparent 28rem),
+        linear-gradient(180deg, #0b0f16 0%, #06080d 100%);
+    color: #f7efe3;
+}
+
+.app-shell-authenticated {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+}
+
+.app-shell-public {
+    display: grid;
+    place-items: stretch;
+}
+
+.app-sidebar {
+    position: sticky;
+    top: 0;
     display: flex;
     flex-direction: column;
+    height: 100vh;
+    padding: 18px;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(8, 12, 19, 0.95);
 }
 
-main {
-    flex: 1;
-}
-
-.sidebar {
-    background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);
-}
-
-.top-row {
-    background-color: #f7f7f7;
-    border-bottom: 1px solid #d6d5d5;
-    justify-content: flex-end;
-    height: 3.5rem;
+.app-brand {
     display: flex;
     align-items: center;
+    gap: 10px;
+    color: #fff7ed;
+    font-weight: 800;
+    text-decoration: none;
 }
 
-    .top-row ::deep a, .top-row .btn-link {
-        white-space: nowrap;
-        margin-left: 1.5rem;
+.app-brand:hover {
+    color: #fff7ed;
+    text-decoration: none;
+}
+
+.app-brand-mark {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    border-radius: 8px;
+    background: #d8892f;
+    color: #090d14;
+}
+
+.app-nav {
+    display: grid;
+    gap: 8px;
+    margin-top: 34px;
+}
+
+.app-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 42px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    color: #aeb8c7;
+    text-decoration: none;
+}
+
+.app-nav-link:hover,
+.app-nav-link.active {
+    background: rgba(216, 137, 47, 0.16);
+    color: #fff7ed;
+    text-decoration: none;
+}
+
+.app-nav-symbol {
+    display: inline-grid;
+    width: 16px;
+    place-items: center;
+    font-weight: 900;
+}
+
+.app-sidebar-footer {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: auto;
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.app-user-initial {
+    display: grid;
+    width: 38px;
+    height: 38px;
+    place-items: center;
+    border-radius: 8px;
+    background: #202838;
+    color: #f3c17b;
+    font-weight: 800;
+}
+
+.app-sidebar-footer strong,
+.app-sidebar-footer small {
+    display: block;
+}
+
+.app-sidebar-footer small {
+    color: #8f9bae;
+}
+
+.app-mobile-header {
+    display: none;
+}
+
+.app-main {
+    min-width: 0;
+}
+
+@media (max-width: 860px) {
+    .app-shell-authenticated {
+        display: block;
     }
 
-    .top-row a:first-child {
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-@media (max-width: 640.98px) {
-    .top-row:not(.auth) {
+    .app-sidebar {
         display: none;
     }
 
-    .top-row.auth {
-        justify-content: space-between;
-    }
-
-    .top-row a, .top-row .btn-link {
-        margin-left: 0;
-    }
-}
-
-@media (min-width: 641px) {
-    .page {
-        flex-direction: row;
-    }
-
-    .sidebar {
-        width: 250px;
-        height: 100vh;
+    .app-mobile-header {
         position: sticky;
         top: 0;
+        z-index: 20;
+        display: grid;
+        gap: 12px;
+        padding: 12px 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(8, 12, 19, 0.96);
+        backdrop-filter: blur(12px);
     }
 
-    .top-row {
-        position: sticky;
-        top: 0;
-        z-index: 1;
+    .app-mobile-nav {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 2px;
     }
 
-    .top-row, article {
-        padding-left: 2rem !important;
-        padding-right: 1.5rem !important;
+    .app-mobile-nav a {
+        flex: 0 0 auto;
+        padding: 8px 10px;
+        border-radius: 8px;
+        color: #aeb8c7;
+        text-decoration: none;
+    }
+
+    .app-mobile-nav a.active {
+        background: rgba(216, 137, 47, 0.16);
+        color: #fff7ed;
     }
 }

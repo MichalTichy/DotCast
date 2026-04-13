@@ -10,7 +10,12 @@
         <NotFound>
             <PageTitle>Not found</PageTitle>
             <LayoutView Layout="@typeof(MainLayout)">
-                <p role="alert">Sorry, there's nothing at this address.</p>
+                <section class="not-found-page" role="alert">
+                    <p class="cinema-eyebrow">Not found</p>
+                    <h1>There is nothing at this address.</h1>
+                    <p>Return to the library and keep browsing.</p>
+                    <a class="primary-action" href="/">Open library</a>
+                </section>
             </LayoutView>
         </NotFound>
     </Router>

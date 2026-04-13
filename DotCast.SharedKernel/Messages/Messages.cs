@@ -3,7 +3,9 @@
 namespace DotCast.SharedKernel.Messages
 {
     //WEB
-    public record AudioBooksRetrievalRequest(string? Filter = null);
+    public record AudioBooksRetrievalRequest(AudioBookLibraryFilter? Filter = null);
+
+    public record AudioBookLibraryFacetsRequest;
 
     public record AudioBookDetailRequest(string Id);
 

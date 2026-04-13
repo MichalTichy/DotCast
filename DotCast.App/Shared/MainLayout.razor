@@ -1,15 +1,158 @@
+@using Blazorise
+@using DotCast.Infrastructure.AppUser
+@using DotCast.Infrastructure.CurrentUserProvider
 @inherits LayoutComponentBase
+@inject ICurrentUserProvider<UserInfo> CurrentUserProvider
 
 <PageTitle>DotCast</PageTitle>
 
-<Layout>
-    <LayoutHeader>
-        <NavMenu />
-    </LayoutHeader>
-    <LayoutContent>
-        @Body
-    </LayoutContent>
-    <LayoutFooter>
-        <a href="https://tichymichal.net">Tichý Michal</a> - 2022
-    </LayoutFooter>
-</Layout>
+<ThemeProvider Theme="@CinematicTheme">
+    <div class="app-shell @(IsAuthenticated ? "app-shell-authenticated" : "app-shell-public")">
+        @if (IsAuthenticated)
+        {
+            <aside class="app-sidebar" aria-label="Primary navigation">
+                <a class="app-brand" href="/">
+                    <span class="app-brand-mark">D</span>
+                    <span>DotCast</span>
+                </a>
+
+                <nav class="app-nav">
+                    <NavLink href="/" Match="NavLinkMatch.All" class="app-nav-link">
+                        <Icon Name="IconName.Book" />
+                        <span>Library</span>
+                    </NavLink>
+                    <NavLink href="/NewAudioBook" class="app-nav-link">
+                        <span class="app-nav-symbol">+</span>
+                        <span>New Audiobook</span>
+                    </NavLink>
+                    <NavLink href="/UserProfile" class="app-nav-link">
+                        <Icon Name="IconName.User" />
+                        <span>Account</span>
+                    </NavLink>
+                    @if (IsAdmin)
+                    {
+                        <NavLink href="/Admin" class="app-nav-link">
+                            <span class="app-nav-symbol">A</span>
+                            <span>Admin</span>
+                        </NavLink>
+                    }
+                </nav>
+
+                <div class="app-sidebar-footer">
+                    <span class="app-user-initial">@UserInitial</span>
+                    <div>
+                        <strong>@UserName</strong>
+                        <small>Audiobook server</small>
+                    </div>
+                </div>
+            </aside>
+
+            <header class="app-mobile-header">
+                <a class="app-brand" href="/">
+                    <span class="app-brand-mark">D</span>
+                    <span>DotCast</span>
+                </a>
+                <nav class="app-mobile-nav">
+                    <NavLink href="/" Match="NavLinkMatch.All">Library</NavLink>
+                    <NavLink href="/NewAudioBook">New</NavLink>
+                    <NavLink href="/UserProfile">Account</NavLink>
+                    @if (IsAdmin)
+                    {
+                        <NavLink href="/Admin">Admin</NavLink>
+                    }
+                </nav>
+            </header>
+        }
+
+        <main class="app-main">
+            @Body
+        </main>
+    </div>
+</ThemeProvider>
+
+@code {
+    private static readonly Theme CinematicTheme = new()
+    {
+        White = "#fff7ed",
+        Black = "#05070b",
+        IsRounded = true,
+        BodyOptions = new ThemeBodyOptions
+        {
+            BackgroundColor = "#070a10",
+            TextColor = "#f7efe3",
+            FontOptions = new ThemeFontOptions
+            {
+                Family = "Inter, Segoe UI, Arial, sans-serif",
+                Size = "15px",
+                Weight = "400"
+            }
+        },
+        ColorOptions = new ThemeColorOptions
+        {
+            Primary = "#d8892f",
+            Secondary = "#2c3443",
+            Success = "#4fbd69",
+            Info = "#66a3ff",
+            Warning = "#e6aa46",
+            Danger = "#ec5f5f",
+            Light = "#f7efe3",
+            Dark = "#090d14",
+            Link = "#f0a64b"
+        },
+        BackgroundOptions = new ThemeBackgroundOptions
+        {
+            Primary = "#d8892f",
+            Secondary = "#111722",
+            Success = "#21472d",
+            Info = "#183052",
+            Warning = "#5b3b16",
+            Danger = "#4b1d1d",
+            Light = "#f7efe3",
+            Dark = "#070a10",
+            Body = "#070a10",
+            Muted = "#171d29"
+        },
+        TextColorOptions = new ThemeTextColorOptions
+        {
+            Primary = "#f3c17b",
+            Secondary = "#9ca8ba",
+            Success = "#7ddc92",
+            Info = "#94c0ff",
+            Warning = "#f0c16d",
+            Danger = "#ff8f8f",
+            Light = "#f7efe3",
+            Dark = "#070a10",
+            Body = "#f7efe3",
+            Muted = "#9ca8ba",
+            White = "#fff7ed"
+        },
+        ButtonOptions = new ThemeButtonOptions
+        {
+            SmallBorderRadius = "6px",
+            LargeBorderRadius = "8px"
+        },
+        InputOptions = new ThemeInputOptions
+        {
+            Color = "#f7efe3",
+            CheckColor = "#d8892f",
+            SliderColor = "#d8892f"
+        },
+        CardOptions = new ThemeCardOptions
+        {
+            ImageTopRadius = "8px"
+        }
+    };
+
+    private bool IsAuthenticated { get; set; }
+    private bool IsAdmin { get; set; }
+    private string UserName { get; set; } = "User";
+    private string UserInitial => string.IsNullOrWhiteSpace(UserName) ? "U" : UserName.Trim()[0].ToString().ToUpperInvariant();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = await CurrentUserProvider.GetCurrentUserAsync();
+        IsAuthenticated = user is not null;
+        IsAdmin = user?.IsAdmin == true;
+        UserName = user?.Name ?? "User";
+    }
+}

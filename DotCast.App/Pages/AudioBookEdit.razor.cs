@@ -14,19 +14,31 @@ namespace DotCast.App.Pages
         [Inject]
         public required IMessagePublisher Messenger { get; set; }
 
-
         [Parameter]
         public required string Id { get; set; }
 
         public AudioBook Data { get; set; } = new()
-            { Id = "TMP", AudioBookInfo = new AudioBookInfo { Id = "TMP", Name = "LOADING", AuthorName = "", Chapters = new List<Chapter>(0) }, LibraryId = "TMP" };
+        {
+            Id = "TMP",
+            AudioBookInfo = new AudioBookInfo { Id = "TMP", Name = "LOADING", AuthorName = "", Chapters = [] },
+            LibraryId = "TMP"
+        };
 
-        public IReadOnlyCollection<FoundBookInfo> Suggestions { get; set; } = new List<FoundBookInfo>(0).AsReadOnly();
-        public ICollection<Category> MissingCategories = new List<Category>();
-        public Category? SelectedCategory { get; set; }
+        public IReadOnlyCollection<FoundBookInfo> Suggestions { get; set; } = [];
+        public ICollection<Category> MissingCategories { get; set; } = [];
+        public FoundBookInfo? SelectedSuggestion { get; set; }
+        public string ActiveTab { get; set; } = "metadata";
+        public string? SaveMessage { get; set; }
+        public bool IsLoadingSuggestions { get; set; }
+        public bool SuggestionsLoaded { get; set; }
+        public string? SuggestionsStatusMessage { get; set; }
 
-        private Modal suggestionsModalRef = null!;
-
+        public bool ApplyTitle { get; set; } = true;
+        public bool ApplyAuthor { get; set; } = true;
+        public bool ApplySeries { get; set; } = true;
+        public bool ApplyDescription { get; set; } = true;
+        public bool ApplyCategories { get; set; } = true;
+        public bool ApplyRating { get; set; } = true;
 
         protected override async Task OnInitializedAsync()
         {
@@ -49,22 +61,43 @@ namespace DotCast.App.Pages
             MissingCategories = allCategories.Except(Data.AudioBookInfo.Categories).ToList();
         }
 
-        public async Task Prefill(FoundBookInfo suggestion)
+        public async Task SaveAndExit()
         {
-            if (!IsValidSuggestion(suggestion))
+            await Save();
+            NavigationManager.NavigateTo("/");
+        }
+
+        public async Task Save()
+        {
+            await Messenger.ExecuteAsync(new AudioBookEdited(Data));
+            SaveMessage = "Saved";
+        }
+
+        private async Task LoadSuggestions()
+        {
+            IsLoadingSuggestions = true;
+            SuggestionsLoaded = false;
+            SuggestionsStatusMessage = null;
+            Suggestions = [];
+            SelectedSuggestion = null;
+            await InvokeAsync(StateHasChanged);
+
+            try
             {
-                return;
+                var request = new AudiobookInfoSuggestionsRequest(Data.AudioBookInfo.Name);
+                var response = await Messenger.RequestAsync<AudiobookInfoSuggestionsRequest, IReadOnlyCollection<FoundBookInfo>>(request, PageCancellationTokenSource.Token);
+                Suggestions = response.Where(IsValidSuggestion).ToList();
+                SelectedSuggestion = Suggestions.FirstOrDefault();
             }
-
-            Data.AudioBookInfo.Name = suggestion.Title;
-            Data.AudioBookInfo.AuthorName = suggestion.Author;
-            Data.AudioBookInfo.SeriesName = suggestion.SeriesName;
-            Data.AudioBookInfo.OrderInSeries = suggestion.OrderInSeries;
-            Data.AudioBookInfo.Description = suggestion.Description;
-            Data.AudioBookInfo.Categories = suggestion.Categories;
-            Data.Rating = suggestion.PercentageRating;
-
-            await suggestionsModalRef.Close(CloseReason.None);
+            catch (Exception exception) when (!PageCancellationTokenSource.IsCancellationRequested)
+            {
+                SuggestionsStatusMessage = $"Suggestions could not be loaded: {exception.Message}";
+            }
+            finally
+            {
+                SuggestionsLoaded = true;
+                IsLoadingSuggestions = false;
+            }
         }
 
         private static bool IsValidSuggestion(FoundBookInfo suggestion)
@@ -75,24 +108,71 @@ namespace DotCast.App.Pages
                    && !string.Equals(suggestion.Author, "ERROR", StringComparison.OrdinalIgnoreCase);
         }
 
-        public async Task SaveAndExit()
+        private async Task ShowSuggestions()
         {
-            await Save();
-            NavigationManager.NavigateTo("/");
+            await ShowSuggestions(false);
         }
 
-        public async Task Save()
+        private async Task RefreshSuggestions()
         {
-            var request = new AudioBookEdited(Data);
-            await Messenger.ExecuteAsync(request);
+            await ShowSuggestions(true);
         }
 
-
-        private async Task LoadSuggestions(string name)
+        private async Task ShowSuggestions(bool force)
         {
-            var request = new AudiobookInfoSuggestionsRequest(name);
-            var response = await Messenger.RequestAsync<AudiobookInfoSuggestionsRequest, IReadOnlyCollection<FoundBookInfo>>(request, PageCancellationTokenSource.Token);
-            Suggestions = response.ToList();
+            ActiveTab = "suggestions";
+
+            if (IsLoadingSuggestions || SuggestionsLoaded && !force)
+            {
+                return;
+            }
+
+            await LoadSuggestions();
+        }
+
+        private void SelectSuggestion(FoundBookInfo suggestion)
+        {
+            SelectedSuggestion = suggestion;
+        }
+
+        private void ApplySelectedSuggestion()
+        {
+            if (SelectedSuggestion is null)
+            {
+                return;
+            }
+
+            if (ApplyTitle)
+            {
+                Data.AudioBookInfo.Name = SelectedSuggestion.Title;
+            }
+
+            if (ApplyAuthor)
+            {
+                Data.AudioBookInfo.AuthorName = SelectedSuggestion.Author;
+            }
+
+            if (ApplySeries)
+            {
+                Data.AudioBookInfo.SeriesName = SelectedSuggestion.SeriesName;
+                Data.AudioBookInfo.OrderInSeries = SelectedSuggestion.OrderInSeries;
+            }
+
+            if (ApplyDescription)
+            {
+                Data.AudioBookInfo.Description = SelectedSuggestion.Description;
+            }
+
+            if (ApplyCategories)
+            {
+                Data.AudioBookInfo.Categories = SelectedSuggestion.Categories;
+                UpdateMissingCategories();
+            }
+
+            if (ApplyRating)
+            {
+                Data.Rating = SelectedSuggestion.PercentageRating;
+            }
         }
 
         private void ChapterOrderChanged(DraggableDroppedEventArgs<Chapter> obj)
@@ -106,12 +186,6 @@ namespace DotCast.App.Pages
         private void SortByName()
         {
             Data.AudioBookInfo.Chapters = Data.AudioBookInfo.Chapters.OrderBy(t => t.Name).ToList();
-        }
-
-        private async Task ShowSuggestions()
-        {
-            await LoadSuggestions(Data.AudioBookInfo.Name);
-            await suggestionsModalRef.Show();
         }
 
         private void AddCategory(Category? obj)
@@ -136,7 +210,8 @@ namespace DotCast.App.Pages
 
         private async Task<Dictionary<string, string>> CreatePresignedUrl(ICollection<string> files)
         {
-            var result = await Messenger.RequestAsync<AudioBookUploadStartRequest, IReadOnlyCollection<PreuploadFileInformation>>(new AudioBookUploadStartRequest(Id, files),
+            var result = await Messenger.RequestAsync<AudioBookUploadStartRequest, IReadOnlyCollection<PreuploadFileInformation>>(
+                new AudioBookUploadStartRequest(Id, files),
                 PageCancellationTokenSource.Token);
             return result.ToDictionary(t => t.FileName, t => t.UploadUrl);
         }

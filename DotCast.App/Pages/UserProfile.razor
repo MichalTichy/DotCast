@@ -1,60 +1,66 @@
-﻿@page "/UserProfile"
+@page "/UserProfile"
 @using DotCast.App.API
-@using DotCast.Infrastructure.AppUser
 @inherits AppPage
 
-<div class="user-profile-container">
-    <!-- User Profile Section -->
-    <div class="user-profile-card" style="width: 100%; max-width: 800px;">
-        <h2>User Profile</h2>
-        <h3>@UserName</h3>
-        <button class="logout-button" @onclick="() => NavigationManager.NavigateTo(LogoutEndpoint.Address, forceLoad: true)">Logout</button>
-    </div>
+<section class="account-page">
+    <header class="page-hero compact">
+        <p class="cinema-eyebrow">Account</p>
+        <h1>@UserName</h1>
+        <p>Manage your library code and sharing access.</p>
+    </header>
 
-    <!-- Library Sharing Section -->
-    <div class="library-sharing-card">
-        <h2>Library Sharing</h2>
-        <p><strong>Your Library Code:</strong> @LibraryName</p>
-        <div class="share-library-form">
-            <label for="share-input">Share library:</label>
-            <input id="share-input" type="text" @bind="NewShare" placeholder="Enter library code" />
-            <button class="share-button" @onclick="ShareAsync">Share</button>
-        </div>
+    <main class="settings-grid">
+        <section class="cinema-panel account-card">
+            <div class="avatar-large">@UserName.FirstOrDefault().ToString().ToUpperInvariant()</div>
+            <div>
+                <h2>@UserName</h2>
+                <p>Signed in to DotCast</p>
+                <button class="danger-action" @onclick="() => NavigationManager.NavigateTo(LogoutEndpoint.Address, forceLoad: true)">Logout</button>
+            </div>
+        </section>
 
-        @if (SharedLibrariesWith.Count > 0)
-        {
-            <table class="shared-libraries-table">
-                <thead>
-                    <tr>
-                        <th>Username</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
+        <section class="cinema-panel">
+            <p class="cinema-eyebrow">Library code</p>
+            <h2>@LibraryName</h2>
+            <p>Share this code with another DotCast user to grant library access.</p>
+        </section>
+
+        <section class="cinema-panel wide-panel">
+            <div class="section-heading">
+                <div>
+                    <p class="cinema-eyebrow">Sharing</p>
+                    <h2>Shared libraries</h2>
+                </div>
+            </div>
+
+            <div class="share-form">
+                <input id="share-input" type="text" @bind="NewShare" placeholder="Enter library code" />
+                <button class="primary-action" @onclick="ShareAsync">Share</button>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(ShareMessage))
+            {
+                <p class="inline-status">@ShareMessage</p>
+            }
+
+            @if (SharedLibrariesWith.Count == 0)
+            {
+                <p>No shared libraries yet.</p>
+            }
+            else
+            {
+                <div class="shared-list">
                     @foreach (var shareInfo in SharedLibrariesWith)
                     {
-                        <tr>
-                            <td>@shareInfo.UserName</td>
-                            <td>
-                                <button class="unshare-button" @onclick="() => UnShareAsync(shareInfo)">Unshare</button>
-                            </td>
-                        </tr>
+                        <article>
+                            <div>
+                                <strong>@shareInfo.UserName</strong>
+                                <span>@shareInfo.LibraryCode</span>
+                            </div>
+                            <button class="danger-action" @onclick="() => UnShareAsync(shareInfo)">Unshare</button>
+                        </article>
                     }
-                </tbody>
-            </table>
-        }
-    </div>
-
-    <!-- Admin Actions Section -->
-    @if (IsAdmin)
-    {
-        <div class="admin-actions-card">
-            <h2>Admin Actions</h2>
-            <div class="button-group">
-                <button id="restore-button" class="admin-button" @onclick="RestoreAudioBooksFromStorage" disabled="@IsProcessingRunning">Restore Audiobooks</button>
-                <button id="reprocess-no-unzip" class="admin-button" @onclick="async () => await ReprocessAudioBooksFromStorage(false)" disabled="@IsProcessingRunning">Reprocess (No Unzip)</button>
-                <button id="reprocess-unzip" class="admin-button" @onclick="async () => await ReprocessAudioBooksFromStorage(true)" disabled="@IsProcessingRunning">Reprocess (Unzip)</button>
-            </div>
-        </div>
-    }
-</div>
+                </div>
+            }
+        </section>
+    </main>
+</section>

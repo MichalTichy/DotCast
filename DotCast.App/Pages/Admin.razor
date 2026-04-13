@@ -1,0 +1,42 @@
+@page "/Admin"
+@inherits AppPage
+
+<section class="admin-page">
+    <header class="page-hero compact">
+        <p class="cinema-eyebrow">Admin</p>
+        <h1>Maintenance dashboard</h1>
+        <p>Run library-wide processing actions and monitor active work.</p>
+    </header>
+
+    <main class="settings-grid">
+        <section class="cinema-panel wide-panel">
+            <div class="section-heading">
+                <div>
+                    <p class="cinema-eyebrow">Processing status</p>
+                    <h2>@(IsProcessingRunning ? "Processing is running" : "Processing is idle")</h2>
+                    <p>@CountOfRunningProcessings active job(s).</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="cinema-panel wide-panel">
+            <p class="cinema-eyebrow">Library operations</p>
+            <h2>Maintenance actions</h2>
+            <div class="admin-action-grid">
+                <button id="restore-button" class="primary-action" @onclick="RestoreAudioBooksFromStorage" disabled="@IsProcessingRunning">
+                    Restore Audiobooks
+                </button>
+                <button id="reprocess-no-unzip" class="secondary-action as-button" @onclick="async () => await ReprocessAudioBooksFromStorage(false)" disabled="@IsProcessingRunning">
+                    Reprocess without unzip
+                </button>
+                <button id="reprocess-unzip" class="secondary-action as-button" @onclick="async () => await ReprocessAudioBooksFromStorage(true)" disabled="@IsProcessingRunning">
+                    Reprocess with unzip
+                </button>
+            </div>
+            @if (IsProcessingRunning)
+            {
+                <p class="inline-status">Maintenance actions are disabled while processing is running.</p>
+            }
+        </section>
+    </main>
+</section>

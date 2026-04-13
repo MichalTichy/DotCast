@@ -1,0 +1,40 @@
+@page "/NewAudioBook"
+@inherits AppPage
+
+<section class="upload-page">
+    <header class="page-hero compact">
+        <p class="cinema-eyebrow">New Audiobook</p>
+        <h1>Add a single audiobook</h1>
+        <p>Choose a name, confirm the generated library id, then upload the files for processing.</p>
+    </header>
+
+    <main class="upload-panel">
+        <Field>
+            <FieldLabel>Audiobook name</FieldLabel>
+            <FieldBody>
+                <TextEdit Placeholder="Enter audiobook name" Text="@AudioBookName" TextChanged="BookNameTextChanged" />
+            </FieldBody>
+        </Field>
+
+        <div class="generated-id">
+            <span>Generated id</span>
+            <strong>@(AudioBookId ?? "Waiting for name")</strong>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(StatusMessage))
+        {
+            <div class="inline-status">@StatusMessage</div>
+        }
+
+        <div class="upload-area @(ReadyForUpload ? "" : "is-disabled")">
+            @if (ReadyForUpload)
+            {
+                <FileUpload PresignedUrlFactory="GetPresignedUrls" Label="Upload audiobook files" />
+            }
+            else
+            {
+                <p>Enter a valid audiobook name to enable file upload.</p>
+            }
+        </div>
+    </main>
+</section>

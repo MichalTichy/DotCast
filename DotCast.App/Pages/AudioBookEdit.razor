@@ -1,166 +1,184 @@
-
 @page "/AudioBook/{Id}/edit"
 @inherits AppPage
 @using DotCast.SharedKernel.Models
 
-<Row>
-    <Column>
-
-        <Button Color="Color.Info" Clicked="async () => await ShowSuggestions()">
-            Suggestions
-        </Button>
-        <Button Color="Color.Primary" Clicked="@SaveAndExit">
-            Save
-        </Button>
-
-    </Column>
-</Row>
-<Image Class="CoverImage" src="@Data.AudioBookInfo.ImageUrl" />
-<Row>
-    <Rating ReadOnly="true" SelectedValue="@((int)Math.Round(Data.Rating / 20.0))" />
-</Row>
-
-<Row>
-    <Column ColumnSize="ColumnSize.IsHalf">
-        <Field >
-            <FieldLabel>Name</FieldLabel>
-            <FieldBody>
-                <TextEdit @bind-Text="@Data.AudioBookInfo.Name" />
-            </FieldBody>
-        </Field>
-    </Column>
-    <Column ColumnSize="ColumnSize.IsHalf">
-        <Field >
-            <FieldLabel>Author</FieldLabel>
-            <FieldBody>
-                <TextEdit @bind-Text="@Data.AudioBookInfo.AuthorName">
-                </TextEdit>
-            </FieldBody>
-        </Field>
-    </Column>
-</Row>
-<Row>
-    <Column ColumnSize="ColumnSize.IsHalf">
-
-        <div id="categories">
-            @foreach (var category in Data.AudioBookInfo.Categories)
+<section class="edit-page">
+    <header class="edit-hero">
+        <div class="edit-cover">
+            @if (!string.IsNullOrWhiteSpace(Data.AudioBookInfo.ImageUrl))
             {
-                <Badge Color="Color.Info" CloseClicked="@(() => RemoveCategory(category))">@category.Name</Badge>
+                <img src="@Data.AudioBookInfo.ImageUrl" alt="@Data.AudioBookInfo.Name cover" />
             }
         </div>
-    </Column>
-    <Column ColumnSize="ColumnSize.IsHalf">
-        <Field>
-            <FieldLabel>Add category</FieldLabel>
-            <FieldBody>
-                <SelectList TItem="Category" TValue="string"
-                            Data="MissingCategories" TextField="category => category.Name" ValueField="category => category.Name" 
-                            SelectedValueChanged="@(s => AddCategory(MissingCategories.Single(t=>t.Name==s)))"
-                            DefaultItemText="Choose new category" ></SelectList>
-            </FieldBody>
-        </Field>
-    </Column>
-</Row>
-<Row>
-    <Column ColumnSize="ColumnSize.IsHalf">
-        <Field >
-            <FieldLabel>Series Name</FieldLabel>
-            <FieldBody>
-                <TextEdit @bind-Text="@Data.AudioBookInfo.SeriesName" />
-            </FieldBody>
-        </Field>
-    </Column>
-    <Column ColumnSize="ColumnSize.IsHalf">
-        <Field >
-            <FieldLabel>Order in series</FieldLabel>
-            <FieldBody>
-                <NumericPicker @bind-Value="Data.AudioBookInfo.OrderInSeries" Min="0" />
-            </FieldBody>
-        </Field>
-    </Column>
-</Row>
-<Row>
-    <Column ColumnSize="ColumnSize.IsFull">
-
-        <Field>
-            <FieldLabel>Description</FieldLabel>
-            <FieldBody>
-                <TextEdit @bind-Text="Data.AudioBookInfo.Description" />
-            </FieldBody>
-        </Field>
-    </Column>
-</Row>
-<Row>
-    <Column ColumnSize="ColumnSize.IsFull">
-        <Field >
-            <FieldLabel>Upload files</FieldLabel>
-            <FieldBody>    
-                <FileUpload PresignedUrlFactory="CreatePresignedUrl" />
-            </FieldBody>
-        </Field>
-    </Column>
-
-</Row>
-<Row>
-    <Column ColumnSize="ColumnSize.IsFull">
-        @if (Data?.AudioBookInfo.Chapters.Count > 0)
-        {
-            <DropContainer TItem="Chapter" Items="@Data.AudioBookInfo.Chapters" ItemsFilter="@((item, dropZone) => true)" ItemDropped="@ChapterOrderChanged" Flex="Flex.Wrap.Grow.Is1">
-                <ChildContent>
-       
-                    <DropZone TItem="Chapter" Name="Chapters" AllowReorder Padding="Padding.Is3" Margin="Margin.Is3" Flex="Flex.Grow.Is1">
-                        <Heading Size="HeadingSize.Is4" Margin="Margin.Is3.FromBottom">Chapters</Heading>
-                        
-                        <Button Color="Color.Info" Clicked="SortByName">
-                            Sort by name
-                        </Button>
-                    </DropZone>
-                </ChildContent>
-                <ItemTemplate>
-                    <Card Shadow="Shadow.Default" Margin="Margin.Is3.OnY">
-                        <CardBody>
-                            @context.Name
-                        </CardBody>
-                    </Card>
-                </ItemTemplate>
-            </DropContainer>
-        }
-    </Column>
-</Row>
-<Modal @ref="suggestionsModalRef" >
-    <ModalContent Centered Size="ModalSize.Fullscreen">
-        <ModalHeader>
-            <ModalTitle>Suggestions</ModalTitle>
-            <CloseButton />
-        </ModalHeader>
-        <ModalBody>
-            <div class="suggestions">
-                @if (Suggestions.Count == 0)
+        <div class="edit-hero-copy">
+            <a class="text-button" href="/">Back to library</a>
+            <p class="cinema-eyebrow">Edit audiobook</p>
+            <h1>@Data.AudioBookInfo.Name</h1>
+            <p>@Data.AudioBookInfo.AuthorName</p>
+            <div class="media-meta-row">
+                <span>@Data.Rating %</span>
+                <span>@($"{Data.AudioBookInfo.Duration.TotalHours:F0}:{Data.AudioBookInfo.Duration.Minutes:D2}")</span>
+                <span>@Data.AudioBookInfo.Chapters.Count chapters</span>
+            </div>
+            <div class="edit-actions">
+                <Button Color="Color.Info" Clicked="ShowSuggestions">Find suggestions</Button>
+                <Button Color="Color.Secondary" Clicked="Save">Save</Button>
+                <Button Color="Color.Primary" Clicked="@SaveAndExit">Save and exit</Button>
+                @if (!string.IsNullOrWhiteSpace(SaveMessage))
                 {
-                    <p>No valid suggestions found.</p>
-                }
-                else
-                {
-                    @foreach (var suggestion in Suggestions)
-                    {
-                        <Card Class="suggestion">
-                            <CardImage Source="@suggestion.ImgUrl"/>
-                            <CardBody>
-                                <h1>@suggestion.Title</h1>
-                                <b>@suggestion.Author</b>
-                                <p>@string.Join(" ; ",suggestion.Categories.Select(t=>t.Name))</p>
-                                @if (!string.IsNullOrWhiteSpace(suggestion.SeriesName))
-                                {
-                                    <div><span>@suggestion.SeriesName</span> - <span>@suggestion.OrderInSeries</span></div>
-                                }
-                                <p>@suggestion.Description</p>
-                                <Rating ReadOnly="true" SelectedValue="@((int) Math.Round(suggestion.PercentageRating / 20.0))"/> <br/>
-                                <Button Color="Color.Link" Clicked="@(async () => await Prefill(suggestion))">Select</Button>
-                            </CardBody>
-                        </Card>
-                    }
+                    <span class="save-message">@SaveMessage</span>
                 }
             </div>
-        </ModalBody>
-    </ModalContent>
-</Modal>
+        </div>
+    </header>
+
+    <nav class="cinema-tabs" aria-label="Edit sections">
+        <button type="button" class="@(ActiveTab == "metadata" ? "is-active" : "")" @onclick='() => ActiveTab = "metadata"'>Metadata</button>
+        <button type="button" class="@(ActiveTab == "files" ? "is-active" : "")" @onclick='() => ActiveTab = "files"'>Files</button>
+        <button type="button" class="@(ActiveTab == "chapters" ? "is-active" : "")" @onclick='() => ActiveTab = "chapters"'>Chapters</button>
+        <button type="button" class="@(ActiveTab == "suggestions" ? "is-active" : "")" @onclick="ShowSuggestions">Suggestions</button>
+    </nav>
+
+    <main class="edit-panel">
+        @if (ActiveTab == "metadata")
+        {
+            <section class="metadata-grid">
+                <Field>
+                    <FieldLabel>Name</FieldLabel>
+                    <FieldBody><TextEdit @bind-Text="@Data.AudioBookInfo.Name" /></FieldBody>
+                </Field>
+                <Field>
+                    <FieldLabel>Author</FieldLabel>
+                    <FieldBody><TextEdit @bind-Text="@Data.AudioBookInfo.AuthorName" /></FieldBody>
+                </Field>
+                <Field>
+                    <FieldLabel>Series Name</FieldLabel>
+                    <FieldBody><TextEdit @bind-Text="@Data.AudioBookInfo.SeriesName" /></FieldBody>
+                </Field>
+                <Field>
+                    <FieldLabel>Order in series</FieldLabel>
+                    <FieldBody><NumericPicker @bind-Value="Data.AudioBookInfo.OrderInSeries" Min="0" /></FieldBody>
+                </Field>
+                <Field Class="wide-field">
+                    <FieldLabel>Description</FieldLabel>
+                    <FieldBody><MemoEdit @bind-Text="Data.AudioBookInfo.Description" Rows="6" /></FieldBody>
+                </Field>
+
+                <section class="wide-field category-editor">
+                    <h2>Categories</h2>
+                    <div class="drawer-tags">
+                        @foreach (var category in Data.AudioBookInfo.Categories)
+                        {
+                            <Badge Color="Color.Info" CloseClicked="@(() => RemoveCategory(category))">@category.Name</Badge>
+                        }
+                    </div>
+                    <Field>
+                        <FieldLabel>Add category</FieldLabel>
+                        <FieldBody>
+                            <SelectList TItem="Category" TValue="string"
+                                        Data="MissingCategories" TextField="category => category.Name" ValueField="category => category.Name"
+                                        SelectedValueChanged="@(s => AddCategory(MissingCategories.Single(t => t.Name == s)))"
+                                        DefaultItemText="Choose new category"></SelectList>
+                        </FieldBody>
+                    </Field>
+                </section>
+            </section>
+        }
+        else if (ActiveTab == "files")
+        {
+            <section class="edit-section">
+                <h2>Files</h2>
+                <p>Upload replacement or additional audio files for this audiobook.</p>
+                <FileUpload PresignedUrlFactory="CreatePresignedUrl" />
+            </section>
+        }
+        else if (ActiveTab == "chapters")
+        {
+            <section class="edit-section">
+                <div class="section-heading">
+                    <div>
+                        <h2>Chapters</h2>
+                        <p>@Data.AudioBookInfo.Chapters.Count chapters in this audiobook.</p>
+                    </div>
+                    <Button Color="Color.Info" Clicked="SortByName">Sort by name</Button>
+                </div>
+                <div class="chapter-list">
+                    <Virtualize Items="Data.AudioBookInfo.Chapters" Context="chapter" ItemSize="36">
+                        <div class="chapter-row">
+                            <span>@chapter.Name</span>
+                            <small>@($"{chapter.Duration.TotalMinutes:F0} min")</small>
+                        </div>
+                    </Virtualize>
+                </div>
+            </section>
+        }
+        else if (ActiveTab == "suggestions")
+        {
+            <section class="suggestions-workflow">
+                <div class="suggestion-list">
+                    <div class="section-heading">
+                        <div>
+                            <h2>Suggestions</h2>
+                            <p>Compare provider metadata before applying it.</p>
+                        </div>
+                        <Button Color="Color.Info" Clicked="RefreshSuggestions" Disabled="@IsLoadingSuggestions">Refresh</Button>
+                    </div>
+                    @if (IsLoadingSuggestions)
+                    {
+                        <p class="suggestions-state">Looking up provider suggestions...</p>
+                    }
+                    else if (!string.IsNullOrWhiteSpace(SuggestionsStatusMessage))
+                    {
+                        <p class="suggestions-state danger">@SuggestionsStatusMessage</p>
+                    }
+                    else if (SuggestionsLoaded && Suggestions.Count == 0)
+                    {
+                        <p class="suggestions-state">No valid suggestions found.</p>
+                    }
+                    else
+                    {
+                        @foreach (var suggestion in Suggestions)
+                        {
+                            <button type="button" class="suggestion-result @(SelectedSuggestion == suggestion ? "is-active" : "")" @onclick="() => SelectSuggestion(suggestion)">
+                                @if (!string.IsNullOrWhiteSpace(suggestion.ImgUrl))
+                                {
+                                    <img src="@suggestion.ImgUrl" alt="@suggestion.Title cover" />
+                                }
+                                <span>
+                                    <strong>@suggestion.Title</strong>
+                                    <small>@suggestion.Author</small>
+                                </span>
+                            </button>
+                        }
+                    }
+                </div>
+
+                @if (SelectedSuggestion is not null)
+                {
+                    <div class="suggestion-compare">
+                        <h2>Apply fields</h2>
+                        <label><Check TValue="bool" @bind-Checked="ApplyTitle" /> Title</label>
+                        <div class="compare-row"><span>@Data.AudioBookInfo.Name</span><strong>@SelectedSuggestion.Title</strong></div>
+
+                        <label><Check TValue="bool" @bind-Checked="ApplyAuthor" /> Author</label>
+                        <div class="compare-row"><span>@Data.AudioBookInfo.AuthorName</span><strong>@SelectedSuggestion.Author</strong></div>
+
+                        <label><Check TValue="bool" @bind-Checked="ApplySeries" /> Series</label>
+                        <div class="compare-row"><span>@Data.AudioBookInfo.SeriesName @Data.AudioBookInfo.OrderInSeries</span><strong>@SelectedSuggestion.SeriesName @SelectedSuggestion.OrderInSeries</strong></div>
+
+                        <label><Check TValue="bool" @bind-Checked="ApplyDescription" /> Description</label>
+                        <div class="compare-row"><span>@Data.AudioBookInfo.Description</span><strong>@SelectedSuggestion.Description</strong></div>
+
+                        <label><Check TValue="bool" @bind-Checked="ApplyCategories" /> Categories</label>
+                        <div class="compare-row"><span>@string.Join(", ", Data.AudioBookInfo.Categories.Select(t => t.Name))</span><strong>@string.Join(", ", SelectedSuggestion.Categories.Select(t => t.Name))</strong></div>
+
+                        <label><Check TValue="bool" @bind-Checked="ApplyRating" /> Rating</label>
+                        <div class="compare-row"><span>@Data.Rating %</span><strong>@SelectedSuggestion.PercentageRating %</strong></div>
+
+                        <Button Color="Color.Primary" Clicked="ApplySelectedSuggestion">Apply selected fields</Button>
+                    </div>
+                }
+            </section>
+        }
+    </main>
+</section>
