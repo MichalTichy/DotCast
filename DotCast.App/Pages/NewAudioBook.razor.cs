@@ -19,6 +19,7 @@ namespace DotCast.App.Pages
         public string AudioBookName { get; set; } = string.Empty;
         public string? AudioBookId { get; set; }
         public string? StatusMessage { get; set; }
+        public bool IsProcessingRunning { get; set; }
         public bool ReadyForUpload => !string.IsNullOrWhiteSpace(AudioBookId);
 
         public override async ValueTask DisposeAsync()
@@ -70,8 +71,35 @@ namespace DotCast.App.Pages
             var result = await Messenger.RequestAsync<AudioBookUploadStartRequest, IReadOnlyCollection<PreuploadFileInformation>>(
                 new AudioBookUploadStartRequest(AudioBookId, files),
                 PageCancellationTokenSource.Token);
+            _ = WatchUntilReadyAsync(AudioBookId);
+            IsProcessingRunning = true;
             StatusMessage = "Upload started.";
+            await SaveStateHasChangedAsync();
             return result.ToDictionary(t => t.FileName, t => t.UploadUrl);
+        }
+
+        private async Task WatchUntilReadyAsync(string audioBookId)
+        {
+            var cancellationToken = PageCancellationTokenSource.Token;
+            try
+            {
+                while (!cancellationToken.IsCancellationRequested)
+                {
+                    var audioBook = await Messenger.RequestAsync<AudioBookDetailRequest, AudioBook?>(
+                        new AudioBookDetailRequest(audioBookId),
+                        cancellationToken);
+                    if (audioBook is not null)
+                    {
+                        await InvokeAsync(() => NavigationManager.NavigateTo($"/AudioBook/{audioBookId}/edit"));
+                        return;
+                    }
+
+                    await Task.Delay(500, cancellationToken);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+            }
         }
     }
 }

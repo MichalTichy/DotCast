@@ -26,6 +26,11 @@
             <div class="inline-status">@StatusMessage</div>
         }
 
+        @if (IsProcessingRunning)
+        {
+            <div class="inline-status">Processing audiobook files. The edit page will open when it is ready.</div>
+        }
+
         <div class="upload-area @(ReadyForUpload ? "" : "is-disabled")">
             @if (ReadyForUpload)
             {

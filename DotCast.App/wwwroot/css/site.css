@@ -526,10 +526,6 @@ select {
     outline: 1px solid var(--dc-border);
 }
 
-.poster-button:hover {
-    outline-color: rgba(216, 137, 47, 0.74);
-}
-
 .poster-button span {
     display: grid;
     min-height: 222px;
