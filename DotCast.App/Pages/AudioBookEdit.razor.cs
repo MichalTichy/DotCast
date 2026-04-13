@@ -5,6 +5,7 @@ using DotCast.SharedKernel.Messages;
 using DotCast.SharedKernel.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 
 namespace DotCast.App.Pages
 {
@@ -13,6 +14,9 @@ namespace DotCast.App.Pages
     {
         [Inject]
         public required IMessagePublisher Messenger { get; set; }
+
+        [Inject]
+        public required IJSRuntime Js { get; set; }
 
         [Parameter]
         public required string Id { get; set; }
@@ -29,6 +33,8 @@ namespace DotCast.App.Pages
         public FoundBookInfo? SelectedSuggestion { get; set; }
         public string ActiveTab { get; set; } = "metadata";
         public string? SaveMessage { get; set; }
+        public string? DeleteMessage { get; set; }
+        public bool IsDeleting { get; set; }
         public bool IsLoadingSuggestions { get; set; }
         public bool SuggestionsLoaded { get; set; }
         public string? SuggestionsStatusMessage { get; set; }
@@ -71,6 +77,42 @@ namespace DotCast.App.Pages
         {
             await Messenger.ExecuteAsync(new AudioBookEdited(Data));
             SaveMessage = "Saved";
+        }
+
+        public async Task DeleteAndExit()
+        {
+            if (IsDeleting)
+            {
+                return;
+            }
+
+            var confirmed = await Js.InvokeAsync<bool>(
+                "confirm",
+                $"Permanently delete \"{Data.AudioBookInfo.Name}\" and all stored files? This cannot be restored from filesystem.");
+
+            if (!confirmed)
+            {
+                return;
+            }
+
+            IsDeleting = true;
+            DeleteMessage = null;
+            await SaveStateHasChangedAsync();
+
+            try
+            {
+                await Messenger.ExecuteAsync(new AudioBookDeleted(Data.Id), PageCancellationTokenSource.Token);
+                NavigationManager.NavigateTo("/");
+            }
+            catch (Exception exception) when (!PageCancellationTokenSource.IsCancellationRequested)
+            {
+                DeleteMessage = $"Delete failed: {exception.Message}";
+            }
+            finally
+            {
+                IsDeleting = false;
+                await SaveStateHasChangedAsync();
+            }
         }
 
         private async Task LoadSuggestions()

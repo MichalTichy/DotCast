@@ -238,7 +238,14 @@
                 <Button Color="Color.Secondary" Clicked="async () => await Download(SelectedAudioBook)">Download</Button>
             }
             <a class="secondary-action" href="@($"AudioBook/{SelectedAudioBook.Id}/edit")">Edit</a>
+            <button type="button" class="danger-action" @onclick="async () => await DeleteAudioBook(SelectedAudioBook)" disabled="@IsDeleting">
+                @(IsDeleting ? "Deleting..." : "Delete")
+            </button>
         </div>
+        @if (!string.IsNullOrWhiteSpace(DeleteMessage))
+        {
+            <p class="inline-status danger">@DeleteMessage</p>
+        }
     </aside>
 }
 

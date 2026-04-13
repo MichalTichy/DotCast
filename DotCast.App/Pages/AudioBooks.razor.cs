@@ -39,6 +39,8 @@ namespace DotCast.App.Pages
         private int? MinRating { get; set; }
         private int? MaxRating { get; set; }
         private bool IsLoading { get; set; }
+        private bool IsDeleting { get; set; }
+        private string? DeleteMessage { get; set; }
 
         private IEnumerable<string> FilteredAuthors => FilterFacets(Facets.Authors, AuthorFacetSearchText);
         private IEnumerable<string> FilteredCategories => FilterFacets(Facets.Categories, CategoryFacetSearchText);
@@ -65,6 +67,43 @@ namespace DotCast.App.Pages
             if (!string.IsNullOrWhiteSpace(info.AudioBookInfo.ArchiveUrl))
             {
                 await Js.InvokeVoidAsync("open", info.AudioBookInfo.ArchiveUrl, "_blank");
+            }
+        }
+
+        public async Task DeleteAudioBook(AudioBook audioBook)
+        {
+            if (IsDeleting)
+            {
+                return;
+            }
+
+            var confirmed = await Js.InvokeAsync<bool>(
+                "confirm",
+                $"Permanently delete \"{audioBook.AudioBookInfo.Name}\" and all stored files? This cannot be restored from filesystem.");
+
+            if (!confirmed)
+            {
+                return;
+            }
+
+            IsDeleting = true;
+            DeleteMessage = null;
+            await SaveStateHasChangedAsync();
+
+            try
+            {
+                await Messenger.ExecuteAsync(new AudioBookDeleted(audioBook.Id), PageCancellationTokenSource.Token);
+                CloseDetails();
+                await Task.WhenAll(LoadStatistics(), LoadFacets(), LoadData());
+            }
+            catch (Exception exception) when (!PageCancellationTokenSource.IsCancellationRequested)
+            {
+                DeleteMessage = $"Delete failed: {exception.Message}";
+            }
+            finally
+            {
+                IsDeleting = false;
+                await SaveStateHasChangedAsync();
             }
         }
 
@@ -158,6 +197,7 @@ namespace DotCast.App.Pages
         private void ShowDetails(AudioBook audioBook)
         {
             SelectedAudioBook = audioBook;
+            DeleteMessage = null;
         }
 
         private void CloseDetails()

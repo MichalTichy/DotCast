@@ -61,6 +61,27 @@ namespace DotCast.Storage.Storage
             }
         }
 
+        public Task DeleteAsync(string audioBookId, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var audioBookFilesDirectory = filesystemPathManager.GetAudioBookLocation(audioBookId);
+            if (Directory.Exists(audioBookFilesDirectory))
+            {
+                Directory.Delete(audioBookFilesDirectory, true);
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var archivePath = Path.Combine(filesystemPathManager.GetAudioBooksZipDirectoryLocation(), $"{audioBookId}.zip");
+            if (File.Exists(archivePath))
+            {
+                File.Delete(archivePath);
+            }
+
+            return Task.CompletedTask;
+        }
+
         public async Task<AudioBookInfo> ExtractMetadataAsync(string id, CancellationToken cancellationToken = default)
         {
             var audioBookStorageEntry = GetStorageEntry(id);

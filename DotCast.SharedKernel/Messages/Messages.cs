@@ -11,6 +11,8 @@ namespace DotCast.SharedKernel.Messages
 
     public record AudioBookEdited(AudioBook AudioBook);
 
+    public record AudioBookDeleted(string Id);
+
     public record NewAudioBookIdRequest(string Name);
 
     public record AudioBookUploadStartRequest(string AudioBookId, ICollection<string> Files);

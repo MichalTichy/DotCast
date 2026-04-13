@@ -24,9 +24,16 @@
                 <Button Color="Color.Info" Clicked="ShowSuggestions">Find suggestions</Button>
                 <Button Color="Color.Secondary" Clicked="Save">Save</Button>
                 <Button Color="Color.Primary" Clicked="@SaveAndExit">Save and exit</Button>
+                <button type="button" class="danger-action" @onclick="DeleteAndExit" disabled="@IsDeleting">
+                    @(IsDeleting ? "Deleting..." : "Delete")
+                </button>
                 @if (!string.IsNullOrWhiteSpace(SaveMessage))
                 {
                     <span class="save-message">@SaveMessage</span>
+                }
+                @if (!string.IsNullOrWhiteSpace(DeleteMessage))
+                {
+                    <span class="inline-status danger">@DeleteMessage</span>
                 }
             </div>
         </div>
