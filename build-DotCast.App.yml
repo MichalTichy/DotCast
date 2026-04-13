@@ -44,5 +44,5 @@ steps:
     repository: DotCast
     tags: $(Build.BuildId)
     command: 'buildAndPush'
-    Dockerfile: '**/Dockerfile'
+    Dockerfile: '$(Build.SourcesDirectory)/Dockerfile'
     buildContext: $(Build.ArtifactStagingDirectory)
