@@ -37,6 +37,11 @@ public static class ServiceCollectionExtensions
         bool supportEventSourcing = false,
         bool useTenancy = false)
     {
+        if (services.Any(x => x.ServiceType == typeof(IDocumentStore)))
+        {
+            return services;
+        }
+
         AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
         var serializer = new JsonNetSerializer

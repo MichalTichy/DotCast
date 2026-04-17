@@ -3,8 +3,10 @@ using DotCast.Infrastructure.IoC;
 using DotCast.Infrastructure.Persistence.Marten.Extensions;
 using DotCast.Infrastructure.Persistence.Marten.Migration;
 using DotCast.Infrastructure.Persistence.Marten.StorageConfiguration;
+using Marten;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace DotCast.Infrastructure.Persistence.Marten
 {
@@ -12,6 +14,11 @@ namespace DotCast.Infrastructure.Persistence.Marten
     {
         public void Install(IServiceCollection services, IConfiguration configuration, bool isProduction)
         {
+            if (services.Any(x => x.ServiceType == typeof(IDocumentStore)))
+            {
+                return;
+            }
+
             AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
             var connectionString = configuration.GetConnectionString(DatabaseConstants.ConnectionStringName);
             if (string.IsNullOrWhiteSpace(connectionString))
@@ -29,7 +36,7 @@ namespace DotCast.Infrastructure.Persistence.Marten
                 }
             });
 
-            services.AddTransient<IDatabaseMigrator, DatabaseMigrator>();
+            services.TryAddTransient<IDatabaseMigrator, DatabaseMigrator>();
         }
     }
 }
