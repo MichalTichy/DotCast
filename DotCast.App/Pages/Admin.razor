@@ -8,42 +8,98 @@
         <p>Run library-wide processing actions and monitor active work.</p>
     </header>
 
-    <main class="settings-grid">
-        <section class="cinema-panel wide-panel">
-            <div class="section-heading">
-                <div>
-                    <p class="cinema-eyebrow">Processing status</p>
-                    <h2>@(IsProcessingRunning ? "Processing is running" : "Processing is idle")</h2>
-                    <p>@CountOfRunningProcessings active job(s).</p>
-                </div>
-            </div>
-        </section>
+    <nav class="cinema-tabs" aria-label="Admin sections">
+        <button type="button" class="@(ActiveTab == "maintenance" ? "is-active" : "")" @onclick='() => ShowTab("maintenance")'>Maintenance</button>
+        <button type="button" class="@(ActiveTab == "playbacks" ? "is-active" : "")" @onclick='() => ShowTab("playbacks")'>Active playbacks</button>
+    </nav>
 
-        <section class="cinema-panel wide-panel">
-            <p class="cinema-eyebrow">Library operations</p>
-            <h2>Maintenance actions</h2>
-            <div class="admin-action-grid">
-                <button id="restore-button" class="primary-action" @onclick="RestoreAudioBooksFromStorage" disabled="@IsProcessingRunning">
-                    Restore Audiobooks
-                </button>
-                <button id="reprocess-no-unzip" class="secondary-action as-button" @onclick="async () => await ReprocessAudioBooksFromStorage(false)" disabled="@IsProcessingRunning">
-                    Reprocess without unzip
-                </button>
-                <button id="reprocess-unzip" class="secondary-action as-button" @onclick="async () => await ReprocessAudioBooksFromStorage(true)" disabled="@IsProcessingRunning">
-                    Reprocess with unzip
-                </button>
-                <button id="apply-strong-suggestions" class="secondary-action as-button" @onclick="ApplyStrongSuggestions" disabled="@(IsProcessingRunning || IsApplyingSuggestions)">
-                    @(IsApplyingSuggestions ? "Applying suggestions..." : "Apply strong suggestions")
-                </button>
-            </div>
-            @if (IsProcessingRunning)
-            {
-                <p class="inline-status">Maintenance actions are disabled while processing is running.</p>
-            }
-            @if (!string.IsNullOrWhiteSpace(SuggestionUpdateMessage))
-            {
-                <p class="inline-status">@SuggestionUpdateMessage</p>
-            }
-        </section>
+    <main class="settings-grid">
+        @if (ActiveTab == "maintenance")
+        {
+            <section class="cinema-panel wide-panel">
+                <div class="section-heading">
+                    <div>
+                        <p class="cinema-eyebrow">Processing status</p>
+                        <h2>@(IsProcessingRunning ? "Processing is running" : "Processing is idle")</h2>
+                        <p>@CountOfRunningProcessings active job(s).</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="cinema-panel wide-panel">
+                <p class="cinema-eyebrow">Library operations</p>
+                <h2>Maintenance actions</h2>
+                <div class="admin-action-grid">
+                    <button id="restore-button" class="primary-action" @onclick="RestoreAudioBooksFromStorage" disabled="@IsProcessingRunning">
+                        Restore Audiobooks
+                    </button>
+                    <button id="reprocess-no-unzip" class="secondary-action as-button" @onclick="async () => await ReprocessAudioBooksFromStorage(false)" disabled="@IsProcessingRunning">
+                        Reprocess without unzip
+                    </button>
+                    <button id="reprocess-unzip" class="secondary-action as-button" @onclick="async () => await ReprocessAudioBooksFromStorage(true)" disabled="@IsProcessingRunning">
+                        Reprocess with unzip
+                    </button>
+                    <button id="apply-strong-suggestions" class="secondary-action as-button" @onclick="ApplyStrongSuggestions" disabled="@(IsProcessingRunning || IsApplyingSuggestions)">
+                        @(IsApplyingSuggestions ? "Applying suggestions..." : "Apply strong suggestions")
+                    </button>
+                </div>
+                @if (IsProcessingRunning)
+                {
+                    <p class="inline-status">Maintenance actions are disabled while processing is running.</p>
+                }
+                @if (!string.IsNullOrWhiteSpace(SuggestionUpdateMessage))
+                {
+                    <p class="inline-status">@SuggestionUpdateMessage</p>
+                }
+            </section>
+        }
+        else
+        {
+            <section class="cinema-panel wide-panel">
+                <div class="section-heading">
+                    <div>
+                        <p class="cinema-eyebrow">Playback monitoring</p>
+                        <h2>Active playbacks</h2>
+                        <p>Records stay here until they are manually marked finished.</p>
+                    </div>
+                    <button type="button" class="secondary-action as-button" @onclick="LoadActivePlaybacks" disabled="@IsLoadingActivePlaybacks">
+                        @(IsLoadingActivePlaybacks ? "Refreshing..." : "Refresh")
+                    </button>
+                </div>
+
+                @if (IsLoadingActivePlaybacks)
+                {
+                    <p class="inline-status">Loading playback activity...</p>
+                }
+                else if (ActivePlaybacks.Count == 0)
+                {
+                    <p class="inline-status">No active playback records found.</p>
+                }
+                else
+                {
+                    <div class="admin-playback-list" role="table" aria-label="Active playback records">
+                        <div class="admin-playback-row admin-playback-header" role="row">
+                            <span role="columnheader">Audiobook</span>
+                            <span role="columnheader">User</span>
+                            <span role="columnheader">Status</span>
+                            <span role="columnheader">Last RSS</span>
+                            <span role="columnheader">Last file</span>
+                            <span role="columnheader">Final file</span>
+                        </div>
+                        @foreach (var playback in ActivePlaybacks)
+                        {
+                            <article class="admin-playback-row" role="row">
+                                <strong role="cell">@playback.AudioBookName</strong>
+                                <span role="cell">@playback.UserName</span>
+                                <span role="cell"><span class="status-chip @PlaybackStatusClass(playback.Status)">@playback.Status</span></span>
+                                <span role="cell">@playback.LastRssGeneratedAt.ToLocalTime().ToString("g")</span>
+                                <span role="cell">@(playback.LastFileDownloadedAt?.ToLocalTime().ToString("g") ?? "-")</span>
+                                <span role="cell">@(playback.HasDownloadedFinalFile ? "Yes" : "No")</span>
+                            </article>
+                        }
+                    </div>
+                }
+            </section>
+        }
     </main>
 </section>

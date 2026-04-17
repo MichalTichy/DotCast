@@ -12,6 +12,7 @@ using DotCast.Infrastructure.Persistence.Marten.Repository.Document;
 using DotCast.Infrastructure.Persistence.Marten.SessionFactory;
 using DotCast.Infrastructure.Persistence.Marten.StorageConfiguration;
 using DotCast.Infrastructure.Persistence.Repositories;
+using DotCast.Storage;
 
 namespace DotCast.Library
 {
@@ -47,8 +48,9 @@ namespace DotCast.Library
         public void Install(IServiceCollection services, IConfiguration configuration, bool isProduction)
         {
             services.AddTransient<IStorageConfiguration, AudioBookStorageConfiguration>();
+            services.AddTransient<IStorageConfiguration, AudioBookPlaybackStorageConfiguration>();
             services.AddTransient<ILibraryApiInformationProvider, LibraryApiInformationProvider>();
-            services.AddSingleton<AudioBookRssGenerator>();
+            services.AddScoped<AudioBookRssGenerator>();
 
             services.AddScoped<IRepository<AudioBook>, AudioBookRepository>();
             services.AddScoped<IReadOnlyRepository<AudioBook>, AudioBookRepository>();

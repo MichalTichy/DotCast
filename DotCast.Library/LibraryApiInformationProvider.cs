@@ -3,6 +3,7 @@ using DotCast.Infrastructure.CurrentUserProvider;
 using DotCast.Infrastructure.Messaging.Base;
 using DotCast.Infrastructure.UrlBuilder;
 using DotCast.SharedKernel.Messages;
+using DotCast.Storage;
 
 namespace DotCast.Library
 {
@@ -10,6 +11,7 @@ namespace DotCast.Library
         IUrlBuilder urlBuilder,
         ICurrentUserIdProvider userIdProvider,
         IPresignedUrlManager presignedUrlManager,
+        IStorageApiInformationProvider storageApiInformationProvider,
         IMessagePublisher messenger) : ILibraryApiInformationProvider
     {
         public async Task<string> GetFeedUrlAsync(string audioBookId)
@@ -19,6 +21,12 @@ namespace DotCast.Library
             var signedUrl = presignedUrlManager.GenerateUrl(fullUri);
             await messenger.PublishAsync(new AudioBookRssLinkGenerated(audioBookId));
             return signedUrl;
+        }
+
+        public async Task<string> GetArchiveUrlAsync(string audioBookId)
+        {
+            var userId = await userIdProvider.GetCurrentUserIdRequiredAsync();
+            return storageApiInformationProvider.GetFileUrl(audioBookId, $"{audioBookId}.zip", true, userId: userId);
         }
     }
 }

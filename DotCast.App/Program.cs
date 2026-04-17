@@ -52,6 +52,13 @@ namespace DotCast.App
                 options.Discovery.IncludeType(typeof(ProcessingMonitor));
 
                 options.LocalQueueFor<AudioBookReadyForProcessing>().MaximumParallelMessages(Environment.ProcessorCount / 2);
+
+                var playbackEvents = "playback-events";
+                options.LocalQueue(playbackEvents).Sequential();
+                options.PublishMessage<AudioBookRssGenerated>().ToLocalQueue(playbackEvents);
+                options.PublishMessage<FileRead>().ToLocalQueue(playbackEvents);
+                options.PublishMessage<ArchiveRead>().ToLocalQueue(playbackEvents);
+                options.PublishMessage<AudioBookPlaybackMarkedFinished>().ToLocalQueue(playbackEvents);
             });
 
             builder.Host.UseSystemd();

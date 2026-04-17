@@ -39,6 +39,15 @@ namespace DotCast.App.Pages
         public int CountOfRunningProcessings { get; set; }
         public bool IsApplyingSuggestions { get; set; }
         public string? SuggestionUpdateMessage { get; set; }
+        public IReadOnlyList<ActivePlaybackInfo> ActivePlaybacks { get; set; } = [];
+        public bool IsLoadingActivePlaybacks { get; set; }
+        public string ActiveTab { get; set; } = "maintenance";
+
+        protected override async Task OnInitializedAsync()
+        {
+            await base.OnInitializedAsync();
+            await LoadActivePlaybacks();
+        }
 
 
         protected override void OnAfterRender(bool firstRender)
@@ -117,6 +126,45 @@ namespace DotCast.App.Pages
                 IsApplyingSuggestions = false;
                 await SaveStateHasChangedAsync();
             }
+        }
+
+        private async Task ShowTab(string tab)
+        {
+            ActiveTab = tab;
+            if (tab == "playbacks")
+            {
+                await LoadActivePlaybacks();
+            }
+        }
+
+        private async Task LoadActivePlaybacks()
+        {
+            IsLoadingActivePlaybacks = true;
+            await SaveStateHasChangedAsync();
+
+            try
+            {
+                ActivePlaybacks = await Messenger.RequestAsync<ActivePlaybacksRequest, IReadOnlyList<ActivePlaybackInfo>>(
+                    new ActivePlaybacksRequest(),
+                    PageCancellationTokenSource.Token);
+            }
+            finally
+            {
+                IsLoadingActivePlaybacks = false;
+                await SaveStateHasChangedAsync();
+            }
+        }
+
+        private static string PlaybackStatusClass(PlaybackStatus status)
+        {
+            return status switch
+            {
+                PlaybackStatus.InfoRetrieved => "is-info",
+                PlaybackStatus.InProgress => "is-progress",
+                PlaybackStatus.CloseToFinished => "is-close",
+                PlaybackStatus.Finished => "is-finished",
+                _ => string.Empty
+            };
         }
 
         private void BookNameTextChanged(string text)

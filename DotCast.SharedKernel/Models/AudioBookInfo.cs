@@ -19,7 +19,7 @@ namespace DotCast.SharedKernel.Models
         [JsonProperty]
         public long DurationInMinutes => Chapters.Sum(c => (long) c.DurationInMinutes);
 
-        public string? ArchiveUrl { get; set; }
+        public bool HasArchive { get; set; }
         public string? ImageUrl { get; set; }
     }
 }

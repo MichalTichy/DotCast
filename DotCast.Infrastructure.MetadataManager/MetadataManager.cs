@@ -140,13 +140,14 @@ namespace DotCast.Infrastructure.MetadataManager
 
                     var info = new FileInfo(fileInfo.info.LocalPath);
 
-                    var chapterName = fileInfo.metadata.Tag.Title ?? Path.GetFileNameWithoutExtension(fileInfo.info.RemotePath).Replace('_', ' ');
+                    var fileId = Path.GetFileName(fileInfo.info.LocalPath);
+                    var chapterName = fileInfo.metadata.Tag.Title ?? Path.GetFileNameWithoutExtension(fileId).Replace('_', ' ');
 
                     var chapter = new Chapter
                     {
                         Name = chapterName,
                         DurationInMinutes = fileInfo.metadata.Properties.Duration.TotalMinutes,
-                        Url = fileInfo.info.RemotePath,
+                        FileId = fileId,
                         FileType = fileInfo.metadata.MimeType,
                         Size = info.Length
                     };
@@ -173,7 +174,7 @@ namespace DotCast.Infrastructure.MetadataManager
                 ImageUrl = image,
                 SeriesName = series,
                 OrderInSeries = orderInSeries ?? 0,
-                ArchiveUrl = source.Archive?.RemotePath,
+                HasArchive = source.Archive != null,
                 Categories = categories ?? Array.Empty<Category>()
             };
             return audioBook;
@@ -209,7 +210,7 @@ namespace DotCast.Infrastructure.MetadataManager
                     file.Tag.TitleSort = audioBook.OrderInSeries.ToString();
                     file.Tag.Genres = audioBook.Categories.Select(t => t.Name).ToArray();
                     file.Tag.Description = audioBook.Description;
-                    var matchedChapter = audioBook.Chapters.FirstOrDefault(t => t.Url == localFileInfo.RemotePath);
+                    var matchedChapter = audioBook.Chapters.FirstOrDefault(t => t.FileId == Path.GetFileName(localFileInfo.LocalPath));
 
                     if (matchedChapter != null)
                     {

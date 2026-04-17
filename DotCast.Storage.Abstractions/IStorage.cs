@@ -10,8 +10,8 @@ namespace DotCast.Storage.Abstractions
         Task DeleteAsync(string audioBookId, CancellationToken cancellationToken = default);
         Task<AudioBookInfo> ExtractMetadataAsync(string id, CancellationToken cancellationToken = default);
         Task UpdateMetadataAsync(AudioBookInfo audioBook, CancellationToken cancellationToken = default);
-        ReadableStorageEntry? GetFileForRead(string audioBookId, string fileName);
+        Task<ReadableStorageEntry?> GetFileForReadAsync(string audioBookId, string fileName, string? userId = null, CancellationToken cancellationToken = default);
         StorageEntryWithFiles? GetStorageEntry(string id);
-        ReadableStorageEntry? GetArchiveForRead(string audioBookId);
+        Task<ReadableStorageEntry?> GetArchiveForReadAsync(string audioBookId, string? userId = null, CancellationToken cancellationToken = default);
     }
 }

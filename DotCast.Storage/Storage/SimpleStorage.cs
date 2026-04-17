@@ -1,9 +1,11 @@
 ﻿using DotCast.Infrastructure.FileNameNormalization;
 using DotCast.Infrastructure.MetadataManager;
 using DotCast.Infrastructure.MimeType;
+using DotCast.SharedKernel.Messages;
 using DotCast.SharedKernel.Models;
 using DotCast.Storage.Abstractions;
 using Microsoft.Extensions.Logging;
+using Wolverine;
 
 namespace DotCast.Storage.Storage
 {
@@ -11,6 +13,7 @@ namespace DotCast.Storage.Storage
         IMetadataManager metadataManager,
         IStorageApiInformationProvider apiInformationProvider,
         IFileNameNormalizer fileNameNormalizer,
+        IMessageBus messageBus,
         ILogger<SimpleStorage> logger) : IStorage
     {
         public Task<LocalFileInfo> RenameFileAsync(string id, LocalFileInfo fileInfo, string newName, CancellationToken cancellationToken = default)
@@ -138,7 +141,7 @@ namespace DotCast.Storage.Storage
             return new StorageEntryWithFiles(id, files, zipFileInfo);
         }
 
-        public ReadableStorageEntry? GetFileForRead(string audioBookId, string fileName)
+        public async Task<ReadableStorageEntry?> GetFileForReadAsync(string audioBookId, string fileName, string? userId = null, CancellationToken cancellationToken = default)
         {
             var filePath = filesystemPathManager.GetTargetFilePath(audioBookId, fileName);
             if (!File.Exists(filePath))
@@ -146,7 +149,9 @@ namespace DotCast.Storage.Storage
                 return null;
             }
 
-            return PrepareReadableStorageEntry($"{audioBookId}/{fileName}", filePath);
+            var entry = PrepareReadableStorageEntry($"{audioBookId}/{fileName}", filePath);
+            await messageBus.PublishAsync(new FileRead(audioBookId, userId, fileName, DateTime.UtcNow));
+            return entry;
         }
 
         private static ReadableStorageEntry PrepareReadableStorageEntry(string fileId, string filePath)
@@ -156,7 +161,7 @@ namespace DotCast.Storage.Storage
             return new ReadableStorageEntry(fileId, stream, mimeType);
         }
 
-        public ReadableStorageEntry? GetArchiveForRead(string audioBookId)
+        public async Task<ReadableStorageEntry?> GetArchiveForReadAsync(string audioBookId, string? userId = null, CancellationToken cancellationToken = default)
         {
             var archive = $"{audioBookId}.zip";
             var archivesLocation = filesystemPathManager.GetTargetFilePath(audioBookId, archive);
@@ -165,7 +170,9 @@ namespace DotCast.Storage.Storage
                 return null;
             }
 
-            return PrepareReadableStorageEntry(archive, archivesLocation);
+            var entry = PrepareReadableStorageEntry(archive, archivesLocation);
+            await messageBus.PublishAsync(new ArchiveRead(audioBookId, userId, DateTime.UtcNow));
+            return entry;
         }
     }
 }

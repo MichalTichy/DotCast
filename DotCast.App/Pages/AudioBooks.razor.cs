@@ -64,9 +64,10 @@ namespace DotCast.App.Pages
 
         public async Task Download(AudioBook info)
         {
-            if (!string.IsNullOrWhiteSpace(info.AudioBookInfo.ArchiveUrl))
+            if (info.AudioBookInfo.HasArchive)
             {
-                await Js.InvokeVoidAsync("open", info.AudioBookInfo.ArchiveUrl, "_blank");
+                var url = await LibraryApiInfoProvider.GetArchiveUrlAsync(info.Id);
+                await Js.InvokeVoidAsync("open", url, "_blank");
             }
         }
 

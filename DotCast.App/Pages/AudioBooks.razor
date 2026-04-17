@@ -233,7 +233,7 @@
 
         <div class="drawer-actions">
             <Button Color="Color.Primary" Clicked="async () => await CopyRssAsync(SelectedAudioBook)">Copy RSS</Button>
-            @if (!string.IsNullOrWhiteSpace(SelectedAudioBook.AudioBookInfo.ArchiveUrl))
+            @if (SelectedAudioBook.AudioBookInfo.HasArchive)
             {
                 <Button Color="Color.Secondary" Clicked="async () => await Download(SelectedAudioBook)">Download</Button>
             }

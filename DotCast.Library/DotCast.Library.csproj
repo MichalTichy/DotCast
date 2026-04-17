@@ -22,6 +22,7 @@
     <ProjectReference Include="..\DotCast.Infrastructure.Persistence.Marten\DotCast.Infrastructure.Persistence.Marten.csproj" />
     <ProjectReference Include="..\DotCast.Infrastructure.Persistence\DotCast.Infrastructure.Persistence.csproj" />
     <ProjectReference Include="..\DotCast.Infrastructure.UrlBuilder\DotCast.Infrastructure.UrlBuilder.csproj" />
+    <ProjectReference Include="..\DotCast.Storage\DotCast.Storage.csproj" />
   </ItemGroup>
 
 </Project>

@@ -19,6 +19,8 @@ namespace DotCast.SharedKernel.Messages
 
     public record AudioBooksStatisticsRequest;
 
+    public record ActivePlaybacksRequest;
+
     public record RestoreFromFileSystemRequest;
 
     public record ReprocessAllAudioBooksRequest(bool Unzip = false);
@@ -43,6 +45,14 @@ namespace DotCast.SharedKernel.Messages
     public record AudioBookRssRequest(string Id);
 
     public record AudioBookRssLinkGenerated(string AudioBookId);
+
+    public record AudioBookPlaybackMarkedFinished(string AudioBookId, string UserId, DateTime Timestamp);
+
+    public record AudioBookRssGenerated(string AudioBookId, string UserId, DateTime Timestamp);
+
+    public record FileRead(string AudioBookId, string? UserId, string FileId, DateTime Timestamp);
+
+    public record ArchiveRead(string AudioBookId, string? UserId, DateTime Timestamp);
 
     public record AudioBookDeleted(string Id);
 }

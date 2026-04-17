@@ -989,6 +989,65 @@ select {
     color: #ffb4b4;
 }
 
+.admin-playback-list {
+    display: grid;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.admin-playback-row {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1.2fr) minmax(120px, 0.9fr) minmax(130px, 1fr) minmax(130px, 1fr) 88px;
+    gap: 12px;
+    align-items: center;
+    padding: 12px;
+    border: 1px solid var(--dc-border);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.admin-playback-row > * {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.admin-playback-header {
+    background: transparent;
+    color: var(--dc-muted);
+    font-size: 0.92rem;
+}
+
+.status-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    border: 1px solid var(--dc-border);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.status-chip.is-info {
+    border-color: rgba(120, 179, 255, 0.35);
+    color: #c6ddff;
+}
+
+.status-chip.is-progress {
+    border-color: rgba(216, 137, 47, 0.4);
+    color: #ffd7a1;
+}
+
+.status-chip.is-close {
+    border-color: rgba(156, 214, 114, 0.42);
+    color: #d7f1ba;
+}
+
+.status-chip.is-finished {
+    border-color: rgba(84, 193, 137, 0.45);
+    color: #b7f0d0;
+}
+
 .login-page {
     display: grid;
     min-height: 100vh;
@@ -1073,8 +1132,13 @@ select {
     }
 
     .admin-action-grid,
-    .library-stats {
+    .library-stats,
+    .admin-playback-row {
         grid-template-columns: 1fr;
+    }
+
+    .admin-playback-row > * {
+        white-space: normal;
     }
 }
 
