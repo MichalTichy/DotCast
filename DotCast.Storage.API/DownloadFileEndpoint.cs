@@ -15,12 +15,14 @@ namespace DotCast.Storage.API
         public required string AudioBookId { get; set; }
 
         [FromRoute(Name = "UserId")]
-        public required string UserId { get; set; }
+        public string? UserId { get; set; }
 
         [FromRoute(Name = "FileId")]
         public string? FileId { get; set; }
 
+        [HttpGet("/storage/archive/{AudioBookId}")]
         [HttpGet("/storage/archive/{AudioBookId}/{UserId}")]
+        [HttpGet("/storage/file/{AudioBookId}/{FileId}")]
         [HttpGet("/storage/file/{AudioBookId}/{UserId}/{FileId}")]
         public override async Task<ActionResult> HandleAsync(CancellationToken cancellationToken = default)
         {
