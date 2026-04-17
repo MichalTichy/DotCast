@@ -2,18 +2,28 @@ using DotCast.Infrastructure.Persistence.Marten.Extensions;
 using DotCast.Infrastructure.Persistence.Marten.Migration;
 using Marten;
 using Microsoft.Extensions.Logging;
+using DotCast.SharedKernel.Models;
 
 namespace DotCast.Library.Migration;
 
-public class ChapterFileIdBackfillMigration(ILogger<ChapterFileIdBackfillMigration> logger) : IMartenMigration
+public class ChapterFileIdBackfillMigration(
+    ILogger<ChapterFileIdBackfillMigration> logger,
+    IDocumentStore store) : IMartenMigration
 {
     public int Version => 2026041501;
 
     public async Task MigrateAsync(IDocumentSession session, CancellationToken ct)
     {
+        var documentType = store.Options.FindOrResolveDocumentType(typeof(AudioBook));
+        var tableName = $"mt_doc_{documentType.Alias}";
+        var schemaName = documentType.DatabaseSchemaName ?? store.Options.DatabaseSchemaName;
+        var qualifiedTableName = string.IsNullOrWhiteSpace(schemaName)
+            ? $"\"{tableName}\""
+            : $"\"{schemaName}\".\"{tableName}\"";
+
         await using var command = session.GetConnection().CreateCommand();
-        command.CommandText = """
-            update mt_doc_audio_book
+        command.CommandText = $$"""
+            update {{qualifiedTableName}}
             set data = jsonb_set(
                 data,
                 '{AudioBookInfo,Chapters}',
@@ -52,6 +62,9 @@ public class ChapterFileIdBackfillMigration(ILogger<ChapterFileIdBackfillMigrati
             """;
 
         var updated = await command.ExecuteNonQueryAsync(ct);
-        logger.LogInformation("Backfilled chapter file identifiers for {Count} audiobook documents.", updated);
+        logger.LogInformation(
+            "Backfilled chapter file identifiers for {Count} audiobook documents in {TableName}.",
+            updated,
+            qualifiedTableName);
     }
 }
