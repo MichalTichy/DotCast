@@ -342,3 +342,7 @@ healthchecksdb
 /DotCast.Service/files/
 /DotCast.App/ffmpeg
 .aspire/
+/.playwright-cli/**/*
+/tmp/**/*
+/docs/superpowers/specs/**/*
+/AiTesting/**/*

@@ -4,6 +4,7 @@ using DotCast.Infrastructure.MimeType;
 using DotCast.SharedKernel.Messages;
 using DotCast.SharedKernel.Models;
 using DotCast.Storage.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Wolverine;
 
@@ -13,7 +14,7 @@ namespace DotCast.Storage.Storage
         IMetadataManager metadataManager,
         IStorageApiInformationProvider apiInformationProvider,
         IFileNameNormalizer fileNameNormalizer,
-        IMessageBus messageBus,
+        IServiceScopeFactory serviceScopeFactory,
         ILogger<SimpleStorage> logger) : IStorage
     {
         public Task<LocalFileInfo> RenameFileAsync(string id, LocalFileInfo fileInfo, string newName, CancellationToken cancellationToken = default)
@@ -150,7 +151,7 @@ namespace DotCast.Storage.Storage
             }
 
             var entry = PrepareReadableStorageEntry($"{audioBookId}/{fileName}", filePath);
-            await messageBus.PublishAsync(new FileRead(audioBookId, userId, fileName, DateTime.UtcNow));
+            await PublishAsync(new FileRead(audioBookId, userId, fileName, DateTime.UtcNow));
             return entry;
         }
 
@@ -171,8 +172,15 @@ namespace DotCast.Storage.Storage
             }
 
             var entry = PrepareReadableStorageEntry(archive, archivesLocation);
-            await messageBus.PublishAsync(new ArchiveRead(audioBookId, userId, DateTime.UtcNow));
+            await PublishAsync(new ArchiveRead(audioBookId, userId, DateTime.UtcNow));
             return entry;
+        }
+
+        private async Task PublishAsync<TMessage>(TMessage message)
+        {
+            using var scope = serviceScopeFactory.CreateScope();
+            var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+            await messageBus.PublishAsync(message!);
         }
     }
 }

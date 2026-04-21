@@ -8,13 +8,13 @@ namespace DotCast.SharedKernel.Models
         public required string AudioBookId { get; init; }
         public required string UserId { get; init; }
 
-        public PlaybackStatus Status { get; private set; } = PlaybackStatus.InfoRetrieved;
-        public DateTime FirstRssGeneratedAt { get; private set; }
-        public DateTime LastRssGeneratedAt { get; private set; }
-        public DateTime? LastFileDownloadedAt { get; private set; }
-        public DateTime? LastArchiveReadAt { get; private set; }
-        public bool HasDownloadedFinalFile { get; private set; }
-        public DateTime? FinishedAt { get; private set; }
+        public PlaybackStatus Status { get; set; } = PlaybackStatus.InfoRetrieved;
+        public DateTime FirstRssGeneratedAt { get; set; }
+        public DateTime LastRssGeneratedAt { get; set; }
+        public DateTime? LastFileDownloadedAt { get; set; }
+        public DateTime? LastArchiveReadAt { get; set; }
+        public bool HasDownloadedFinalFile { get; set; }
+        public DateTime? FinishedAt { get; set; }
 
         public static string BuildId(string audioBookId, string userId) => $"{audioBookId}:{userId}";
 

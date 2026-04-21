@@ -1,6 +1,0 @@
-page.screenshot: Target page, context or browser has been closed
-Call log:
-[2m  - taking page screenshot[22m
-
-    at shot (D:\Work\DotCast\AiTesting\2026-04-12\20260412-214743\Notes\explore-dotcast.js:41:14)
-    at async main (D:\Work\DotCast\AiTesting\2026-04-12\20260412-214743\Notes\explore-dotcast.js:351:3)
