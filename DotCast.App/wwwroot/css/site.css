@@ -57,12 +57,20 @@
 
 .app-brand-mark {
     display: grid;
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
     place-items: center;
+    overflow: hidden;
     border-radius: 8px;
-    background: var(--dc-accent);
-    color: #090d14;
+    background: #080c13;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.app-brand-mark img {
+    display: block;
+    width: 84%;
+    height: 84%;
+    object-fit: contain;
 }
 
 .app-nav {
@@ -1049,21 +1057,74 @@ select {
 }
 
 .login-page {
+    position: relative;
+    isolation: isolate;
     display: grid;
     min-height: 100vh;
+    overflow: hidden;
     place-items: center;
     padding: 24px;
+    background:
+        radial-gradient(circle at 52% 48%, rgba(240, 179, 93, 0.13), transparent 18rem),
+        linear-gradient(180deg, #080b12 0%, #05070b 100%);
+}
+
+.login-page::before,
+.login-page::after {
+    position: absolute;
+    inset: auto;
+    z-index: -1;
+    content: "";
+    pointer-events: none;
+}
+
+.login-page::before {
+    top: -28vh;
+    left: -10vw;
+    width: 86vw;
+    height: 96vh;
+    transform: rotate(-16deg);
+    background:
+        linear-gradient(101deg, transparent 0 34%, rgba(255, 224, 160, 0.18) 42%, rgba(255, 188, 80, 0.08) 53%, transparent 70%),
+        linear-gradient(86deg, transparent 0 46%, rgba(121, 166, 255, 0.10) 51%, transparent 62%);
+    filter: blur(10px);
+}
+
+.login-page::after {
+    right: -18rem;
+    bottom: -20rem;
+    width: 44rem;
+    height: 44rem;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(216, 137, 47, 0.24), transparent 65%);
+}
+
+.login-backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.login-backdrop-logo {
+    width: min(38vw, 440px);
+    max-width: none;
+    transform: translate(-20vw, 13vh) rotate(-7deg);
+    opacity: 0.56;
+    filter: drop-shadow(0 34px 80px rgba(0, 0, 0, 0.54));
 }
 
 .login-panel {
+    position: relative;
+    z-index: 1;
     display: grid;
     width: min(460px, 100%);
     gap: 14px;
     padding: 30px;
-}
-
-.login-brand {
-    margin-bottom: 14px;
+    backdrop-filter: blur(18px);
 }
 
 .not-found-page {
@@ -1143,6 +1204,16 @@ select {
 }
 
 @media (max-width: 640px) {
+    .login-page {
+        place-items: end center;
+    }
+
+    .login-backdrop-logo {
+        width: min(96vw, 380px);
+        transform: translate(-10vw, -27vh) rotate(-8deg);
+        opacity: 0.36;
+    }
+
     .library-topbar h1,
     .page-hero h1,
     .edit-hero h1,
