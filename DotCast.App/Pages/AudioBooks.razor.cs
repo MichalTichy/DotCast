@@ -1,3 +1,4 @@
+using Blazorise;
 using DotCast.App.Shared;
 using DotCast.Infrastructure.Messaging.Base;
 using DotCast.Library;
@@ -15,6 +16,7 @@ namespace DotCast.App.Pages
     {
         private const int TypingDelay = 450;
         private const string StandaloneSeriesName = "Standalone titles";
+        private const int DurationStepMinutes = 30;
         private Timer? typingTimer;
 
         [Inject]
@@ -38,12 +40,22 @@ namespace DotCast.App.Pages
         private HashSet<string> SelectedCategories { get; } = new(StringComparer.InvariantCultureIgnoreCase);
         private int? MinRating { get; set; }
         private int? MaxRating { get; set; }
+        private int? MinDurationMinutes { get; set; }
+        private int? MaxDurationMinutes { get; set; }
         private bool IsLoading { get; set; }
         private bool IsDeleting { get; set; }
         private string? DeleteMessage { get; set; }
 
         private IEnumerable<string> FilteredAuthors => FilterFacets(Facets.Authors, AuthorFacetSearchText);
         private IEnumerable<string> FilteredCategories => FilterFacets(Facets.Categories, CategoryFacetSearchText);
+        private int DurationMinBound => RoundDownToStep(Facets.MinDurationMinutes, DurationStepMinutes);
+        private int DurationMaxBound => Math.Max(DurationMinBound + DurationStepMinutes, RoundUpToStep(Facets.MaxDurationMinutes, DurationStepMinutes));
+        private int DurationSliderMin => Clamp(MinDurationMinutes ?? DurationMinBound, DurationMinBound, DurationMaxBound - DurationStepMinutes);
+        private int DurationSliderMax => Clamp(MaxDurationMinutes ?? DurationMaxBound, DurationMinBound + DurationStepMinutes, DurationMaxBound);
+        private bool HasDurationBounds => Facets.MaxDurationMinutes > 0 && DurationMaxBound > DurationMinBound;
+        private bool HasDurationFilter => MinDurationMinutes.HasValue || MaxDurationMinutes.HasValue;
+        private string DurationFilterSummary => $"{FormatDuration(DurationSliderMin)} - {FormatDuration(DurationSliderMax)}";
+        private RangeSliderValue<int> DurationRange => new(DurationSliderMin, DurationSliderMax);
 
         private AudioBookLibraryFilter CurrentFilter => new(
             SearchText,
@@ -51,7 +63,9 @@ namespace DotCast.App.Pages
             SelectedCategories.ToArray(),
             [],
             MinRating,
-            MaxRating);
+            MaxRating,
+            MinDurationMinutes,
+            MaxDurationMinutes);
 
         private bool HasActiveFilters => CurrentFilter.HasActiveFilters;
         private AudioBook? FeaturedAudioBook => Data.OrderByDescending(book => book.Rating).FirstOrDefault();
@@ -141,6 +155,7 @@ namespace DotCast.App.Pages
             Facets = await Messenger.RequestAsync<AudioBookLibraryFacetsRequest, AudioBookLibraryFacets>(
                 new AudioBookLibraryFacetsRequest(),
                 PageCancellationTokenSource.Token);
+            NormalizeDurationFilter();
         }
 
         private async Task LoadData()
@@ -183,6 +198,16 @@ namespace DotCast.App.Pages
             UpdateUrlFromFilter();
         }
 
+        private void SetDurationRange(RangeSliderValue<int> value)
+        {
+            var start = Math.Min(value.Start, value.End);
+            var end = Math.Max(value.Start, value.End);
+
+            MinDurationMinutes = start <= DurationMinBound ? null : Clamp(start, DurationMinBound, DurationMaxBound);
+            MaxDurationMinutes = end >= DurationMaxBound ? null : Clamp(end, DurationMinBound, DurationMaxBound);
+            UpdateUrlFromFilter();
+        }
+
         private void ClearFilters()
         {
             SearchText = null;
@@ -192,6 +217,8 @@ namespace DotCast.App.Pages
             SelectedCategories.Clear();
             MinRating = null;
             MaxRating = null;
+            MinDurationMinutes = null;
+            MaxDurationMinutes = null;
             UpdateUrlFromFilter();
         }
 
@@ -214,6 +241,8 @@ namespace DotCast.App.Pages
             AddQuery(query, "categories", SelectedCategories);
             AddQuery(query, "minRating", MinRating?.ToString());
             AddQuery(query, "maxRating", MaxRating?.ToString());
+            AddQuery(query, "minDuration", MinDurationMinutes?.ToString());
+            AddQuery(query, "maxDuration", MaxDurationMinutes?.ToString());
 
             var url = query.Count == 0 ? "/" : $"/?{string.Join("&", query)}";
             NavigationManager.NavigateTo(url, replace: true);
@@ -229,6 +258,46 @@ namespace DotCast.App.Pages
             ReplaceValues(SelectedCategories, query.TryGetValue("categories", out var categories) ? categories.ToString() : null);
             MinRating = query.TryGetValue("minRating", out var minRating) && int.TryParse(minRating, out var min) ? min : null;
             MaxRating = query.TryGetValue("maxRating", out var maxRating) && int.TryParse(maxRating, out var max) ? max : null;
+            MinDurationMinutes = query.TryGetValue("minDuration", out var minDuration) && int.TryParse(minDuration, out var minDurationValue) ? minDurationValue : null;
+            MaxDurationMinutes = query.TryGetValue("maxDuration", out var maxDuration) && int.TryParse(maxDuration, out var maxDurationValue) ? maxDurationValue : null;
+
+            if (Facets.MaxDurationMinutes > 0)
+            {
+                NormalizeDurationFilter();
+            }
+        }
+
+        private void NormalizeDurationFilter()
+        {
+            if (!HasDurationBounds)
+            {
+                MinDurationMinutes = null;
+                MaxDurationMinutes = null;
+                return;
+            }
+
+            MinDurationMinutes = MinDurationMinutes.HasValue
+                ? Clamp(MinDurationMinutes.Value, DurationMinBound, DurationMaxBound)
+                : null;
+            MaxDurationMinutes = MaxDurationMinutes.HasValue
+                ? Clamp(MaxDurationMinutes.Value, DurationMinBound, DurationMaxBound)
+                : null;
+
+            if (MinDurationMinutes <= DurationMinBound)
+            {
+                MinDurationMinutes = null;
+            }
+
+            if (MaxDurationMinutes >= DurationMaxBound)
+            {
+                MaxDurationMinutes = null;
+            }
+
+            if (MinDurationMinutes.HasValue && MaxDurationMinutes.HasValue && MinDurationMinutes.Value >= MaxDurationMinutes.Value)
+            {
+                MinDurationMinutes = null;
+                MaxDurationMinutes = null;
+            }
         }
 
         private static IEnumerable<string> FilterFacets(IEnumerable<string> values, string? searchText)
@@ -267,6 +336,44 @@ namespace DotCast.App.Pages
         {
             var value = string.Join(",", values.OrderBy(value => value));
             AddQuery(query, key, value);
+        }
+
+        private static int RoundDownToStep(int value, int step)
+        {
+            return value <= 0 ? 0 : value / step * step;
+        }
+
+        private static int RoundUpToStep(int value, int step)
+        {
+            if (value <= 0)
+            {
+                return step;
+            }
+
+            return (int)Math.Ceiling(value / (double)step) * step;
+        }
+
+        private static int Clamp(int value, int min, int max)
+        {
+            return Math.Min(Math.Max(value, min), max);
+        }
+
+        private static string FormatDuration(int minutes)
+        {
+            var duration = TimeSpan.FromMinutes(minutes);
+            var hours = (int)duration.TotalHours;
+
+            if (hours == 0)
+            {
+                return $"{duration.Minutes}m";
+            }
+
+            if (duration.Minutes == 0)
+            {
+                return $"{hours}h";
+            }
+
+            return $"{hours}h {duration.Minutes}m";
         }
     }
 }

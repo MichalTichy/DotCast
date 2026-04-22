@@ -6,7 +6,9 @@ namespace DotCast.SharedKernel.Models
         IReadOnlyCollection<string>? Categories = null,
         IReadOnlyCollection<string>? Series = null,
         int? MinRating = null,
-        int? MaxRating = null)
+        int? MaxRating = null,
+        int? MinDurationMinutes = null,
+        int? MaxDurationMinutes = null)
     {
         public static AudioBookLibraryFilter Empty { get; } = new();
 
@@ -20,7 +22,9 @@ namespace DotCast.SharedKernel.Models
             Categories.Count > 0 ||
             Series.Count > 0 ||
             MinRating.HasValue ||
-            MaxRating.HasValue;
+            MaxRating.HasValue ||
+            MinDurationMinutes.HasValue ||
+            MaxDurationMinutes.HasValue;
 
         private static IReadOnlyCollection<string> Normalize(IReadOnlyCollection<string>? values)
         {

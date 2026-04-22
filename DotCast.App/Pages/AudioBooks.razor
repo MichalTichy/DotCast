@@ -15,7 +15,7 @@
             <h1>Your library</h1>
         </div>
         <Field Class="library-search">
-            <TextEdit Placeholder="Search titles, authors, series" Text="@SearchText" TextChanged="SearchTextChanged" />
+            <TextInput Placeholder="Search titles, authors, series" Value="@SearchText" ValueChanged="SearchTextChanged" />
         </Field>
     </header>
 
@@ -46,6 +46,39 @@
 
             <details class="filter-collapse">
                 <summary>
+                    <span>Duration</span>
+                    @if (HasDurationFilter)
+                    {
+                        <small>@DurationFilterSummary</small>
+                    }
+                </summary>
+                <div class="filter-section duration-filter">
+                    @if (HasDurationBounds)
+                    {
+                        <Field Class="duration-range-field">
+                            <RangeSlider TValue="int"
+                                         Value="@DurationRange"
+                                         ValueChanged="SetDurationRange"
+                                         Min="@DurationMinBound"
+                                         Max="@DurationMaxBound"
+                                         Step="@DurationStepMinutes"
+                                         ClampToOtherHandle
+                                         AllowEqualValues="false"
+                                         ShowValueTooltips="false"
+                                         StartAriaLabel="Minimum duration"
+                                         EndAriaLabel="Maximum duration" />
+                            <FieldHelp>@DurationFilterSummary</FieldHelp>
+                        </Field>
+                    }
+                    else
+                    {
+                        <p class="filter-empty">Durations are not available yet.</p>
+                    }
+                </div>
+            </details>
+
+            <details class="filter-collapse">
+                <summary>
                     <span>Authors</span>
                     @if (SelectedAuthors.Count > 0)
                     {
@@ -53,7 +86,7 @@
                     }
                 </summary>
                 <div class="filter-section">
-                    <TextEdit Class="filter-search" Placeholder="Search authors" @bind-Text="@AuthorFacetSearchText" />
+                    <TextInput Class="filter-search" Placeholder="Search authors" @bind-Value="@AuthorFacetSearchText" />
                     @foreach (var author in FilteredAuthors)
                     {
                         <button type="button" class="filter-choice @(SelectedAuthors.Contains(author) ? "is-active" : "")" @onclick="() => ToggleAuthor(author)">
@@ -72,7 +105,7 @@
                     }
                 </summary>
                 <div class="filter-section">
-                    <TextEdit Class="filter-search" Placeholder="Search categories" @bind-Text="@CategoryFacetSearchText" />
+                    <TextInput Class="filter-search" Placeholder="Search categories" @bind-Value="@CategoryFacetSearchText" />
                     @foreach (var category in FilteredCategories)
                     {
                         <button type="button" class="filter-choice @(SelectedCategories.Contains(category) ? "is-active" : "")" @onclick="() => ToggleCategory(category)">

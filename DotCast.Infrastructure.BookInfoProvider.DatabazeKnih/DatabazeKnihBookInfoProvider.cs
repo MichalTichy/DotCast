@@ -124,7 +124,7 @@ namespace DotCast.Infrastructure.BookInfoProvider.DatabazeKnih
 
         private static string? ExtractSeriesName(IDocument page)
         {
-            foreach (var link in page.QuerySelectorAll("#bdetail_rest .orangeBoxSmall a[href*=\"/serie/\"]"))
+            foreach (var link in page.QuerySelectorAll("#left > div > div.lora > p > a"))
             {
                 var text = NormalizeWhitespace(link.GetAttribute("title")) ?? NormalizeWhitespace(link.TextContent);
                 if (!string.IsNullOrWhiteSpace(text))
@@ -138,14 +138,9 @@ namespace DotCast.Infrastructure.BookInfoProvider.DatabazeKnih
 
         private static int ExtractOrderInSeries(IDocument page)
         {
-            foreach (var seriesBox in page.QuerySelectorAll("#bdetail_rest .orangeBoxSmall"))
+            foreach (var seriesBox in page.QuerySelectorAll("#left > div > div.lora > span > span"))
             {
-                if (seriesBox.QuerySelector("a[href*=\"/serie/\"]") == null)
-                {
-                    continue;
-                }
-
-                var order = ParseFirstInteger(FirstText(seriesBox, ".nowrap span", ".nowrap"));
+                var order = ParseFirstInteger(seriesBox.InnerHtml);
                 if (order > 0)
                 {
                     return order;

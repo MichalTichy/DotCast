@@ -9,6 +9,9 @@ namespace DotCast.Library.Specifications
         public async Task<AudioBookLibraryFacets?> ApplyAsync(IQueryable<AudioBook> queryable, CancellationToken cancellationToken = default)
         {
             var data = await queryable.ToListAsync(cancellationToken);
+            var durations = data
+                .Select(book => (int)Math.Ceiling(book.AudioBookInfo.Duration.TotalMinutes))
+                .ToArray();
 
             return new AudioBookLibraryFacets(
                 data.Select(book => book.AudioBookInfo.AuthorName)
@@ -29,7 +32,9 @@ namespace DotCast.Library.Specifications
                     .Select(value => value!.Trim())
                     .Distinct(StringComparer.InvariantCultureIgnoreCase)
                     .OrderBy(value => value)
-                    .ToArray());
+                    .ToArray(),
+                durations.Length == 0 ? 0 : durations.Min(),
+                durations.Length == 0 ? 0 : durations.Max());
         }
     }
 }

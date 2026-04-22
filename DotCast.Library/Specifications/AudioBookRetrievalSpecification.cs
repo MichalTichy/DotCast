@@ -49,6 +49,16 @@ namespace DotCast.Library.Specifications
                 filtered = filtered.Where(x => x.Rating <= Filter.MaxRating.Value);
             }
 
+            if (Filter.MinDurationMinutes.HasValue)
+            {
+                filtered = filtered.Where(x => x.AudioBookInfo.Duration.TotalMinutes >= Filter.MinDurationMinutes.Value);
+            }
+
+            if (Filter.MaxDurationMinutes.HasValue)
+            {
+                filtered = filtered.Where(x => x.AudioBookInfo.Duration.TotalMinutes <= Filter.MaxDurationMinutes.Value);
+            }
+
             return filtered
                 .OrderBy(x => x.AudioBookInfo.AuthorName)
                 .ThenBy(x => x.AudioBookInfo.SeriesName)

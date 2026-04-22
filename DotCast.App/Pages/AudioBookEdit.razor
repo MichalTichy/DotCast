@@ -52,15 +52,15 @@
             <section class="metadata-grid">
                 <Field>
                     <FieldLabel>Name</FieldLabel>
-                    <FieldBody><TextEdit @bind-Text="@Data.AudioBookInfo.Name" /></FieldBody>
+                    <FieldBody><TextInput @bind-Value="@Data.AudioBookInfo.Name" /></FieldBody>
                 </Field>
                 <Field>
                     <FieldLabel>Author</FieldLabel>
-                    <FieldBody><TextEdit @bind-Text="@Data.AudioBookInfo.AuthorName" /></FieldBody>
+                    <FieldBody><TextInput @bind-Value="@Data.AudioBookInfo.AuthorName" /></FieldBody>
                 </Field>
                 <Field>
                     <FieldLabel>Series Name</FieldLabel>
-                    <FieldBody><TextEdit @bind-Text="@Data.AudioBookInfo.SeriesName" /></FieldBody>
+                    <FieldBody><TextInput @bind-Value="@Data.AudioBookInfo.SeriesName" /></FieldBody>
                 </Field>
                 <Field>
                     <FieldLabel>Order in series</FieldLabel>
@@ -68,7 +68,7 @@
                 </Field>
                 <Field Class="wide-field">
                     <FieldLabel>Description</FieldLabel>
-                    <FieldBody><MemoEdit @bind-Text="Data.AudioBookInfo.Description" Rows="6" /></FieldBody>
+                    <FieldBody><MemoInput @bind-Value="Data.AudioBookInfo.Description" Rows="6" /></FieldBody>
                 </Field>
 
                 <section class="wide-field category-editor">
@@ -84,7 +84,7 @@
                         <FieldBody>
                             <SelectList TItem="Category" TValue="string"
                                         Data="MissingCategories" TextField="category => category.Name" ValueField="category => category.Name"
-                                        SelectedValueChanged="@(s => AddCategory(MissingCategories.Single(t => t.Name == s)))"
+                                        SelectedValueChanged="@((string s) => AddCategory(MissingCategories.Single(t => t.Name == s)))"
                                         DefaultItemText="Choose new category"></SelectList>
                         </FieldBody>
                     </Field>
@@ -132,11 +132,11 @@
                     <div class="metadata-grid">
                         <Field>
                             <FieldLabel>Search name</FieldLabel>
-                            <FieldBody><TextEdit @bind-Text="SuggestionSearchName" /></FieldBody>
+                            <FieldBody><TextInput @bind-Value="SuggestionSearchName" /></FieldBody>
                         </Field>
                         <Field>
                             <FieldLabel>Search author</FieldLabel>
-                            <FieldBody><TextEdit @bind-Text="SuggestionSearchAuthor" /></FieldBody>
+                            <FieldBody><TextInput @bind-Value="SuggestionSearchAuthor" /></FieldBody>
                         </Field>
                         <Field>
                             <FieldLabel>&nbsp;</FieldLabel>

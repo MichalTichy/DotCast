@@ -361,6 +361,26 @@ select {
     padding: 6px 10px;
 }
 
+.duration-filter {
+    gap: 10px;
+    padding: 6px 0 2px;
+}
+
+.duration-range-field {
+    margin: 0;
+}
+
+.duration-range-field .form-text {
+    color: var(--dc-muted);
+    font-size: 0.78rem;
+}
+
+.filter-empty {
+    margin: 0;
+    color: var(--dc-muted);
+    font-size: 0.86rem;
+}
+
 .filter-pill:hover,
 .filter-choice:hover,
 .filter-pill.is-active,
