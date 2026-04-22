@@ -16,7 +16,12 @@ namespace DotCast.App.Installers
             services.AddScoped<CircuitHandler, UserCircuitHandler>();
 
             services
-                .AddBlazorise(options => { options.Immediate = true; })
+                .AddBlazorise(options =>
+                {
+                    options.Immediate = true;
+                    var token = configuration.GetValue<string>("Blazorise:ProductToken");
+                    options.ProductToken = token;
+                })
                 .AddBootstrapProviders()
                 .AddFontAwesomeIcons();
         }
