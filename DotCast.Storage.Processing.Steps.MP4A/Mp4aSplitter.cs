@@ -51,8 +51,7 @@ namespace DotCast.Storage.Processing.Steps.MP4A
             {
                 logger.LogWarning(e, "Failed to extract chapters. Keeping as single file.");
                 var fileName = Path.GetFileNameWithoutExtension(source);
-                var duration = await GetAudioDuration(source);
-                return new List<Chapter> { new(fileName, duration) };
+                return new List<Chapter> { new(fileName, TimeSpan.Zero) };
             }
         }
 
