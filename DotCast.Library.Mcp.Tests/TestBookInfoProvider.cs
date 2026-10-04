@@ -6,11 +6,11 @@ public sealed class TestBookInfoProvider : IBookInfoProvider
 {
     public CancellationToken LastCancellationToken { get; private set; }
     public int Produced { get; private set; }
-    public async IAsyncEnumerable<FoundBookInfo> GetBookInfoAsync(string name, string? author = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    public async IAsyncEnumerable<FoundBookInfo> GetBookInfoAsync(string name, string? author = null, [EnumeratorCancellation] CancellationToken cancellationToken = default, int maxResults = 10)
     {
         LastCancellationToken = cancellationToken;
         Produced = 0;
-        for (var index = 0; index < 20; index++)
+        for (var index = 0; index < maxResults; index++)
         {
             cancellationToken.ThrowIfCancellationRequested();
             await Task.Yield();

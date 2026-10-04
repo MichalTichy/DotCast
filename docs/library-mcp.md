@@ -39,6 +39,8 @@ Other clients need Streamable HTTP support and `Authorization: Bearer <key>`. A 
 | `get_metadata_suggestions` | Retrieve suggestions from configured providers without saving changes. Default 5, maximum 10. |
 | `update_audiobook_metadata` | Patch selected metadata fields in the account's own library. |
 
+Metadata providers run concurrently with up to three detail requests per source, while preserving source preference and search order. Each HTTP request has a five-second timeout and each provider a ten-second search deadline. A failed or timed-out source keeps any suggestions already found and allows the other source to respond. If every source fails without suggestions, the lookup reports an error.
+
 Update arguments:
 
 ```json
@@ -65,3 +67,4 @@ dotnet test DotCast.Library.Mcp.Tests/DotCast.Library.Mcp.Tests.csproj
 ```
 
 Tests use Docker with disposable PostgreSQL containers and a real HTTP MCP client. They cover key replacement/revocation, account boundaries, all four tools, request limits and concurrent metadata changes.
+Provider tests also cover concurrent requests, result ordering and limits, cancellation, timeout/failure fallback and both Goodreads search layouts.

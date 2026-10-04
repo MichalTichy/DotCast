@@ -11,8 +11,8 @@ namespace DotCast.BookInfoProvider
     {
         public void Install(IServiceCollection services, IConfiguration configuration, bool isProduction)
         {
-            services.AddSingleton<IBookInfoProvider, DatabazeKnihBookInfoProvider>();
-            services.AddSingleton<IBookInfoProvider, GoodreadsBookInfoProvider>();
+            services.AddSingleton<IBookInfoProvider>(_ => new DatabazeKnihBookInfoProvider());
+            services.AddSingleton<IBookInfoProvider>(_ => new GoodreadsBookInfoProvider());
         }
     }
 }
