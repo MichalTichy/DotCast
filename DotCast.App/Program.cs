@@ -12,7 +12,7 @@ using Wolverine;
 using DotCast.Infrastructure.Messaging.Wolverine;
 using DotCast.Infrastructure.Blazor.ClaimsManagement;
 using DotCast.Library.Mcp.Hosting;
-using DotCast.Library.Mcp.ApiKeys;
+using DotCast.Infrastructure.ApiKeys;
 
 namespace DotCast.App
 {
@@ -46,8 +46,7 @@ namespace DotCast.App
             {
                 options.Policies.AddMiddleware<UserIdSetterWolverineMiddleware>();
                 options.Discovery.IncludeAssembly(typeof(LibraryInstaller).Assembly);
-                options.Discovery.IncludeType<GenerateApiKeyHandler>();
-                options.Discovery.IncludeType<RevokeApiKeyHandler>();
+                options.Discovery.IncludeAssembly(typeof(ApiKeysInstaller).Assembly);
                 options.Discovery.IncludeAssembly(typeof(StorageInstaller).Assembly);
                 options.Discovery.IncludeAssembly(typeof(AudiobookInfoProviderInstaller).Assembly);
                 options.Discovery.IncludeAssembly(typeof(ProcessingInstaller).Assembly);

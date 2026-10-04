@@ -5,7 +5,7 @@
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
   <data name="Title" xml:space="preserve"><value>API key</value></data>
-  <data name="Introduction" xml:space="preserve"><value>Connect an AI client to your library. Generating a new key replaces the previous one.</value></data>
+  <data name="Introduction" xml:space="preserve"><value>Allow applications to access DotCast with your account. Generating a new key replaces the previous one.</value></data>
   <data name="Generate" xml:space="preserve"><value>Generate key</value></data>
   <data name="Regenerate" xml:space="preserve"><value>Regenerate key</value></data>
   <data name="Revoke" xml:space="preserve"><value>Revoke key</value></data>

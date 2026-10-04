@@ -9,7 +9,7 @@ using DotCast.Infrastructure.Messaging.Wolverine;
 using DotCast.Infrastructure.Persistence.Marten.Extensions;
 using DotCast.Infrastructure.UserManagement.Abstractions;
 using DotCast.Library;
-using DotCast.Library.Mcp.ApiKeys;
+using DotCast.Infrastructure.ApiKeys;
 using DotCast.Library.Mcp.Hosting;
 using DotCast.Library.Mcp.UseCases;
 using Marten;
@@ -52,6 +52,7 @@ public sealed class McpHostFixture : IAsyncLifetime
         builder.Services.AddScoped<ICurrentUserProvider<UserInfo>, BlazorUserInfoProvider<UserInfo, UserRole>>();
         builder.Services.AddSingleton<ICurrentTenancyProvider, CurrentTenancyProviderNoTenancy>();
         builder.Services.AddSingleton<DotCast.Infrastructure.BookInfoProvider.Base.IBookInfoProvider, TestBookInfoProvider>();
+        new ApiKeysInstaller().Install(builder.Services, builder.Configuration, false);
         builder.Services.AddLibraryMcp();
         builder.Services.RemoveAll<IApiKeyOwnerResolver>();
         builder.Services.AddSingleton<IApiKeyOwnerResolver>(Owners);

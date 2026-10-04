@@ -5,7 +5,7 @@ using DotCast.Infrastructure.Persistence.Repositories;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-namespace DotCast.Library.Mcp.ApiKeys;
+namespace DotCast.Infrastructure.ApiKeys;
 public sealed class ApiKeyAuthenticationHandler(
     IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder,
     IReadOnlyRepository<AccountApiKey> keys, IApiKeyOwnerResolver owners)

@@ -1,4 +1,4 @@
-namespace DotCast.Library.Mcp.ApiKeys;
+namespace DotCast.Infrastructure.ApiKeys;
 public static class ApiKeyDefaults
 {
     public const string Scheme = "ApiKey";

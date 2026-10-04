@@ -3,7 +3,7 @@ using DotCast.Infrastructure.AppUser;
 using DotCast.Infrastructure.CurrentUserProvider;
 using DotCast.Infrastructure.Messaging.Base;
 using DotCast.Infrastructure.Persistence.Repositories;
-using DotCast.Library.Mcp.ApiKeys;
+using DotCast.Infrastructure.ApiKeys;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging;
 namespace DotCast.App.Components.ApiKey;

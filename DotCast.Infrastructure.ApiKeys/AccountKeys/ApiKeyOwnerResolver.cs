@@ -1,7 +1,7 @@
 using DotCast.Infrastructure.AppUser;
 using DotCast.Infrastructure.UserManagement.Abstractions;
 using Microsoft.AspNetCore.Identity;
-namespace DotCast.Library.Mcp.ApiKeys;
+namespace DotCast.Infrastructure.ApiKeys;
 public sealed class ApiKeyOwnerResolver(IUserManager<UserInfo> users, UserManager<UserInfo> identityUsers) : IApiKeyOwnerResolver
 {
     public async Task<UserInfo?> FindAsync(string ownerId, CancellationToken cancellationToken)

@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.Json;
 using DotCast.Infrastructure.CurrentTenancyProvider;
 using DotCast.Infrastructure.Persistence.Repositories;
-using DotCast.Library.Mcp.ApiKeys;
+using DotCast.Infrastructure.ApiKeys;
 using DotCast.Library.Mcp.Persistence;
 using Marten;
 using Microsoft.Extensions.DependencyInjection;

@@ -1,6 +1,6 @@
-using DotCast.Library.Mcp.ApiKeys;
+using DotCast.Infrastructure.ApiKeys;
 using Xunit;
-namespace DotCast.Library.Mcp.Tests;
+namespace DotCast.Infrastructure.ApiKeys.Tests;
 public sealed class ApiKeyCredentialTests
 {
     [Fact]

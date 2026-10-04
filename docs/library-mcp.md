@@ -8,7 +8,7 @@ Sign in and open **Account → API key**. Click **Generate key** and save the va
 
 The key allows all four MCP tools under the account's normal library access. It can read shared libraries and update metadata in the account's own library. It cannot manage other accounts or change sharing. The server stores only a SHA-256 digest of the random key. Removed sharing, account lockout/deletion, regeneration and revocation affect subsequent requests; an already authenticated request may finish.
 
-Key management runs through the existing authenticated Blazor profile and application handlers. There is no separate token-management HTTP API.
+Account API keys are owned by `DotCast.Infrastructure.ApiKeys`, independently of MCP. It supplies key storage, management handlers and the authentication scheme; MCP consumes that scheme. Key management runs through the existing authenticated Blazor profile and application handlers. There is no separate token-management HTTP API.
 
 ## Connect Codex
 
@@ -63,8 +63,10 @@ Requests are limited to 64 KiB, including chunked bodies. Limits are 60 requests
 
 ```powershell
 dotnet build DotCast.App/DotCast.App.csproj
+dotnet test DotCast.Infrastructure.ApiKeys.Tests/DotCast.Infrastructure.ApiKeys.Tests.csproj
 dotnet test DotCast.Library.Mcp.Tests/DotCast.Library.Mcp.Tests.csproj
 ```
 
 Tests use Docker with disposable PostgreSQL containers and a real HTTP MCP client. They cover key replacement/revocation, account boundaries, all four tools, request limits and concurrent metadata changes.
 Provider tests also cover concurrent requests, result ordering and limits, cancellation, timeout/failure fallback and both Goodreads search layouts.
+The API key suite runs without MCP and verifies credentials, authentication on an ordinary HTTP endpoint, regeneration/revocation and compatibility with existing stored keys.

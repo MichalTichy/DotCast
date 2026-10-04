@@ -1,5 +1,5 @@
 using DotCast.Infrastructure.Persistence;
-namespace DotCast.Library.Mcp.ApiKeys;
+namespace DotCast.Infrastructure.ApiKeys;
 public sealed class AccountApiKey : IItemWithId
 {
     public required string Id { get; init; }

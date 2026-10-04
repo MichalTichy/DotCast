@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.WebUtilities;
-namespace DotCast.Library.Mcp.ApiKeys;
+namespace DotCast.Infrastructure.ApiKeys;
 public static class ApiKeyCredential
 {
     public static string Generate() => "dcak_" + WebEncoders.Base64UrlEncode(RandomNumberGenerator.GetBytes(32));

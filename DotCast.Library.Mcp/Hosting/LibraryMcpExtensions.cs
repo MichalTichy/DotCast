@@ -1,7 +1,5 @@
 using System.Threading.RateLimiting;
-using DotCast.Library.Mcp.ApiKeys;
-using DotCast.Infrastructure.Persistence.Marten.StorageConfiguration;
-using Microsoft.AspNetCore.Authentication;
+using DotCast.Infrastructure.ApiKeys;
 using DotCast.Library.Mcp.Tools;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.RateLimiting;
@@ -13,9 +11,6 @@ public static class LibraryMcpExtensions
     public static IServiceCollection AddLibraryMcp(this IServiceCollection services)
     {
         services.AddHttpContextAccessor();
-        services.AddScoped<IApiKeyOwnerResolver, ApiKeyOwnerResolver>();
-        services.AddTransient<IStorageConfiguration, AccountApiKeyStorageConfiguration>();
-        services.AddAuthentication().AddScheme<AuthenticationSchemeOptions, ApiKeyAuthenticationHandler>(ApiKeyDefaults.Scheme, null);
         services.AddScoped<ToolResults>();
         services.AddMcpServer().WithHttpTransport(options => options.SessionMode = HttpServerSessionMode.Stateless).WithTools<LibraryTools>();
         services.AddRateLimiter(options => {

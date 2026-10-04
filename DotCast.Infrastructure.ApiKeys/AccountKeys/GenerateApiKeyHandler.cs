@@ -2,7 +2,7 @@ using DotCast.Infrastructure.AppUser;
 using DotCast.Infrastructure.CurrentUserProvider;
 using Marten;
 using Microsoft.Extensions.Logging;
-namespace DotCast.Library.Mcp.ApiKeys;
+namespace DotCast.Infrastructure.ApiKeys;
 public sealed class GenerateApiKeyHandler(IDocumentStore documents, ICurrentUserProvider<UserInfo> users, ILogger<GenerateApiKeyHandler> logger)
 {
     public async Task<string> Handle(GenerateApiKey request, CancellationToken cancellationToken)

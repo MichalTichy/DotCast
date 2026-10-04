@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 using DotCast.Infrastructure.AppUser;
-using DotCast.Library.Mcp.ApiKeys;
+using DotCast.Infrastructure.ApiKeys;
 namespace DotCast.Library.Mcp.Tests;
 public sealed class TestApiKeyOwnerResolver : IApiKeyOwnerResolver
 {

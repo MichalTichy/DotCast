@@ -1,6 +1,6 @@
 using DotCast.Infrastructure.Persistence.Specifications;
 using Marten;
-namespace DotCast.Library.Mcp.ApiKeys;
+namespace DotCast.Infrastructure.ApiKeys;
 public sealed record AccountApiKeyInfoSpecification(string OwnerId) : ISpecification<AccountApiKey, ApiKeyInfo>
 {
     public async Task<ApiKeyInfo?> ApplyAsync(IQueryable<AccountApiKey> queryable, CancellationToken cancellationToken = default) =>
