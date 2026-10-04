@@ -12,7 +12,7 @@ using Wolverine;
 using DotCast.Infrastructure.Messaging.Wolverine;
 using DotCast.Infrastructure.Blazor.ClaimsManagement;
 using DotCast.Library.Mcp.Hosting;
-using DotCast.Infrastructure.PersonalApiTokens;
+using DotCast.Library.Mcp.ApiKeys;
 
 namespace DotCast.App
 {
@@ -36,7 +36,6 @@ namespace DotCast.App
 
             InstallerDiscovery.RunInstallersFromAllReferencedAssemblies(builder.Services, builder.Configuration, isProduction, "DotCast");
             builder.Services.AddLibraryMcp();
-            builder.Services.AddAntiforgery(options => options.HeaderName = "RequestVerificationToken");
 
             builder.Services.AddControllers()
                 .AddApplicationPart(typeof(UploadFileEndpoint).Assembly)
@@ -47,7 +46,8 @@ namespace DotCast.App
             {
                 options.Policies.AddMiddleware<UserIdSetterWolverineMiddleware>();
                 options.Discovery.IncludeAssembly(typeof(LibraryInstaller).Assembly);
-                options.Discovery.IncludeAssembly(typeof(PersonalApiTokensInstaller).Assembly);
+                options.Discovery.IncludeType<GenerateApiKeyHandler>();
+                options.Discovery.IncludeType<RevokeApiKeyHandler>();
                 options.Discovery.IncludeAssembly(typeof(StorageInstaller).Assembly);
                 options.Discovery.IncludeAssembly(typeof(AudiobookInfoProviderInstaller).Assembly);
                 options.Discovery.IncludeAssembly(typeof(ProcessingInstaller).Assembly);

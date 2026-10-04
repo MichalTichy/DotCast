@@ -1,5 +1,6 @@
 using System.Net;
-using DotCast.Infrastructure.PersonalApiTokens.Authentication;
+using DotCast.Library.Mcp.ApiKeys;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
@@ -21,8 +22,8 @@ public sealed class McpRequestBoundaryMiddleware(RequestDelegate next, IConfigur
         if (context.Request.ContentLength > 64 * 1024) { context.Response.StatusCode = 413; return; }
         var maxBody = context.Features.Get<IHttpMaxRequestBodySizeFeature>();
         if (maxBody is { IsReadOnly: false }) maxBody.MaxRequestBodySize = 64 * 1024;
-        var result = await context.AuthenticateAsync(PersonalTokenDefaults.Scheme);
-        if (result.Succeeded) context.User = result.Principal!;
+        var result = await context.AuthenticateAsync(ApiKeyDefaults.Scheme);
+        context.User = result.Succeeded ? result.Principal! : new ClaimsPrincipal();
         try { await next(context); }
         catch (BadHttpRequestException exception) when (exception.StatusCode == 413 && !context.Response.HasStarted)
         { context.Response.StatusCode = 413; }

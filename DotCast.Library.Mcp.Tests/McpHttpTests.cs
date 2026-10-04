@@ -3,8 +3,9 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
-using DotCast.Infrastructure.PersonalApiTokens.Persistence;
 using DotCast.Infrastructure.CurrentTenancyProvider;
+using DotCast.Infrastructure.Persistence.Repositories;
+using DotCast.Library.Mcp.ApiKeys;
 using DotCast.Library.Mcp.Persistence;
 using Marten;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,21 +15,18 @@ using Xunit;
 namespace DotCast.Library.Mcp.Tests;
 public sealed class McpHttpTests(McpHostFixture fixture) : IClassFixture<McpHostFixture>
 {
-    private async Task<McpClient> ConnectAsync(string credential) => await McpClient.CreateAsync(new HttpClientTransport(new HttpClientTransportOptions {
-        Endpoint = new Uri(fixture.Address, "/mcp"), AdditionalHeaders = new Dictionary<string, string> { ["Authorization"] = "Bearer " + credential }
+    private async Task<McpClient> ConnectAsync(string key) => await McpClient.CreateAsync(new HttpClientTransport(new HttpClientTransportOptions {
+        Endpoint = new Uri(fixture.Address, "/mcp"), AdditionalHeaders = new Dictionary<string, string> { ["Authorization"] = "Bearer " + key }
     }));
     [Fact]
-    public async Task RealClientReadsAccessibleBooksAndCannotWriteWithReadToken()
+    public async Task KeyCanReadAccessibleBooksAndUpdateOnlyItsOwnLibrary()
     {
-        var token = await fixture.IssueAsync();
-        await using var client = await ConnectAsync(token.Credential);
-        var tools = await client.ListToolsAsync();
-        Assert.Equal(4, tools.Count);
+        await using var client = await ConnectAsync(await fixture.IssueAsync());
+        Assert.Equal(4, (await client.ListToolsAsync()).Count);
         var suggestions = await client.CallToolAsync("get_metadata_suggestions", new Dictionary<string, object?> { ["title"] = "Title", ["count"] = 2 });
         Assert.False(suggestions.IsError == true, Text(suggestions));
         Assert.Equal(2, suggestions.StructuredContent!.Value.GetProperty("suggestions").GetArrayLength());
         var search = await client.CallToolAsync("search_audiobooks", new Dictionary<string, object?> { ["search"] = "title" });
-        Assert.False(search.IsError == true, Text(search));
         Assert.Equal(2, search.StructuredContent!.Value.GetProperty("total").GetInt32());
         var paged = await client.CallToolAsync("search_audiobooks", new Dictionary<string, object?> { ["search"] = "title", ["limit"] = 1, ["offset"] = 1 });
         Assert.Equal(1, paged.StructuredContent!.Value.GetProperty("items").GetArrayLength());
@@ -36,47 +34,66 @@ public sealed class McpHttpTests(McpHostFixture fixture) : IClassFixture<McpHost
         Assert.Equal(0, inaccessible.StructuredContent!.Value.GetProperty("total").GetInt32());
         var injection = await client.CallToolAsync("search_audiobooks", new Dictionary<string, object?> { ["search"] = "' OR 1=1 --" });
         Assert.Equal(0, injection.StructuredContent!.Value.GetProperty("total").GetInt32());
-        var detail = await client.CallToolAsync("get_audiobook", new Dictionary<string, object?> { ["id"] = "own-book" });
-        Assert.False(detail.IsError == true, Text(detail));
-        var foreign = await client.CallToolAsync("get_audiobook", new Dictionary<string, object?> { ["id"] = "foreign-book" });
-        AssertError(foreign, "not_found");
-        var write = await client.CallToolAsync("update_audiobook_metadata", new Dictionary<string, object?> {
-            ["id"] = "own-book", ["changes"] = new { title = "Should not save" } });
-        AssertError(write, "access_denied");
-    }
-    [Fact]
-    public async Task WriteTokenCanUpdateOwnBookButNotSharedBook()
-    {
-        var token = await fixture.IssueAsync(true);
-        await using var client = await ConnectAsync(token.Credential);
+        Assert.False((await client.CallToolAsync("get_audiobook", new Dictionary<string, object?> { ["id"] = "own-book" })).IsError == true);
+        AssertError(await client.CallToolAsync("get_audiobook", new Dictionary<string, object?> { ["id"] = "foreign-book" }), "not_found");
         var write = await client.CallToolAsync("update_audiobook_metadata", new Dictionary<string, object?> {
             ["id"] = "own-book", ["changes"] = new { description = "Maintained by MCP" } });
         Assert.False(write.IsError == true, Text(write));
         Assert.Equal("Maintained by MCP", write.StructuredContent!.Value.GetProperty("description").GetString());
-        var shared = await client.CallToolAsync("update_audiobook_metadata", new Dictionary<string, object?> {
-            ["id"] = "shared-book", ["changes"] = new { title = "Should not save" } });
-        AssertError(shared, "not_found");
-        var invalid = await client.CallToolAsync("update_audiobook_metadata", new Dictionary<string, object?> {
-            ["id"] = "own-book", ["changes"] = new { libraryId = "foreign" } });
-        AssertError(invalid, "invalid_input");
+        AssertError(await client.CallToolAsync("update_audiobook_metadata", new Dictionary<string, object?> {
+            ["id"] = "shared-book", ["changes"] = new { title = "Should not save" } }), "not_found");
+        AssertError(await client.CallToolAsync("update_audiobook_metadata", new Dictionary<string, object?> {
+            ["id"] = "own-book", ["changes"] = new { libraryId = "foreign" } }), "invalid_input");
     }
     [Fact]
-    public async Task RevocationAndSharingRemovalApplyToNextRequest()
+    public async Task ConcurrentRegenerationLeavesOnlyOneUsableKey()
     {
-        var token = await fixture.IssueAsync();
-        await using var client = await ConnectAsync(token.Credential);
-        fixture.Owners.Users["owner"].SharedLibraries.Clear();
-        try
+        var keys = await Task.WhenAll(fixture.IssueAsync(), fixture.IssueAsync());
+        var results = new List<HttpStatusCode>();
+        foreach (var key in keys)
         {
-            AssertError(await client.CallToolAsync("get_audiobook", new Dictionary<string, object?> { ["id"] = "shared-book" }), "not_found");
+            using var http = new HttpClient();
+            http.DefaultRequestHeaders.Accept.ParseAdd("application/json, text/event-stream");
+            http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", key);
+            using var response = await http.PostAsJsonAsync(new Uri(fixture.Address, "/mcp"),
+                new { jsonrpc = "2.0", id = 1, method = "tools/list" });
+            results.Add(response.StatusCode);
         }
-        finally { fixture.Owners.Users["owner"].SharedLibraries = ["shared"]; }
+        Assert.Single(results, status => status == HttpStatusCode.OK);
+        Assert.Single(results, status => status == HttpStatusCode.Unauthorized);
+    }
+    [Fact]
+    public async Task RegenerationReplacesTheOnlyKeyAndRevocationAppliesToTheNextRequest()
+    {
+        var oldKey = await fixture.IssueAsync();
+        await using var oldClient = await ConnectAsync(oldKey);
+        var key = await fixture.IssueAsync();
+        await Assert.ThrowsAnyAsync<Exception>(async () => await oldClient.ListToolsAsync());
+        await using var client = await ConnectAsync(key);
         using var scope = fixture.App.Services.CreateScope();
-        await scope.ServiceProvider.GetRequiredService<IPersonalApiTokenStore>().RevokeAsync(token.Id, "owner", DateTimeOffset.UtcNow, CancellationToken.None);
+        var keys = scope.ServiceProvider.GetRequiredService<IReadOnlyRepository<AccountApiKey>>();
+        Assert.Equal(1, await keys.CountAsync());
+        var document = await keys.GetByIdAsync("owner");
+        ApiKeyCredential.TryHash(key, out var hash);
+        Assert.Equal(hash, document!.Hash);
+        Assert.DoesNotContain(key, JsonSerializer.Serialize(document));
+        var info = await keys.GetBySpecAsync(new AccountApiKeyInfoSpecification("owner"));
+        Assert.DoesNotContain(hash, JsonSerializer.Serialize(info));
+        Assert.All(fixture.Logs.Messages, log => { Assert.DoesNotContain(key, log); Assert.DoesNotContain(oldKey, log); });
+        // Other accounts can only revoke their own key.
+        await fixture.RevokeAsync("other");
+        Assert.Equal(4, (await client.ListToolsAsync()).Count);
+        await fixture.RevokeAsync();
         await Assert.ThrowsAnyAsync<Exception>(async () => await client.ListToolsAsync());
-        using var http = new HttpClient();
-        http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Credential);
-        Assert.Equal(HttpStatusCode.Unauthorized, (await http.PostAsJsonAsync(new Uri(fixture.Address, "/mcp"), new { jsonrpc = "2.0", id = 1, method = "tools/list" })).StatusCode);
+        Assert.Null(await keys.GetByIdAsync("owner"));
+    }
+    [Fact]
+    public async Task SharingRemovalAppliesToTheNextRequest()
+    {
+        await using var client = await ConnectAsync(await fixture.IssueAsync());
+        fixture.Owners.Users["owner"].SharedLibraries.Clear();
+        try { AssertError(await client.CallToolAsync("get_audiobook", new Dictionary<string, object?> { ["id"] = "shared-book" }), "not_found"); }
+        finally { fixture.Owners.Users["owner"].SharedLibraries = ["shared"]; }
     }
     [Fact]
     public async Task AuthenticationHostBodyAndRateLimitsAreEnforced()
@@ -85,11 +102,7 @@ public sealed class McpHttpTests(McpHostFixture fixture) : IClassFixture<McpHost
         var endpoint = new Uri(fixture.Address, "/mcp");
         http.DefaultRequestHeaders.Accept.ParseAdd("application/json, text/event-stream");
         Assert.Equal(HttpStatusCode.Unauthorized, (await http.PostAsJsonAsync(endpoint, new { })).StatusCode);
-        var expired = await fixture.IssueAsync(expiry: DateTimeOffset.UtcNow.AddDays(-1));
-        http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", expired.Credential);
-        Assert.Equal(HttpStatusCode.Unauthorized, (await http.PostAsJsonAsync(endpoint, new { })).StatusCode);
-        var token = await fixture.IssueAsync();
-        http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Credential);
+        http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await fixture.IssueAsync());
         http.DefaultRequestHeaders.Host = "attacker.example";
         Assert.Equal(HttpStatusCode.BadRequest, (await http.PostAsJsonAsync(endpoint, new { })).StatusCode);
         http.DefaultRequestHeaders.Host = null;
@@ -102,39 +115,10 @@ public sealed class McpHttpTests(McpHostFixture fixture) : IClassFixture<McpHost
         Assert.Equal(HttpStatusCode.TooManyRequests, last);
     }
     [Fact]
-    public async Task CookieManagementRequiresCsrfAndNeverListsCredential()
-    {
-        using var http = new HttpClient(new HttpClientHandler { CookieContainer = new CookieContainer(), AllowAutoRedirect = false });
-        await http.GetAsync(new Uri(fixture.Address, "/fixture/login/owner"));
-        Assert.Equal(HttpStatusCode.Unauthorized, (await http.PostAsJsonAsync(new Uri(fixture.Address, "/mcp"), new { })).StatusCode);
-        var management = new Uri(fixture.Address, "/api/personal-tokens");
-        var body = new { name = "Test client", expiresAt = DateTimeOffset.UtcNow.AddDays(90), canWrite = false };
-        Assert.Equal(HttpStatusCode.BadRequest, (await http.PostAsJsonAsync(management, body)).StatusCode);
-        var list = await http.GetFromJsonAsync<JsonElement>(management);
-        http.DefaultRequestHeaders.Add("RequestVerificationToken", list.GetProperty("requestToken").GetString());
-        var createdResponse = await http.PostAsJsonAsync(management, body);
-        Assert.Equal(HttpStatusCode.OK, createdResponse.StatusCode);
-        var created = await createdResponse.Content.ReadFromJsonAsync<JsonElement>();
-        var credential = created.GetProperty("credential").GetString()!;
-        var id = created.GetProperty("info").GetProperty("id").GetString()!;
-        var listed = await http.GetStringAsync(management);
-        Assert.DoesNotContain(credential, listed);
-        Assert.DoesNotContain("secretHash", listed, StringComparison.OrdinalIgnoreCase);
-        Assert.All(fixture.Logs.Messages, log => Assert.DoesNotContain(credential, log));
-        var invalidBody = new { name = "Invalid expiry", expiresAt = DateTimeOffset.UtcNow.AddDays(366), canWrite = false };
-        Assert.Equal(HttpStatusCode.BadRequest, (await http.PostAsJsonAsync(management, invalidBody)).StatusCode);
-        using var scope = fixture.App.Services.CreateScope();
-        var store = scope.ServiceProvider.GetRequiredService<IPersonalApiTokenStore>();
-        Assert.False(await store.RevokeAsync(id, "foreign-owner", DateTimeOffset.UtcNow, CancellationToken.None));
-        Assert.Equal(HttpStatusCode.NoContent, (await http.DeleteAsync(new Uri(fixture.Address, "/api/personal-tokens/" + id))).StatusCode);
-        Assert.NotNull((await store.FindAsync(id, CancellationToken.None))!.RevokedAt);
-    }
-    [Fact]
     public async Task RemovedAndLockedOwnersCannotAuthenticate()
     {
-        var token = await fixture.IssueAsync();
         using var http = new HttpClient();
-        http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Credential);
+        http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await fixture.IssueAsync());
         var endpoint = new Uri(fixture.Address, "/mcp");
         fixture.Owners.LockedOwners.Add("owner");
         try { Assert.Equal(HttpStatusCode.Unauthorized, (await http.PostAsJsonAsync(endpoint, new { })).StatusCode); }
@@ -144,12 +128,19 @@ public sealed class McpHttpTests(McpHostFixture fixture) : IClassFixture<McpHost
         finally { fixture.Owners.Users["owner"] = user!; }
     }
     [Fact]
-    public async Task PersonalTokenCannotManageTokensAndInsecureHttpRequiresDevelopmentOptIn()
+    public async Task CookieAloneCannotUseMcpAndKeysRequireAnAuthenticatedAccount()
     {
-        var token = await fixture.IssueAsync(true);
-        using var http = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
-        http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Credential);
-        Assert.Equal(HttpStatusCode.Unauthorized, (await http.GetAsync(new Uri(fixture.Address, "/api/personal-tokens"))).StatusCode);
+        using var http = new HttpClient(new HttpClientHandler { CookieContainer = new CookieContainer(), AllowAutoRedirect = false });
+        await http.GetAsync(new Uri(fixture.Address, "/fixture/login/owner"));
+        Assert.Equal(HttpStatusCode.Unauthorized, (await http.PostAsJsonAsync(new Uri(fixture.Address, "/mcp"), new { })).StatusCode);
+        await Assert.ThrowsAnyAsync<UnauthorizedAccessException>(() => fixture.RunAsAsync(null,
+            messenger => messenger.RequestAsync<GenerateApiKey, string>(new())));
+    }
+    [Fact]
+    public async Task InsecureHttpRequiresDevelopmentOptIn()
+    {
+        using var http = new HttpClient();
+        http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await fixture.IssueAsync());
         fixture.App.Configuration["Mcp:AllowLoopbackHttp"] = "false";
         try { Assert.Equal(HttpStatusCode.BadRequest, (await http.PostAsJsonAsync(new Uri(fixture.Address, "/mcp"), new { })).StatusCode); }
         finally { fixture.App.Configuration["Mcp:AllowLoopbackHttp"] = "true"; }

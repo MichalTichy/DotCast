@@ -976,31 +976,8 @@ select {
     margin: 14px 0;
 }
 
-.token-form {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    align-items: end;
-}
-
-.token-form label {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin: 0;
-}
-
-.token-form .token-permission {
-    flex-direction: row;
-    align-items: center;
-    align-self: center;
-}
-
-.token-form .token-permission input { width: auto; }
-.token-created { margin: 24px 0; }
-.token-created textarea { width: 100%; min-height: 80px; padding: 12px; word-break: break-all; }
-
-@media (max-width: 600px) {
-    .token-form { grid-template-columns: minmax(0, 1fr); }
-}
+.api-key-created { margin: 24px 0; }
+.api-key-created textarea { width: 100%; min-height: 80px; padding: 12px; word-break: break-all; }
 
 .shared-list {
     display: grid;

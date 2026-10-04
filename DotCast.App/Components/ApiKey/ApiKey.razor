@@ -1,0 +1,25 @@
+@namespace DotCast.App.Components.ApiKey
+@using DotCast.App.Components.ApiKey.Texts
+<section class="cinema-panel wide-panel">
+    <p class="cinema-eyebrow">MCP</p>
+    <h2>@ApiKeyTexts.Get("Title")</h2>
+    <p>@ApiKeyTexts.Get("Introduction")</p>
+    <div class="section-actions">
+        <button type="button" class="primary-action" disabled="@Busy" @onclick="GenerateAsync">@ApiKeyTexts.Get(Info is null ? "Generate" : "Regenerate")</button>
+        @if (Info is not null)
+        {
+            <button type="button" class="danger-action" disabled="@Busy" @onclick="RevokeAsync">@ApiKeyTexts.Get("Revoke")</button>
+        }
+    </div>
+    @if (!string.IsNullOrEmpty(Credential))
+    {
+        <div class="api-key-created" role="status">
+            <p>@ApiKeyTexts.Get("SaveKey")</p>
+            <textarea readonly aria-label="@ApiKeyTexts.Get("Credential")">@Credential</textarea>
+            <button type="button" class="danger-action" @onclick="DismissCredential">@ApiKeyTexts.Get("Dismiss")</button>
+        </div>
+    }
+    @if (Info is not null) { <p>@ApiKeyTexts.Get("Active") · @Info.CreatedAt.ToLocalTime().ToString("d")</p> }
+    else { <p>@ApiKeyTexts.Get("NotConfigured")</p> }
+    @if (Message is not null) { <p class="inline-status" role="alert">@Message</p> }
+</section>
