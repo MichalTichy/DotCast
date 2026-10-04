@@ -50,12 +50,12 @@ namespace DotCast.Infrastructure.BookInfoProvider.Goodreads
             { "Young Adult", Category.ForChildrenAndYouth }
         };
 
-        public async IAsyncEnumerable<FoundBookInfo> GetBookInfoAsync(string name, string? author = null)
+        public async IAsyncEnumerable<FoundBookInfo> GetBookInfoAsync(string name, string? author = null, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             var count = 0;
-            await foreach (var foundBook in SearchAsync(name, author))
+            await foreach (var foundBook in SearchAsync(name, author, cancellationToken))
             {
-                yield return await GetBookInfoAsync(foundBook.Url);
+                yield return await GetBookInfoAsync(foundBook.Url, cancellationToken);
                 count++;
                 if (count >= 10)
                 {
@@ -64,9 +64,9 @@ namespace DotCast.Infrastructure.BookInfoProvider.Goodreads
             }
         }
 
-        private async Task<FoundBookInfo> GetBookInfoAsync(string url)
+        private async Task<FoundBookInfo> GetBookInfoAsync(string url, CancellationToken cancellationToken)
         {
-            var page = await LoadPageAsync(url);
+            var page = await LoadPageAsync(url, cancellationToken);
             var schema = ExtractBookSchema(page);
 
             var title = CleanTitle(FirstText(page, "[data-testid=\"bookTitle\"]"))
@@ -91,19 +91,19 @@ namespace DotCast.Infrastructure.BookInfoProvider.Goodreads
             return new FoundBookInfo(title, author, description, series.Name, series.Order, imageUrl, rating, categories, SourceName);
         }
 
-        private async IAsyncEnumerable<GoodreadsSearchResult> SearchAsync(string name, string? author)
+        private async IAsyncEnumerable<GoodreadsSearchResult> SearchAsync(string name, string? author, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken)
         {
             var seenUrls = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             if (!string.IsNullOrWhiteSpace(author))
             {
-                foreach (var result in await SearchSingleQueryAsync($"{name} {author}", name, author, seenUrls))
+                foreach (var result in await SearchSingleQueryAsync($"{name} {author}", name, author, seenUrls, cancellationToken))
                 {
                     yield return result;
                 }
             }
 
-            foreach (var result in await SearchSingleQueryAsync(name, name, author, seenUrls))
+            foreach (var result in await SearchSingleQueryAsync(name, name, author, seenUrls, cancellationToken))
             {
                 yield return result;
             }
@@ -113,10 +113,10 @@ namespace DotCast.Infrastructure.BookInfoProvider.Goodreads
             string query,
             string targetTitle,
             string? targetAuthor,
-            HashSet<string> seenUrls)
+            HashSet<string> seenUrls, CancellationToken cancellationToken)
         {
             var searchUrl = new Uri(baseUri, $"/search?q={Uri.EscapeDataString(query)}&search_type=books").ToString();
-            var searchPage = await LoadPageAsync(searchUrl);
+            var searchPage = await LoadPageAsync(searchUrl, cancellationToken);
             var rows = searchPage.QuerySelectorAll("tr[itemtype=\"http://schema.org/Book\"]");
             var results = new List<GoodreadsSearchResult>();
 
@@ -139,12 +139,12 @@ namespace DotCast.Infrastructure.BookInfoProvider.Goodreads
                 .ToList();
         }
 
-        private async Task<IDocument> LoadPageAsync(string url)
+        private async Task<IDocument> LoadPageAsync(string url, CancellationToken cancellationToken)
         {
-            var html = await httpClient.GetStringAsync(url);
+            var html = await httpClient.GetStringAsync(url, cancellationToken);
             var config = Configuration.Default;
             var context = BrowsingContext.New(config);
-            return await context.OpenAsync(request => request.Content(html).Address(url));
+            return await context.OpenAsync(request => request.Content(html).Address(url), cancellationToken);
         }
 
         private static HttpClient CreateHttpClient()

@@ -1,0 +1,34 @@
+@namespace DotCast.App.Components.PersonalApiTokens
+@using DotCast.App.Components.PersonalApiTokens.Texts
+<section class="cinema-panel wide-panel">
+    <p class="cinema-eyebrow">MCP</p>
+    <h2>@TokenUiTexts.Get("Title")</h2>
+    <p>@TokenUiTexts.Get("Introduction")</p>
+    <div class="share-form token-form">
+        <label>@TokenUiTexts.Get("Name") <input type="text" maxlength="100" @bind="Name" disabled="@Busy" /></label>
+        <label>@TokenUiTexts.Get("Expiry") <input type="date" @bind="Expiry" disabled="@Busy" /></label>
+        <label class="token-permission"><input type="checkbox" @bind="CanWrite" disabled="@Busy" /> @TokenUiTexts.Get("WriteAccess")</label>
+        <button type="button" class="primary-action" @onclick="CreateAsync" disabled="@(Busy || module is null)">@TokenUiTexts.Get("Create")</button>
+    </div>
+    @if (!string.IsNullOrEmpty(Credential))
+    {
+        <div class="token-created" role="status">
+            <p>@TokenUiTexts.Get("SaveToken")</p>
+            <textarea readonly aria-label="@TokenUiTexts.Get("Credential")">@Credential</textarea>
+            <button type="button" class="danger-action" @onclick="DismissCredential">@TokenUiTexts.Get("Dismiss")</button>
+        </div>
+    }
+    @if (!string.IsNullOrEmpty(Message)) { <p class="inline-status" role="alert">@Message</p> }
+    <div class="shared-list">
+        @foreach (var token in Tokens)
+        {
+            <article @key="token.Id">
+                <div><strong>@token.Name</strong>
+                    <span>@(token.CanWrite ? TokenUiTexts.Get("ReadWrite") : TokenUiTexts.Get("ReadOnly")) · @token.ExpiresAt.ToLocalTime().ToString("d") · @Status(token)</span>
+                </div>
+                @if (token.RevokedAt is null)
+                { <button type="button" class="danger-action" disabled="@Busy" @onclick="() => RevokeAsync(token.Id)">@TokenUiTexts.Get("Revoke")</button> }
+            </article>
+        }
+    </div>
+</section>

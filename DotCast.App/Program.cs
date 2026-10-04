@@ -11,6 +11,8 @@ using DotCast.Infrastructure.IoC;
 using Wolverine;
 using DotCast.Infrastructure.Messaging.Wolverine;
 using DotCast.Infrastructure.Blazor.ClaimsManagement;
+using DotCast.Library.Mcp.Hosting;
+using DotCast.Infrastructure.PersonalApiTokens;
 
 namespace DotCast.App
 {
@@ -33,6 +35,8 @@ namespace DotCast.App
             var isProduction = IsProduction();
 
             InstallerDiscovery.RunInstallersFromAllReferencedAssemblies(builder.Services, builder.Configuration, isProduction, "DotCast");
+            builder.Services.AddLibraryMcp();
+            builder.Services.AddAntiforgery(options => options.HeaderName = "RequestVerificationToken");
 
             builder.Services.AddControllers()
                 .AddApplicationPart(typeof(UploadFileEndpoint).Assembly)
@@ -43,6 +47,7 @@ namespace DotCast.App
             {
                 options.Policies.AddMiddleware<UserIdSetterWolverineMiddleware>();
                 options.Discovery.IncludeAssembly(typeof(LibraryInstaller).Assembly);
+                options.Discovery.IncludeAssembly(typeof(PersonalApiTokensInstaller).Assembly);
                 options.Discovery.IncludeAssembly(typeof(StorageInstaller).Assembly);
                 options.Discovery.IncludeAssembly(typeof(AudiobookInfoProviderInstaller).Assembly);
                 options.Discovery.IncludeAssembly(typeof(ProcessingInstaller).Assembly);
@@ -83,9 +88,11 @@ namespace DotCast.App
             app.UseRouting();
 
             app.UseAuthentication();
+            app.UseLibraryMcpBoundary();
             app.UseAuthorization();
             app.UseMiddleware<UserClaimsMiddleware>();
             app.MapControllers();
+            app.MapLibraryMcp();
             app.MapBlazorHub();
             app.MapFallbackToPage("/_Host");
 

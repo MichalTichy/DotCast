@@ -1,7 +1,7 @@
 # DotCast library MCP with personal API tokens
 
 Date: 2026-10-03
-Status: proposed specification for user review; implementation has not started.
+Status: approved and implemented; see the implementation plan and docs/library-mcp.md for verification and client setup.
 
 ## Purpose and agreed direction
 

@@ -10,6 +10,7 @@ using DotCast.Infrastructure.CurrentUserProvider;
 
 namespace DotCast.App.Pages
 {
+    [Microsoft.AspNetCore.Authorization.Authorize]
     public partial class UserProfile : AppPage
     {
         public string UserName { get; set; } = string.Empty;

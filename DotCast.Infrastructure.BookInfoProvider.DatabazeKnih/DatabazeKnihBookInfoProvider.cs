@@ -14,13 +14,13 @@ namespace DotCast.Infrastructure.BookInfoProvider.DatabazeKnih
         private readonly Uri baseUri = new("https://www.databazeknih.cz/");
         private readonly CategoryMapper categoryMapper = new();
 
-        public async IAsyncEnumerable<FoundBookInfo> GetBookInfoAsync(string name, string? author = null)
+        public async IAsyncEnumerable<FoundBookInfo> GetBookInfoAsync(string name, string? author = null, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             var count = 0;
-            await foreach (var foundBook in SearchAsync(name, author))
+            await foreach (var foundBook in SearchAsync(name, author, cancellationToken))
             {
                 count++;
-                yield return await GetBookInfoAsync(foundBook);
+                yield return await GetBookInfoAsync(foundBook, cancellationToken);
                 if (count >= 10)
                 {
                     yield break;
@@ -28,9 +28,9 @@ namespace DotCast.Infrastructure.BookInfoProvider.DatabazeKnih
             }
         }
 
-        private async Task<FoundBookInfo> GetBookInfoAsync(BookSearchResult bookSearchResult)
+        private async Task<FoundBookInfo> GetBookInfoAsync(BookSearchResult bookSearchResult, CancellationToken cancellationToken)
         {
-            var page = await LoadPageAsync(bookSearchResult.Url);
+            var page = await LoadPageAsync(bookSearchResult.Url, cancellationToken);
             var schema = ExtractBookSchema(page);
 
             var title = CleanTitle(schema?.Title)
@@ -150,29 +150,29 @@ namespace DotCast.Infrastructure.BookInfoProvider.DatabazeKnih
             return ParseFirstInteger(FirstText(page, "#bdetail_rest > span > span"));
         }
 
-        private async IAsyncEnumerable<BookSearchResult> SearchAsync(string bookName, string? author)
+        private async IAsyncEnumerable<BookSearchResult> SearchAsync(string bookName, string? author, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken)
         {
             var seenUrls = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             if (!string.IsNullOrWhiteSpace(author))
             {
-                await foreach (var result in SearchSingleQueryAsync($"{bookName} {author}", seenUrls))
+                await foreach (var result in SearchSingleQueryAsync($"{bookName} {author}", seenUrls, cancellationToken))
                 {
                     yield return result;
                 }
             }
 
-            await foreach (var result in SearchSingleQueryAsync(bookName, seenUrls))
+            await foreach (var result in SearchSingleQueryAsync(bookName, seenUrls, cancellationToken))
             {
                 yield return result;
             }
         }
 
-        private async IAsyncEnumerable<BookSearchResult> SearchSingleQueryAsync(string query, HashSet<string> seenUrls)
+        private async IAsyncEnumerable<BookSearchResult> SearchSingleQueryAsync(string query, HashSet<string> seenUrls, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken)
         {
             var htmlEncodedName = Uri.EscapeDataString(query);
             var searchUrl = new Uri(baseUri, $"/search?q={htmlEncodedName}").ToString();
-            var searchPage = await LoadPageAsync(searchUrl);
+            var searchPage = await LoadPageAsync(searchUrl, cancellationToken);
             var foundBookLinks = searchPage
                 .QuerySelectorAll("a[type=\"book\"], #left_less a[href*=\"/prehled-knihy/\"], #left_less a[href*=\"/knihy/\"]")
                 .OfType<IHtmlAnchorElement>();
@@ -203,11 +203,11 @@ namespace DotCast.Infrastructure.BookInfoProvider.DatabazeKnih
             }
         }
 
-        private async Task<IDocument> LoadPageAsync(string url)
+        private async Task<IDocument> LoadPageAsync(string url, CancellationToken cancellationToken)
         {
             var config = Configuration.Default.WithDefaultLoader();
             var context = BrowsingContext.New(config);
-            var document = await context.OpenAsync(url);
+            var document = await context.OpenAsync(url, cancellationToken);
             return document;
         }
 

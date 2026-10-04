@@ -5,14 +5,14 @@ using DotCast.SharedKernel.Models;
 
 namespace DotCast.BookInfoProvider
 {
-    public class AudiobookInfoSuggestionsRequestHandler(IEnumerable<IBookInfoProvider> bookInfoProviders) : IMessageHandler<AudiobookInfoSuggestionsRequest, IReadOnlyCollection<FoundBookInfo>>
+    public class AudiobookInfoSuggestionsRequestHandler(IEnumerable<IBookInfoProvider> bookInfoProviders)
     {
-        public async Task<IReadOnlyCollection<FoundBookInfo>> Handle(AudiobookInfoSuggestionsRequest message)
+        public async Task<IReadOnlyCollection<FoundBookInfo>> Handle(AudiobookInfoSuggestionsRequest message, CancellationToken cancellationToken = default)
         {
             var result = new List<FoundBookInfo>();
             foreach (var bookInfoProvider in bookInfoProviders)
             {
-                await foreach (var info in bookInfoProvider.GetBookInfoAsync(message.Name, message.AuthorName))
+                await foreach (var info in bookInfoProvider.GetBookInfoAsync(message.Name, message.AuthorName, cancellationToken))
                 {
                     if (!IsValidSuggestion(info))
                     {
@@ -22,6 +22,7 @@ namespace DotCast.BookInfoProvider
                     if (message.Count == null || result.Count < message.Count)
                     {
                         result.Add(info);
+                        if (result.Count >= message.Count) return result;
                     }
                     else
                     {

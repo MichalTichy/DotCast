@@ -47,6 +47,8 @@ namespace DotCast.Library
     {
         public void Install(IServiceCollection services, IConfiguration configuration, bool isProduction)
         {
+            services.AddScoped<DotCast.Library.Mcp.UseCases.LibraryTokenAccess>();
+            services.AddScoped<DotCast.Library.Mcp.Persistence.ITransactionalAudioBookMetadataWriter, DotCast.Library.Mcp.Persistence.TransactionalAudioBookMetadataWriter>();
             services.AddTransient<IStorageConfiguration, AudioBookStorageConfiguration>();
             services.AddTransient<IStorageConfiguration, AudioBookPlaybackStorageConfiguration>();
             services.AddTransient<ILibraryApiInformationProvider, LibraryApiInformationProvider>();
