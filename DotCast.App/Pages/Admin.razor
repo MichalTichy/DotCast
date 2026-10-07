@@ -46,9 +46,9 @@
 @if (PendingOperation != null)
 {
     <UxDialog Label="@Ux.Text("ReviewOperation")" Dismiss="() => PendingOperation = null">
-        <h2>@Ux.Text("Operation_" + PendingOperation)</h2><p>@Ux.Text("OperationHelp_" + PendingOperation)</p><p>@Ux.Format(MaintenanceBooks.Count == 1 ? "MaintenanceScopeOne" : "MaintenanceScope", MaintenanceBooks.Count)</p>
-        <details><summary>@Ux.Text("AffectedBooks")</summary><ul>@foreach (var book in MaintenanceBooks) { <li>@(book.Title ?? Ux.Text("UnnamedStoredBook")) <small>(@book.Id)</small></li> }</ul></details>
-        <p>@Ux.Text("MaintenanceReviewHelp")</p><div class="drawer-actions"><button class="secondary-action" autofocus @onclick="() => PendingOperation = null" disabled="@IsBusy">@Ux.Text("Cancel")</button><button class="primary-action" @onclick="RunOperation" disabled="@(IsBusy || IsProcessingRunning || MaintenanceBooks.Count == 0)">@Ux.Text("RunOperation")</button></div>
+        <h2>@Ux.Text("Operation_" + PendingOperation)</h2><p>@Ux.Text("OperationHelp_" + PendingOperation)</p><p>@Ux.Format(MaintenanceBookPreviews.Count == 1 ? "MaintenanceScopeOne" : "MaintenanceScope", MaintenanceBookPreviews.Count)</p>
+        <details><summary>@Ux.Text("AffectedBooks")</summary><ul>@foreach (var book in MaintenanceBookPreviews) { <li>@(book.Title ?? Ux.Text("UnnamedStoredBook")) <small>(@book.Id)</small></li> }</ul></details>
+        <p>@Ux.Text("MaintenanceReviewHelp")</p><div class="drawer-actions"><button class="secondary-action" autofocus @onclick="() => PendingOperation = null" disabled="@IsBusy">@Ux.Text("Cancel")</button><button class="primary-action" @onclick="RunOperation" disabled="@(IsBusy || IsProcessingRunning || MaintenanceBookPreviews.Count == 0)">@Ux.Text("RunOperation")</button></div>
         @if (Message != null) { <p role="status">@Message</p> }
     </UxDialog>
 }

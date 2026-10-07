@@ -20,7 +20,7 @@ public partial class Admin : AppPage
     private bool IsBusy;
     private bool IsLoadingActivePlaybacks;
     private IReadOnlyList<ActivePlaybackInfo> ActivePlaybacks = [];
-    private IReadOnlyList<MaintenanceBook> MaintenanceBooks = [];
+    private IReadOnlyList<MaintenanceBookPreview> MaintenanceBookPreviews = [];
     private string UserFilter = "";
     private string StatusFilter = "";
     private bool RecentFirst = true;
@@ -31,11 +31,11 @@ public partial class Admin : AppPage
     private static DateTime LastActivity(ActivePlaybackInfo playback) => playback.LastFileDownloadedAt > playback.LastRssGeneratedAt ? playback.LastFileDownloadedAt.Value : playback.LastRssGeneratedAt;
     private static string Timestamp(DateTime? value) => value.HasValue ? DateTime.SpecifyKind(value.Value, DateTimeKind.Utc).ToString("yyyy-MM-dd HH:mm 'UTC'") : Ux.Text("Never");
     private static string PlaybackLabel(PlaybackStatus status) => Ux.Text("Playback_" + status);
-    private string BookTitle(string id) => MaintenanceBooks.FirstOrDefault(book => book.Id == id)?.Title ?? Ux.Text("UnnamedStoredBook");
+    private string BookTitle(string id) => MaintenanceBookPreviews.FirstOrDefault(book => book.Id == id)?.Title ?? Ux.Text("UnnamedStoredBook");
     protected override async Task OnInitializedAsync()
     {
         await LoadActivePlaybacks();
-        try { MaintenanceBooks = await Messenger.RequestAsync<MaintenancePreviewRequest, IReadOnlyList<MaintenanceBook>>(new(), PageCancellationTokenSource.Token); }
+        try { MaintenanceBookPreviews = await Messenger.RequestAsync<MaintenancePreviewRequest, IReadOnlyList<MaintenanceBookPreview>>(new(), PageCancellationTokenSource.Token); }
         catch (Exception) when (!PageCancellationTokenSource.IsCancellationRequested) { Message = Ux.Text("MaintenancePreviewFailed"); }
     }
     protected override Task OnAfterRenderAsync(bool firstRender)
@@ -77,7 +77,7 @@ public partial class Admin : AppPage
     {
         if (IsBusy || IsProcessingRunning) return;
         IsBusy = true; Message = null;
-        try { MaintenanceBooks = await Messenger.RequestAsync<MaintenancePreviewRequest, IReadOnlyList<MaintenanceBook>>(new(), PageCancellationTokenSource.Token); PendingOperation = operation; }
+        try { MaintenanceBookPreviews = await Messenger.RequestAsync<MaintenancePreviewRequest, IReadOnlyList<MaintenanceBookPreview>>(new(), PageCancellationTokenSource.Token); PendingOperation = operation; }
         catch (Exception) when (!PageCancellationTokenSource.IsCancellationRequested) { Message = Ux.Text("MaintenancePreviewFailed"); }
         finally { IsBusy = false; }
     }
@@ -89,7 +89,7 @@ public partial class Admin : AppPage
         {
             if (operation == "restore") await Messenger.PublishAsync(new RestoreFromFileSystemRequest());
             else await Messenger.PublishAsync(new ReprocessAllAudioBooksRequest(operation == "unzip"));
-            PendingOperation = null; Message = Ux.Format(MaintenanceBooks.Count == 1 ? "MaintenanceQueuedOne" : "MaintenanceQueued", MaintenanceBooks.Count);
+            PendingOperation = null; Message = Ux.Format(MaintenanceBookPreviews.Count == 1 ? "MaintenanceQueuedOne" : "MaintenanceQueued", MaintenanceBookPreviews.Count);
         }
         catch (Exception) when (!PageCancellationTokenSource.IsCancellationRequested) { Message = Ux.Text("MaintenanceFailed"); }
         finally { IsBusy = false; }

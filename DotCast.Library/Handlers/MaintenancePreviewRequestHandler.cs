@@ -9,13 +9,13 @@ using DotCast.Storage.Abstractions;
 namespace DotCast.Library.Handlers;
 
 public class MaintenancePreviewRequestHandler(IStorage storage, ICurrentUserProvider<UserInfo> currentUserProvider,
-    INoTenancyReadOnlyRepository<AudioBook> books) : IMessageHandler<MaintenancePreviewRequest, IReadOnlyList<MaintenanceBook>>
+    INoTenancyReadOnlyRepository<AudioBook> books) : IMessageHandler<MaintenancePreviewRequest, IReadOnlyList<MaintenanceBookPreview>>
 {
-    public async Task<IReadOnlyList<MaintenanceBook>> Handle(MaintenancePreviewRequest message)
+    public async Task<IReadOnlyList<MaintenanceBookPreview>> Handle(MaintenancePreviewRequest message)
     {
         var user = await currentUserProvider.GetCurrentUserRequiredAsync();
         if (!user.IsAdmin) throw new UnauthorizedAccessException();
-        var result = new List<MaintenanceBook>();
+        var result = new List<MaintenanceBookPreview>();
         foreach (var entry in storage.GetEntries())
         {
             var book = await books.GetByIdAsync(entry.Id);
