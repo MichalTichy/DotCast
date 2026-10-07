@@ -36,9 +36,8 @@ public sealed class McpHostFixture : IAsyncLifetime
     public async Task InitializeAsync()
     {
         await database.StartAsync();
-        var builder = WebApplication.CreateBuilder(new WebApplicationOptions { EnvironmentName = "Development" });
+        var builder = WebApplication.CreateBuilder(new WebApplicationOptions { EnvironmentName = "Production" });
         builder.WebHost.UseUrls("http://127.0.0.1:0");
-        builder.Configuration["Mcp:AllowLoopbackHttp"] = "true";
         builder.Logging.ClearProviders();
         builder.Logging.AddProvider(Logs);
         builder.Services.AddAuthentication(IdentityConstants.ApplicationScheme).AddCookie(IdentityConstants.ApplicationScheme);

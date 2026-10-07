@@ -55,9 +55,9 @@ IDs, libraries, chapter files, deletion, uploads and sharing changes are not exp
 
 ## Hosting
 
-Set `Mcp:AllowedHosts` (or `Mcp__AllowedHosts`) to accepted host names separated by semicolons. Default: `localhost;127.0.0.1;[::1]`. Serve HTTPS. For TLS termination, configure forwarded headers with explicitly trusted proxies, or use TLS to DotCast. Keep Authorization headers and request bodies out of proxy logs.
+Set `Mcp:AllowedHosts` (or `Mcp__AllowedHosts`) to accepted host names separated by semicolons. Default: `localhost;127.0.0.1;[::1]`. For example, set `Mcp__AllowedHosts=dotcast.tichymichal.net` for that public address. The MCP endpoint accepts HTTP and HTTPS, so a reverse proxy can terminate HTTPS and forward HTTP to DotCast without forwarded-header configuration for MCP. Use HTTPS for client connections that carry API keys. Keep Authorization headers and request bodies out of proxy logs.
 
-`Mcp:AllowLoopbackHttp=true` is only effective in Development when both the connecting IP and host are loopback. Desktop clients do not require CORS.
+Desktop clients do not require CORS.
 
 Requests are limited to 64 KiB, including chunked bodies. Limits are 60 requests/minute/key and 20/minute/IP for unauthenticated traffic, per application instance. Search/filter text is bounded to 200 characters. Invalid keys return 401 and rate limits return 429. Tool errors have a sanitized code, message and correlation ID; missing and inaccessible books both return `not_found`.
 

@@ -143,13 +143,22 @@ public sealed class McpHttpTests(McpHostFixture fixture) : IClassFixture<McpHost
             messenger => messenger.RequestAsync<GenerateApiKey, string>(new())));
     }
     [Fact]
-    public async Task InsecureHttpRequiresDevelopmentOptIn()
+    public async Task HttpAllowsConfiguredPublicHostAndStillRequiresAKey()
     {
         using var http = new HttpClient();
-        http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await fixture.IssueAsync());
-        fixture.App.Configuration["Mcp:AllowLoopbackHttp"] = "false";
-        try { Assert.Equal(HttpStatusCode.BadRequest, (await http.PostAsJsonAsync(new Uri(fixture.Address, "/mcp"), new { })).StatusCode); }
-        finally { fixture.App.Configuration["Mcp:AllowLoopbackHttp"] = "true"; }
+        http.DefaultRequestHeaders.Host = "dotcast.example";
+        http.DefaultRequestHeaders.Accept.ParseAdd("application/json, text/event-stream");
+        var allowedHosts = fixture.App.Configuration["Mcp:AllowedHosts"];
+        fixture.App.Configuration["Mcp:AllowedHosts"] = "dotcast.example";
+        try
+        {
+            var endpoint = new Uri(fixture.Address, "/mcp");
+            Assert.Equal(HttpStatusCode.Unauthorized, (await http.PostAsJsonAsync(endpoint, new { })).StatusCode);
+            http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await fixture.IssueAsync());
+            await using var client = await McpClient.CreateAsync(new HttpClientTransport(new HttpClientTransportOptions { Endpoint = endpoint }, http));
+            Assert.Equal(4, (await client.ListToolsAsync()).Count);
+        }
+        finally { fixture.App.Configuration["Mcp:AllowedHosts"] = allowedHosts; }
     }
     [Fact]
     public async Task ConcurrentPatchesPreserveBothFields()
