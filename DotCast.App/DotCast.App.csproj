@@ -27,6 +27,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DotCast.Infrastructure.ApiKeys\DotCast.Infrastructure.ApiKeys.csproj" />
+    <ProjectReference Include="..\DotCast.Library.Mcp\DotCast.Library.Mcp.csproj" />
     <ProjectReference Include="..\DotCast.BookInfoProvider\DotCast.BookInfoProvider.csproj" />
     <ProjectReference Include="..\DotCast.Infrastructure.AppUser.DotCast\DotCast.Infrastructure.AppUser.DotCast.csproj" />
     <ProjectReference Include="..\DotCast.Infrastructure.Messaging.Wolverine\DotCast.Infrastructure.Messaging.Wolverine.csproj" />

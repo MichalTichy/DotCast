@@ -1,45 +1,16 @@
 @page "/NewAudioBook"
 @inherits AppPage
-
 <section class="upload-page">
-    <header class="page-hero compact">
-        <p class="cinema-eyebrow">New Audiobook</p>
-        <h1>Add a single audiobook</h1>
-        <p>Choose a name, confirm the generated library id, then upload the files for processing.</p>
-    </header>
-
+    <header class="page-hero compact"><p class="cinema-eyebrow">@Ux.Text("NewBook")</p><h1>@Ux.Text("AddBook")</h1><p>@Ux.Text("AddBookHelp")</p></header>
     <main class="upload-panel">
-        <Field>
-            <FieldLabel>Audiobook name</FieldLabel>
-            <FieldBody>
-                <TextInput Placeholder="Enter audiobook name" Value="@AudioBookName" ValueChanged="BookNameTextChanged" />
-            </FieldBody>
-        </Field>
-
-        <div class="generated-id">
-            <span>Generated id</span>
-            <strong>@(AudioBookId ?? "Waiting for name")</strong>
-        </div>
-
-        @if (!string.IsNullOrWhiteSpace(StatusMessage))
-        {
-            <div class="inline-status">@StatusMessage</div>
-        }
-
-        @if (IsProcessingRunning)
-        {
-            <div class="inline-status">Processing audiobook files. The edit page will open when it is ready.</div>
-        }
-
-        <div class="upload-area @(ReadyForUpload ? "" : "is-disabled")">
-            @if (ReadyForUpload)
-            {
-                <FileUpload PresignedUrlFactory="GetPresignedUrls" Label="Upload audiobook files" />
-            }
-            else
-            {
-                <p>Enter a valid audiobook name to enable file upload.</p>
-            }
-        </div>
+        <label for="new-book-name">@Ux.Text("BookName")</label>
+        <input id="new-book-name" class="form-control" placeholder="@Ux.Text("EnterBookName")" value="@AudioBookName" @oninput="BookNameTextChanged" disabled="@(IsProcessingRunning || IsUploading)" />
+        <p role="status" aria-live="polite">@(IsChecking ? Ux.Text("CheckingName") : StatusMessage)</p>
+        @if (ExistingId is not null) { <a class="secondary-action" href="@($"/AudioBook/{Uri.EscapeDataString(ExistingId)}/edit")">@Ux.Text("OpenExisting")</a> }
+        @if (AudioBookId is not null) { <details class="generated-id"><summary>@Ux.Text("StorageDetails")</summary><code>@AudioBookId</code></details> }
+        <p>@Ux.Text("UploadLimits")</p><p>@Ux.Text("UploadOrder")</p>
+        @if (ReadyForUpload && !IsProcessingRunning) { <FileUpload PresignedUrlFactory="GetPresignedUrls" Started="() => IsUploading = true" Completed="UploadCompleted" Label="@Ux.Text("UploadBookFiles")" /> }
+        else if (!IsProcessingRunning && ExistingId is null) { <p>@Ux.Text("EnterNameToUpload")</p> }
+        @if (IsProcessingRunning) { <p role="status">@Ux.Text("ProcessingOpenEditor")</p> }
     </main>
 </section>

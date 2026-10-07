@@ -1,5 +1,4 @@
 using DotCast.Infrastructure.AppUser;
-using DotCast.Infrastructure.BookInfoProvider.Base;
 using DotCast.Infrastructure.CurrentUserProvider;
 using DotCast.Infrastructure.Messaging.Base;
 using DotCast.SharedKernel.Messages;
@@ -11,13 +10,11 @@ using System.Text;
 namespace DotCast.BookInfoProvider
 {
     public class ApplyAudiobookSuggestionsToAllRequestHandler(
-        IEnumerable<IBookInfoProvider> bookInfoProviders,
         IMessagePublisher messenger,
         ICurrentUserProvider<UserInfo> currentUserProvider,
         ILogger<ApplyAudiobookSuggestionsToAllRequestHandler> logger)
-        : IMessageHandler<ApplyAudiobookSuggestionsToAllRequest, ApplyAudiobookSuggestionsToAllResult>
     {
-        public async Task<ApplyAudiobookSuggestionsToAllResult> Handle(ApplyAudiobookSuggestionsToAllRequest message)
+        public async Task<ApplyAudiobookSuggestionsToAllResult> Handle(ApplyAudiobookSuggestionsToAllRequest message, CancellationToken cancellationToken = default)
         {
             var user = await currentUserProvider.GetCurrentUserRequiredAsync();
             if (!user.IsAdmin)
@@ -25,7 +22,7 @@ namespace DotCast.BookInfoProvider
                 throw new NotSupportedException("Only admins can do this action.");
             }
 
-            var audioBooks = await messenger.RequestAsync<AudioBooksRetrievalRequest, IReadOnlyList<AudioBook>>(new AudioBooksRetrievalRequest());
+            var audioBooks = await messenger.RequestAsync<AudioBooksRetrievalRequest, IReadOnlyList<AudioBook>>(new AudioBooksRetrievalRequest(), cancellationToken);
             var strongMatches = 0;
             var updated = 0;
             var noSuggestions = 0;
@@ -33,7 +30,8 @@ namespace DotCast.BookInfoProvider
 
             foreach (var audioBook in audioBooks)
             {
-                var suggestions = await GetSuggestions(audioBook.AudioBookInfo.Name, audioBook.AudioBookInfo.AuthorName);
+                cancellationToken.ThrowIfCancellationRequested();
+                var suggestions = await GetSuggestions(audioBook.AudioBookInfo.Name, audioBook.AudioBookInfo.AuthorName, cancellationToken);
                 if (suggestions.Count == 0)
                 {
                     noSuggestions++;
@@ -59,28 +57,18 @@ namespace DotCast.BookInfoProvider
                     audioBook.AudioBookInfo.Name,
                     audioBook.AudioBookInfo.AuthorName);
 
-                await messenger.ExecuteAsync(new AudioBookEdited(audioBook));
+                await messenger.ExecuteAsync(new AudioBookEdited(audioBook), cancellationToken);
                 updated++;
             }
 
             return new ApplyAudiobookSuggestionsToAllResult(audioBooks.Count, strongMatches, updated, noSuggestions, weakMatches);
         }
 
-        private async Task<IReadOnlyList<FoundBookInfo>> GetSuggestions(string name, string author)
+        private async Task<IReadOnlyList<FoundBookInfo>> GetSuggestions(string name, string author, CancellationToken cancellationToken)
         {
-            var suggestions = new List<FoundBookInfo>();
-            foreach (var bookInfoProvider in bookInfoProviders)
-            {
-                await foreach (var suggestion in bookInfoProvider.GetBookInfoAsync(name, author))
-                {
-                    if (IsValidSuggestion(suggestion))
-                    {
-                        suggestions.Add(suggestion);
-                    }
-                }
-            }
-
-            return suggestions;
+            var suggestions = await messenger.RequestAsync<AudiobookInfoSuggestionsRequest, IReadOnlyCollection<FoundBookInfo>>(
+                new AudiobookInfoSuggestionsRequest(name, AuthorName: author), cancellationToken);
+            return suggestions.ToList();
         }
 
         private static bool IsStrongMatch(AudioBook audioBook, FoundBookInfo suggestion)
@@ -93,14 +81,6 @@ namespace DotCast.BookInfoProvider
                        NormalizeForStrongMatch(audioBook.AudioBookInfo.AuthorName),
                        NormalizeForStrongMatch(suggestion.Author),
                        StringComparison.Ordinal);
-        }
-
-        private static bool IsValidSuggestion(FoundBookInfo suggestion)
-        {
-            return !string.IsNullOrWhiteSpace(suggestion.Title)
-                   && !string.Equals(suggestion.Title, "ERROR", StringComparison.OrdinalIgnoreCase)
-                   && !string.IsNullOrWhiteSpace(suggestion.Author)
-                   && !string.Equals(suggestion.Author, "ERROR", StringComparison.OrdinalIgnoreCase);
         }
 
         private static bool ApplySuggestion(AudioBook audioBook, FoundBookInfo suggestion)

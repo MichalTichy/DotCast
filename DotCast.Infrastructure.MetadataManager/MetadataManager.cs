@@ -82,7 +82,7 @@ namespace DotCast.Infrastructure.MetadataManager
                     files = files.OrderBy(file => fileOrder.IndexOf(Path.GetFileName(file.info.LocalPath))).ToList();
                 }
 
-                if (files.Select(t => t.metadata.Tag.Track).GroupBy(t => t).All(t => t.Count() == 1))
+                else if (files.Select(t => t.metadata.Tag.Track).GroupBy(t => t).All(t => t.Count() == 1))
                 {
                     files = files.OrderBy(t => t.metadata.Tag.Track).ToList();
                 }
@@ -184,6 +184,7 @@ namespace DotCast.Infrastructure.MetadataManager
         {
             var audioFiles = new List<string>();
             string? m3UFile = null;
+            var updateErrors = new List<Exception>();
             var directory = Path.GetDirectoryName(source.Files.First().LocalPath)!;
             foreach (var localFileInfo in source.Files)
             {
@@ -215,6 +216,7 @@ namespace DotCast.Infrastructure.MetadataManager
                     if (matchedChapter != null)
                     {
                         file.Tag.Title = matchedChapter.Name;
+                        file.Tag.Track = (uint)(audioBook.Chapters.IndexOf(matchedChapter) + 1);
                     }
 
                     if (cancellationToken.IsCancellationRequested)
@@ -225,14 +227,28 @@ namespace DotCast.Infrastructure.MetadataManager
                     file.Tag.Year = (uint) (audioBook.ReleaseDate?.Year ?? 0);
                     file.Save();
                 }
+                catch (UnsupportedFormatException)
+                {
+                    // Ancillary files do not have audio tags to update.
+                }
                 catch (Exception e)
                 {
                     logger.LogWarning(e, "Failed to update metadata");
+                    updateErrors.Add(e);
                 }
             }
 
+            if (updateErrors.Count > 0) throw new AggregateException("Some audio file tags could not be saved.", updateErrors);
+            if (audioFiles.Count == 0) throw new InvalidOperationException("No readable audio files were found.");
+
             var m3UFileDestination = m3UFile ?? Path.Combine(directory, "index.m3u");
-            await m3UManager.GenerateM3uFile(audioFiles.Select(Path.GetFileName)!, m3UFileDestination);
+            var chapterOrder = audioBook.Chapters.Select(chapter => chapter.FileId).ToList();
+            var orderedFiles = audioFiles.OrderBy(file =>
+            {
+                var index = chapterOrder.IndexOf(Path.GetFileName(file));
+                return index < 0 ? int.MaxValue : index;
+            });
+            await m3UManager.GenerateM3uFile(orderedFiles.Select(Path.GetFileName)!, m3UFileDestination);
         }
     }
 }

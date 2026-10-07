@@ -1,42 +1,9 @@
-@inject IJSRuntime js
-
 <div class="file-upload" id="@containerId">
-    <label class="file-upload-dropzone" for="@filePickerId">
-        <span>@Label</span>
-        <small>Select one or more files to upload.</small>
-    </label>
-    <input type="file" id="@filePickerId" multiple="@Multiple" />
-    <div id="@progressContainerId" class="file-upload-progress"></div>
+    <div class="file-upload-dropzone">
+        <label for="@filePickerId">@Label</label>
+        <small>@Ux.Text("SelectUploadFiles")</small>
+        <input type="file" id="@filePickerId" multiple="@Multiple" aria-describedby="@helpId" />
+    </div>
+    <p id="@helpId">@Ux.Text("UploadHelp")</p>
+    <div id="@progressContainerId" class="file-upload-progress" aria-live="polite"></div>
 </div>
-
-@code {
-    private readonly string componentId = $"upload_{Guid.NewGuid():N}";
-    private string containerId => $"{componentId}_container";
-    private string filePickerId => $"{componentId}_filePicker";
-    private string progressContainerId => $"{componentId}_progressBars";
-    private DotNetObjectReference<FileUpload>? dotNetHelper;
-
-    [Parameter]
-    public Func<ICollection<string>, Task<Dictionary<string, string>>> PresignedUrlFactory { get; set; } = null!;
-
-    [Parameter]
-    public string Label { get; set; } = "Upload files";
-
-    [Parameter]
-    public bool Multiple { get; set; } = true;
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            dotNetHelper = DotNetObjectReference.Create(this);
-            await js.InvokeVoidAsync("UploadHelpers.register", componentId, dotNetHelper, filePickerId, progressContainerId);
-        }
-    }
-
-    [JSInvokable]
-    public async Task<Dictionary<string, string>> GeneratePresignedUrls(List<string> fileNames)
-    {
-        return await PresignedUrlFactory(fileNames);
-    }
-}

@@ -8,7 +8,7 @@ namespace DotCast.Storage.Processing.Steps.MP4A
         public async Task<Dictionary<string, ModificationType>> Process(string audioBookId, Dictionary<string, ModificationType> modifiedFiles)
         {
             var existingFiles = modifiedFiles.Where(t => !t.Value.HasFlag(ModificationType.Deleted));
-            var mp4AFiles = existingFiles.Where(t => Path.GetExtension(t.Key) == ".m4a").Select(t => t.Key).ToArray();
+            var mp4AFiles = existingFiles.Where(t => string.Equals(Path.GetExtension(t.Key), ".m4a", StringComparison.OrdinalIgnoreCase)).Select(t => t.Key).ToArray();
             if (mp4AFiles.Length == 0)
             {
                 return modifiedFiles;

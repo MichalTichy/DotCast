@@ -13,7 +13,8 @@ namespace DotCast.Infrastructure.BookInfoProvider.Goodreads
     public class GoodreadsBookInfoProvider : IBookInfoProvider
     {
         private const string SourceName = "Goodreads";
-        private static readonly HttpClient httpClient = CreateHttpClient();
+        private static readonly HttpClient sharedClient = BookInfoHttpClient.Create("en-US,en;q=0.9");
+        private readonly HttpClient httpClient;
         private readonly Uri baseUri = new("https://www.goodreads.com/");
         private readonly Dictionary<string, Category> genreMap = new(StringComparer.OrdinalIgnoreCase)
         {
@@ -50,23 +51,18 @@ namespace DotCast.Infrastructure.BookInfoProvider.Goodreads
             { "Young Adult", Category.ForChildrenAndYouth }
         };
 
-        public async IAsyncEnumerable<FoundBookInfo> GetBookInfoAsync(string name, string? author = null)
+        public GoodreadsBookInfoProvider() : this(sharedClient) { }
+        public GoodreadsBookInfoProvider(HttpClient httpClient) => this.httpClient = httpClient;
+
+        public IAsyncEnumerable<FoundBookInfo> GetBookInfoAsync(string name, string? author = null, CancellationToken cancellationToken = default, int maxResults = 10)
         {
-            var count = 0;
-            await foreach (var foundBook in SearchAsync(name, author))
-            {
-                yield return await GetBookInfoAsync(foundBook.Url);
-                count++;
-                if (count >= 10)
-                {
-                    yield break;
-                }
-            }
+            return BookInfoSearch.LoadDetailsAsync(SearchAsync(name, author, cancellationToken),
+                (book, token) => GetBookInfoAsync(book.Url, token), maxResults, cancellationToken);
         }
 
-        private async Task<FoundBookInfo> GetBookInfoAsync(string url)
+        private async Task<FoundBookInfo> GetBookInfoAsync(string url, CancellationToken cancellationToken)
         {
-            var page = await LoadPageAsync(url);
+            var page = await LoadPageAsync(url, cancellationToken);
             var schema = ExtractBookSchema(page);
 
             var title = CleanTitle(FirstText(page, "[data-testid=\"bookTitle\"]"))
@@ -91,19 +87,19 @@ namespace DotCast.Infrastructure.BookInfoProvider.Goodreads
             return new FoundBookInfo(title, author, description, series.Name, series.Order, imageUrl, rating, categories, SourceName);
         }
 
-        private async IAsyncEnumerable<GoodreadsSearchResult> SearchAsync(string name, string? author)
+        private async IAsyncEnumerable<GoodreadsSearchResult> SearchAsync(string name, string? author, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken)
         {
             var seenUrls = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             if (!string.IsNullOrWhiteSpace(author))
             {
-                foreach (var result in await SearchSingleQueryAsync($"{name} {author}", name, author, seenUrls))
+                foreach (var result in await SearchSingleQueryAsync($"{name} {author}", name, author, seenUrls, cancellationToken))
                 {
                     yield return result;
                 }
             }
 
-            foreach (var result in await SearchSingleQueryAsync(name, name, author, seenUrls))
+            foreach (var result in await SearchSingleQueryAsync(name, name, author, seenUrls, cancellationToken))
             {
                 yield return result;
             }
@@ -113,16 +109,16 @@ namespace DotCast.Infrastructure.BookInfoProvider.Goodreads
             string query,
             string targetTitle,
             string? targetAuthor,
-            HashSet<string> seenUrls)
+            HashSet<string> seenUrls, CancellationToken cancellationToken)
         {
             var searchUrl = new Uri(baseUri, $"/search?q={Uri.EscapeDataString(query)}&search_type=books").ToString();
-            var searchPage = await LoadPageAsync(searchUrl);
-            var rows = searchPage.QuerySelectorAll("tr[itemtype=\"http://schema.org/Book\"]");
+            var searchPage = await LoadPageAsync(searchUrl, cancellationToken);
+            var rows = searchPage.QuerySelectorAll("tr[itemtype=\"http://schema.org/Book\"], [data-testid=\"book-list-item\"]");
             var results = new List<GoodreadsSearchResult>();
 
             foreach (var row in rows)
             {
-                var link = row.QuerySelector("a.bookTitle") as IHtmlAnchorElement;
+                var link = row.QuerySelector("a.bookTitle, [data-testid=\"book-item-title\"] a") as IHtmlAnchorElement;
                 var title = NormalizeWhitespace(link?.QuerySelector("[itemprop=\"name\"]")?.TextContent ?? link?.TextContent);
                 var url = ToAbsoluteUrl(link?.GetAttribute("href"));
                 if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(url) || !seenUrls.Add(url))
@@ -130,7 +126,7 @@ namespace DotCast.Infrastructure.BookInfoProvider.Goodreads
                     continue;
                 }
 
-                var author = NormalizeWhitespace(row.QuerySelector(".authorName [itemprop=\"name\"]")?.TextContent);
+                var author = NormalizeWhitespace(row.QuerySelector(".authorName [itemprop=\"name\"], [data-testid=\"book-item-contributors\"] [data-testid=\"name\"]")?.TextContent);
                 results.Add(new GoodreadsSearchResult(title, author, url));
             }
 
@@ -139,20 +135,16 @@ namespace DotCast.Infrastructure.BookInfoProvider.Goodreads
                 .ToList();
         }
 
-        private async Task<IDocument> LoadPageAsync(string url)
+        private async Task<IDocument> LoadPageAsync(string url, CancellationToken cancellationToken)
         {
-            var html = await httpClient.GetStringAsync(url);
+            using var response = await httpClient.GetAsync(url, cancellationToken);
+            response.EnsureSuccessStatusCode();
+            var html = await response.Content.ReadAsStringAsync(cancellationToken);
+            if (response.StatusCode == HttpStatusCode.Accepted || string.IsNullOrWhiteSpace(html))
+                throw new HttpRequestException("Goodreads has not returned a book page.", null, response.StatusCode);
             var config = Configuration.Default;
             var context = BrowsingContext.New(config);
-            return await context.OpenAsync(request => request.Content(html).Address(url));
-        }
-
-        private static HttpClient CreateHttpClient()
-        {
-            var client = new HttpClient();
-            client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0");
-            client.DefaultRequestHeaders.AcceptLanguage.ParseAdd("en-US,en;q=0.9");
-            return client;
+            return await context.OpenAsync(request => request.Content(html).Address(url), cancellationToken);
         }
 
         private static BookSchema? ExtractBookSchema(IDocument page)

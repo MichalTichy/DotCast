@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="Title" xml:space="preserve"><value>API key</value></data>
+  <data name="Introduction" xml:space="preserve"><value>Allow applications to access DotCast with your account. Generating a new key replaces the previous one.</value></data>
+  <data name="Generate" xml:space="preserve"><value>Generate key</value></data>
+  <data name="Regenerate" xml:space="preserve"><value>Regenerate key</value></data>
+  <data name="Revoke" xml:space="preserve"><value>Revoke key</value></data>
+  <data name="SaveKey" xml:space="preserve"><value>Save this key now. Its value cannot be displayed again.</value></data>
+  <data name="Credential" xml:space="preserve"><value>API key</value></data>
+  <data name="Dismiss" xml:space="preserve"><value>Hide key</value></data>
+  <data name="Active" xml:space="preserve"><value>API key active</value></data>
+  <data name="NotConfigured" xml:space="preserve"><value>No API key configured</value></data>
+  <data name="Failed" xml:space="preserve"><value>Unable to manage the API key. Please try again.</value></data>
+</root>

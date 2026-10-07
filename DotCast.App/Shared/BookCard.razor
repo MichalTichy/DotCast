@@ -1,0 +1,21 @@
+<article class="poster-card">
+    <button type="button" class="poster-button" aria-label="@Book.AudioBookInfo.Name" @onclick="Open">
+        @if (!string.IsNullOrWhiteSpace(Book.AudioBookInfo.ImageUrl))
+        {
+            <img src="@Book.AudioBookInfo.ImageUrl" alt="" loading="lazy" />
+        }
+        else { <span>@Book.AudioBookInfo.Name</span> }
+    </button>
+    <div class="poster-info">
+        <h3><button type="button" class="book-title" @onclick="Open">@Book.AudioBookInfo.Name</button></h3>
+        <p>@Book.AudioBookInfo.AuthorName</p>
+        <p>@Ux.Rating(Book.Rating) · @Ux.Duration(Book.AudioBookInfo.Duration)</p>
+        @if (!string.IsNullOrWhiteSpace(Book.AudioBookInfo.SeriesName))
+        {
+            <small>@Book.AudioBookInfo.SeriesName @Book.AudioBookInfo.OrderInSeries</small>
+        }
+        <div class="poster-tags">
+            @foreach (var category in Book.AudioBookInfo.Categories.Take(3)) { <span>@category.Name</span> }
+        </div>
+    </div>
+</article>

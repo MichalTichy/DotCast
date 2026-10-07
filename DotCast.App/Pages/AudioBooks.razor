@@ -2,9 +2,8 @@
 @inherits AppPage
 
 @{
-    var featured = FeaturedAudioBook;
     var authorGroups = Data
-        .GroupBy(book => string.IsNullOrWhiteSpace(book.AudioBookInfo.AuthorName) ? "Unknown author" : book.AudioBookInfo.AuthorName)
+        .GroupBy(book => string.IsNullOrWhiteSpace(book.AudioBookInfo.AuthorName) ? Ux.Text("UnknownAuthor") : book.AudioBookInfo.AuthorName)
         .OrderBy(group => group.Key)
         .ToList();
 }
@@ -12,41 +11,44 @@
 <section class="library-page">
     <header class="library-topbar">
         <div>
-            <h1>Your library</h1>
+            <h1>@Ux.Text("YourLibrary")</h1>
         </div>
         <Field Class="library-search">
-            <TextInput Placeholder="Search titles, authors, series" Value="@SearchText" ValueChanged="SearchTextChanged" />
+            <label for="library-search">@Ux.Text("SearchLibrary")</label>
+            <TextInput ElementId="library-search" Placeholder="@Ux.Text("SearchPlaceholder")" Value="@SearchText" ValueChanged="SearchTextChanged" />
         </Field>
     </header>
 
+    <button class="secondary-action mobile-filter-toggle" aria-expanded="@FiltersOpen.ToString().ToLowerInvariant()" aria-controls="library-filters" @onclick="ToggleFilters">@Ux.Text("Filters") (@ActiveFilterCount)</button>
     <div class="library-layout">
-        <aside class="library-filters" aria-label="Library filters">
+        <aside id="library-filters" class="library-filters @(FiltersOpen ? "is-open" : "")" aria-label="@Ux.Text("LibraryFilters")">
             <div class="filter-header">
-                <h2>Filters</h2>
+                <h2>@Ux.Text("Filters")</h2>
                 @if (HasActiveFilters)
                 {
-                    <button type="button" class="text-button" @onclick="ClearFilters">Clear</button>
+                    <button type="button" class="text-button" @onclick="ClearFilters">@Ux.Text("Clear")</button>
                 }
             </div>
 
             <details class="filter-collapse">
                 <summary>
-                    <span>Rating</span>
+                    <span>@Ux.Text("Rating")</span>
                     @if (MinRating is not null || MaxRating is not null)
                     {
-                        <small>Active</small>
+                        <small>@Ux.Text("Active")</small>
                     }
                 </summary>
                 <div class="filter-section">
-                    <button type="button" class="filter-pill @(MinRating == 80 ? "is-active" : "")" @onclick="() => SetRatingRange(80, null)">80%+</button>
-                    <button type="button" class="filter-pill @(MinRating == 60 && MaxRating == 79 ? "is-active" : "")" @onclick="() => SetRatingRange(60, 79)">60-79%</button>
-                    <button type="button" class="filter-pill @(MaxRating == 59 ? "is-active" : "")" @onclick="() => SetRatingRange(null, 59)">Below 60%</button>
+                    <button type="button" aria-pressed="@((MinRating == 80).ToString().ToLowerInvariant())" class="filter-pill @(MinRating == 80 ? "is-active" : "")" @onclick="() => SetRatingRange(80, null)">80%+</button>
+                    <button type="button" aria-pressed="@((MinRating == 60 && MaxRating == 79).ToString().ToLowerInvariant())" class="filter-pill @(MinRating == 60 && MaxRating == 79 ? "is-active" : "")" @onclick="() => SetRatingRange(60, 79)">60-79%</button>
+                    <button type="button" aria-pressed="@((MinRating == 1 && MaxRating == 59).ToString().ToLowerInvariant())" class="filter-pill @(MaxRating == 59 ? "is-active" : "")" @onclick="() => SetRatingRange(1, 59)">@Ux.Text("BelowSixty")</button>
+                    <button type="button" aria-pressed="@((MaxRating == 0).ToString().ToLowerInvariant())" class="filter-pill @(MaxRating == 0 ? "is-active" : "")" @onclick="() => SetRatingRange(null, 0)">@Ux.Text("Unrated")</button>
                 </div>
             </details>
 
             <details class="filter-collapse">
                 <summary>
-                    <span>Duration</span>
+                    <span>@Ux.Text("Duration")</span>
                     @if (HasDurationFilter)
                     {
                         <small>@DurationFilterSummary</small>
@@ -65,31 +67,31 @@
                                          ClampToOtherHandle
                                          AllowEqualValues="false"
                                          ShowValueTooltips="false"
-                                         StartAriaLabel="Minimum duration"
-                                         EndAriaLabel="Maximum duration" />
+                                         StartAriaLabel="@Ux.Text("MinimumDuration")"
+                                         EndAriaLabel="@Ux.Text("MaximumDuration")" />
                             <FieldHelp>@DurationFilterSummary</FieldHelp>
                         </Field>
                     }
                     else
                     {
-                        <p class="filter-empty">Durations are not available yet.</p>
+                        <p class="filter-empty">@Ux.Text("NoDurations")</p>
                     }
                 </div>
             </details>
 
             <details class="filter-collapse">
                 <summary>
-                    <span>Authors</span>
+                    <span>@Ux.Text("Authors")</span>
                     @if (SelectedAuthors.Count > 0)
                     {
                         <small>@SelectedAuthors.Count</small>
                     }
                 </summary>
                 <div class="filter-section">
-                    <TextInput Class="filter-search" Placeholder="Search authors" @bind-Value="@AuthorFacetSearchText" />
+                    <TextInput Class="filter-search" aria-label="@Ux.Text("SearchAuthors")" Placeholder="@Ux.Text("SearchAuthors")" @bind-Value="@AuthorFacetSearchText" />
                     @foreach (var author in FilteredAuthors)
                     {
-                        <button type="button" class="filter-choice @(SelectedAuthors.Contains(author) ? "is-active" : "")" @onclick="() => ToggleAuthor(author)">
+                        <button type="button" aria-pressed="@SelectedAuthors.Contains(author).ToString().ToLowerInvariant()" class="filter-choice @(SelectedAuthors.Contains(author) ? "is-active" : "")" @onclick="() => ToggleAuthor(author)">
                             @author
                         </button>
                     }
@@ -98,17 +100,17 @@
 
             <details class="filter-collapse">
                 <summary>
-                    <span>Categories</span>
+                    <span>@Ux.Text("Categories")</span>
                     @if (SelectedCategories.Count > 0)
                     {
                         <small>@SelectedCategories.Count</small>
                     }
                 </summary>
                 <div class="filter-section">
-                    <TextInput Class="filter-search" Placeholder="Search categories" @bind-Value="@CategoryFacetSearchText" />
+                    <TextInput Class="filter-search" aria-label="@Ux.Text("SearchCategories")" Placeholder="@Ux.Text("SearchCategories")" @bind-Value="@CategoryFacetSearchText" />
                     @foreach (var category in FilteredCategories)
                     {
-                        <button type="button" class="filter-choice @(SelectedCategories.Contains(category) ? "is-active" : "")" @onclick="() => ToggleCategory(category)">
+                        <button type="button" aria-pressed="@SelectedCategories.Contains(category).ToString().ToLowerInvariant()" class="filter-choice @(SelectedCategories.Contains(category) ? "is-active" : "")" @onclick="() => ToggleCategory(category)">
                             @category
                         </button>
                     }
@@ -117,178 +119,115 @@
         </aside>
 
         <main class="library-content">
-            @if (featured is not null)
+            <div class="browse-toolbar">
+                <p role="status" aria-live="polite">@(IsLoading ? Ux.Text("LoadingBooks") : Ux.Titles(Data.Count))</p>
+                <label>@Ux.Text("Sort")
+                    <select class="form-control" value="@Sort" @onchange="ChangeSort">
+                        @foreach (var sort in new[] { "author", "title", "rating", "duration", "recent" })
+                        { <option value="@sort">@Ux.Text("Sort_" + sort)</option> }
+                    </select>
+                </label>
+                <label>@Ux.Text("View")
+                    <select class="form-control" value="@View" @onchange="ChangeView">
+                        @foreach (var view in new[] { "rails", "grid", "list" })
+                        { <option value="@view">@Ux.Text("View_" + view)</option> }
+                    </select>
+                </label>
+                @if (Sort == "author" && View == "rails")
+                {
+                    <label>@Ux.Text("JumpAuthor")
+                        <select class="form-control" @onchange="JumpToAuthor">
+                            <option value="">@Ux.Text("ChooseAuthor")</option>
+                            @foreach (var author in authorGroups) { <option value="@AuthorAnchor(author.Key)">@author.Key</option> }
+                        </select>
+                    </label>
+                }
+            </div>
+            @if (HasActiveFilters)
             {
-                <section class="featured-strip">
-                    <button type="button" class="featured-poster" @onclick="() => ShowDetails(featured)">
-                        @if (!string.IsNullOrWhiteSpace(featured.AudioBookInfo.ImageUrl))
-                        {
-                            <img src="@featured.AudioBookInfo.ImageUrl" alt="@featured.AudioBookInfo.Name cover" />
-                        }
-                        else
-                        {
-                            <span>@featured.AudioBookInfo.Name</span>
-                        }
-                    </button>
-                    <div class="featured-copy">
-                        <p class="cinema-eyebrow">Featured audiobook</p>
-                        <h2>@featured.AudioBookInfo.Name</h2>
-                        <p>@featured.AudioBookInfo.AuthorName</p>
-                        <div class="media-meta-row">
-                            <span>@featured.Rating %</span>
-                            <span>@($"{featured.AudioBookInfo.Duration.TotalHours:F0}:{featured.AudioBookInfo.Duration.Minutes:D2}")</span>
-                            @if (!string.IsNullOrWhiteSpace(featured.AudioBookInfo.SeriesName))
-                            {
-                                <span>@featured.AudioBookInfo.SeriesName @featured.AudioBookInfo.OrderInSeries</span>
-                            }
-                        </div>
-                    </div>
-                </section>
+                <div class="active-filters" aria-label="@Ux.Text("ActiveFilters")">
+                    @if (!string.IsNullOrWhiteSpace(SearchText)) { <button class="filter-pill" @onclick="ClearSearch">@SearchText ×</button> }
+                    @foreach (var author in SelectedAuthors) { <button class="filter-pill" @onclick="() => ToggleAuthor(author)">@author ×</button> }
+                    @foreach (var category in SelectedCategories) { <button class="filter-pill" @onclick="() => ToggleCategory(category)">@category ×</button> }
+                    @if (MinRating != null || MaxRating != null) { <button class="filter-pill" @onclick="() => SetRatingRange(null, null)">@Ux.Text("Rating") ×</button> }
+                    @if (HasDurationFilter) { <button class="filter-pill" @onclick="ClearDuration">@DurationFilterSummary ×</button> }
+                </div>
             }
-
-            <section class="library-stats">
-                <article><strong>@AudioBooksStatistics.TotalCount</strong><span>Titles</span></article>
-                <article><strong>@AudioBooksStatistics.AuthorCount</strong><span>Authors</span></article>
-                <article><strong>@($"{AudioBooksStatistics.TotalDuration.TotalHours:F0}h")</strong><span>Total listening</span></article>
-            </section>
-
-            @if (IsLoading)
+            @if (!string.IsNullOrWhiteSpace(LoadMessage)) { <p role="alert" class="inline-status danger">@LoadMessage <button class="text-button" @onclick="LoadData">@Ux.Text("Retry")</button></p> }
+            @if (Sort == "recent") { <p class="filter-empty">@Ux.Text("RecentDateHelp")</p> }
+            @if (!IsLoading && Data.Count == 0 && LoadMessage == null)
             {
-                <div class="library-state">Loading audiobooks...</div>
+                <div class="library-state"><h2>@Ux.Text("NoBooks")</h2><p>@Ux.Text("AdjustFilters")</p>
+                    @if (HasActiveFilters) { <button class="primary-action" @onclick="ClearFilters">@Ux.Text("ClearFilters")</button> }
+                </div>
             }
-            else if (Data.Count == 0)
+            else if (View != "rails" || Sort != "author")
             {
-                <div class="library-state">
-                    <h2>No audiobooks found</h2>
-                    <p>Adjust filters or clear the current search.</p>
-                    @if (HasActiveFilters)
-                    {
-                        <button type="button" class="primary-action" @onclick="ClearFilters">Clear filters</button>
-                    }
+                <div class="book-collection @(View == "list" ? "book-list" : "book-grid")">
+                    @foreach (var book in SortedBooks) { <BookCard @key="book.Id" Book="book" Selected="ShowDetails" /> }
                 </div>
             }
             else
             {
                 @foreach (var author in authorGroups)
                 {
-                    <section class="media-rail">
-                        <div class="rail-heading">
-                            <h2>@author.Key</h2>
-                            <span>@author.Count() title(s)</span>
+                    <section class="media-rail" id="@AuthorAnchor(author.Key)">
+                        <div class="rail-heading"><h2>@author.Key</h2><span>@Ux.Titles(author.Count())</span>
+                            <button class="text-button" @onclick="() => ToggleFullAuthor(author.Key)">@Ux.Text(ExpandedAuthors.Contains(author.Key) ? "ShowRail" : "ViewAll")</button>
                         </div>
-
-                        @foreach (var series in author
-                            .GroupBy(book => string.IsNullOrWhiteSpace(book.AudioBookInfo.SeriesName) ? StandaloneSeriesName : book.AudioBookInfo.SeriesName)
-                            .OrderBy(group => group.Key == StandaloneSeriesName ? 1 : 0)
-                            .ThenBy(group => group.Key))
+                        @foreach (var series in author.GroupBy(book => string.IsNullOrWhiteSpace(book.AudioBookInfo.SeriesName) ? StandaloneSeriesName : book.AudioBookInfo.SeriesName)
+                            .OrderBy(group => group.Key == StandaloneSeriesName ? 1 : 0).ThenBy(group => group.Key))
                         {
                             <div class="series-section @(series.Key == StandaloneSeriesName ? "series-section-standalone" : "")">
-                                @if (series.Key != StandaloneSeriesName)
-                                {
-                                    <div class="series-splitter">
-                                        <span>@series.Key</span>
-                                    </div>
-                                }
-
-                                <div class="poster-row">
-                                    @foreach (var audioBook in series.OrderBy(book => book.AudioBookInfo.OrderInSeries).ThenBy(book => book.AudioBookInfo.Name))
-                                    {
-                                        <article class="poster-card">
-                                            <button type="button" class="poster-button" @onclick="() => ShowDetails(audioBook)">
-                                                @if (!string.IsNullOrWhiteSpace(audioBook.AudioBookInfo.ImageUrl))
-                                                {
-                                                    <img src="@audioBook.AudioBookInfo.ImageUrl" alt="@audioBook.AudioBookInfo.Name cover" />
-                                                }
-                                                else
-                                                {
-                                                    <span>@audioBook.AudioBookInfo.Name</span>
-                                                }
-                                            </button>
-                                            <div class="poster-info">
-                                                <h3>@audioBook.AudioBookInfo.Name</h3>
-                                                <p>@audioBook.Rating % - @($"{audioBook.AudioBookInfo.Duration.TotalHours:F0}:{audioBook.AudioBookInfo.Duration.Minutes:D2}")</p>
-                                                @if (audioBook.AudioBookInfo.Categories.Count > 0)
-                                                {
-                                                    <div class="poster-tags" aria-label="@($"{audioBook.AudioBookInfo.Name} categories")">
-                                                        @foreach (var category in audioBook.AudioBookInfo.Categories)
-                                                        {
-                                                            <span>@category.Name</span>
-                                                        }
-                                                    </div>
-                                                }
-                                            </div>
-                                        </article>
-                                    }
+                                @if (series.Key != StandaloneSeriesName) { <div class="series-splitter"><span>@series.Key</span></div> }
+                                <div class="@(ExpandedAuthors.Contains(author.Key) ? "book-collection book-grid" : "poster-row")" data-rail="@(author.Key + ":" + series.Key)">
+                                    @foreach (var book in series.OrderBy(book => book.AudioBookInfo.OrderInSeries).ThenBy(book => book.AudioBookInfo.Name))
+                                    { <BookCard @key="book.Id" Book="book" Selected="ShowDetails" /> }
                                 </div>
                             </div>
                         }
                     </section>
                 }
-
             }
+            <details class="library-totals"><summary>@Ux.Text("LibraryTotals")</summary>
+                <section class="library-stats">
+                    <article><strong>@AudioBooksStatistics.TotalCount</strong><span>@Ux.Text("Titles")</span></article>
+                    <article><strong>@AudioBooksStatistics.AuthorCount</strong><span>@Ux.Text("Authors")</span></article>
+                    <article><strong>@Ux.Duration(AudioBooksStatistics.TotalDuration)</strong><span>@Ux.Text("TotalDuration")</span></article>
+                </section>
+            </details>
         </main>
     </div>
 </section>
 
 @if (SelectedAudioBook is not null)
 {
-    <div class="quick-drawer-backdrop" @onclick="CloseDetails"></div>
-    <aside class="quick-drawer" role="dialog" aria-modal="true" aria-label="Audiobook details">
-        <button type="button" class="drawer-close" @onclick="CloseDetails">Close</button>
+    <UxDialog Class="quick-drawer" Label="@SelectedAudioBook.AudioBookInfo.Name" Dismiss="CloseDetails">
+        <button type="button" class="drawer-close" autofocus @onclick="CloseDetails">@Ux.Text("Close")</button>
         <div class="drawer-hero">
-            @if (!string.IsNullOrWhiteSpace(SelectedAudioBook.AudioBookInfo.ImageUrl))
-            {
-                <img src="@SelectedAudioBook.AudioBookInfo.ImageUrl" alt="@SelectedAudioBook.AudioBookInfo.Name cover" />
-            }
-            <div>
-                <p class="cinema-eyebrow">Audiobook</p>
-                <h2>@SelectedAudioBook.AudioBookInfo.Name</h2>
-                <p>@SelectedAudioBook.AudioBookInfo.AuthorName</p>
-                <div class="media-meta-row">
-                    <span>@SelectedAudioBook.Rating %</span>
-                    <span>@($"{SelectedAudioBook.AudioBookInfo.Duration.TotalHours:F0}:{SelectedAudioBook.AudioBookInfo.Duration.Minutes:D2}")</span>
-                    @if (!string.IsNullOrWhiteSpace(SelectedAudioBook.AudioBookInfo.SeriesName))
-                    {
-                        <span>@SelectedAudioBook.AudioBookInfo.SeriesName @SelectedAudioBook.AudioBookInfo.OrderInSeries</span>
-                    }
-                </div>
+            @if (!string.IsNullOrWhiteSpace(SelectedAudioBook.AudioBookInfo.ImageUrl)) { <img src="@SelectedAudioBook.AudioBookInfo.ImageUrl" alt="" /> }
+            <div><h2>@SelectedAudioBook.AudioBookInfo.Name</h2><p>@SelectedAudioBook.AudioBookInfo.AuthorName</p>
+                <div class="media-meta-row"><span>@Ux.Rating(SelectedAudioBook.Rating)</span><span>@Ux.Duration(SelectedAudioBook.AudioBookInfo.Duration)</span></div>
             </div>
         </div>
-
-        <div class="drawer-tags">
-            @foreach (var category in SelectedAudioBook.AudioBookInfo.Categories)
-            {
-                <span>@category.Name</span>
-            }
-        </div>
-
-        <p class="drawer-description">@SelectedAudioBook.AudioBookInfo.Description</p>
-
         <div class="drawer-actions">
-            <Button Color="Color.Primary" Clicked="async () => await CopyRssAsync(SelectedAudioBook)">Copy RSS</Button>
-            @if (SelectedAudioBook.AudioBookInfo.HasArchive)
-            {
-                <Button Color="Color.Secondary" Clicked="async () => await Download(SelectedAudioBook)">Download</Button>
-            }
-            <a class="secondary-action" href="@($"AudioBook/{SelectedAudioBook.Id}/edit")">Edit</a>
-            <button type="button" class="danger-action" @onclick="async () => await DeleteAudioBook(SelectedAudioBook)" disabled="@IsDeleting">
-                @(IsDeleting ? "Deleting..." : "Delete")
-            </button>
+            <button class="primary-action" @onclick="() => PrepareFeedAsync(SelectedAudioBook)">@Ux.Text("AddPodcast")</button>
+            @if (SelectedAudioBook.AudioBookInfo.HasArchive) { <button class="secondary-action" @onclick="() => Download(SelectedAudioBook)">@Ux.Text("DownloadZip")</button> }
         </div>
-        @if (!string.IsNullOrWhiteSpace(DeleteMessage))
+        @if (FeedUrl is not null)
         {
-            <p class="inline-status danger">@DeleteMessage</p>
+            <section class="feed-help"><h3>@Ux.Text("PodcastInstructionsTitle")</h3><p>@Ux.Text("PodcastInstructions")</p>
+                <label for="feed-url">@Ux.Text("FeedUrl")</label><input id="feed-url" class="form-control" value="@FeedUrl" readonly />
+                <button class="secondary-action" @onclick="() => CopyRssAsync(SelectedAudioBook)">@Ux.Text("CopyFeed")</button>
+            </section>
         }
-    </aside>
+        <p role="status" aria-live="polite">@ActionMessage</p>
+        <div class="drawer-tags">@foreach (var category in SelectedAudioBook.AudioBookInfo.Categories) { <span>@category.Name</span> }</div>
+        <details class="synopsis"><summary>@Ux.Text("Synopsis")</summary><p class="drawer-description">@SelectedAudioBook.AudioBookInfo.Description</p></details>
+        <div class="drawer-actions drawer-secondary-actions">
+            <button class="secondary-action" @onclick="() => EditBookAsync(SelectedAudioBook)">@Ux.Text("Edit")</button>
+            <button class="danger-action" @onclick="() => DeleteAudioBook(SelectedAudioBook)" disabled="@IsDeleting">@Ux.Text(IsDeleting ? "Deleting" : "Delete")</button>
+        </div>
+        @if (DeleteMessage is not null) { <p role="alert" class="inline-status danger">@DeleteMessage</p> }
+    </UxDialog>
 }
-
-<script>
-    function copyToClipboard(link) {
-        navigator.clipboard.writeText(link).then(() => {
-            alert("Link copied to clipboard!");
-        }).catch(err => {
-            window.open(link,'_blank');
-            console.error("Failed to copy link: ", err);
-        });
-    }
-</script>

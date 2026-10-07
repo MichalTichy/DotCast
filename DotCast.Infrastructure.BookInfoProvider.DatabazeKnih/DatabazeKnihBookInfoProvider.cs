@@ -11,26 +11,22 @@ namespace DotCast.Infrastructure.BookInfoProvider.DatabazeKnih
     public class DatabazeKnihBookInfoProvider : IBookInfoProvider
     {
         private const string SourceName = "Databáze knih";
+        private static readonly HttpClient sharedClient = BookInfoHttpClient.Create("cs-CZ,cs;q=0.9");
+        private readonly HttpClient httpClient;
         private readonly Uri baseUri = new("https://www.databazeknih.cz/");
         private readonly CategoryMapper categoryMapper = new();
 
-        public async IAsyncEnumerable<FoundBookInfo> GetBookInfoAsync(string name, string? author = null)
+        public DatabazeKnihBookInfoProvider() : this(sharedClient) { }
+        public DatabazeKnihBookInfoProvider(HttpClient httpClient) => this.httpClient = httpClient;
+
+        public IAsyncEnumerable<FoundBookInfo> GetBookInfoAsync(string name, string? author = null, CancellationToken cancellationToken = default, int maxResults = 10)
         {
-            var count = 0;
-            await foreach (var foundBook in SearchAsync(name, author))
-            {
-                count++;
-                yield return await GetBookInfoAsync(foundBook);
-                if (count >= 10)
-                {
-                    yield break;
-                }
-            }
+            return BookInfoSearch.LoadDetailsAsync(SearchAsync(name, author, cancellationToken), GetBookInfoAsync, maxResults, cancellationToken);
         }
 
-        private async Task<FoundBookInfo> GetBookInfoAsync(BookSearchResult bookSearchResult)
+        private async Task<FoundBookInfo> GetBookInfoAsync(BookSearchResult bookSearchResult, CancellationToken cancellationToken)
         {
-            var page = await LoadPageAsync(bookSearchResult.Url);
+            var page = await LoadPageAsync(bookSearchResult.Url, cancellationToken);
             var schema = ExtractBookSchema(page);
 
             var title = CleanTitle(schema?.Title)
@@ -150,29 +146,29 @@ namespace DotCast.Infrastructure.BookInfoProvider.DatabazeKnih
             return ParseFirstInteger(FirstText(page, "#bdetail_rest > span > span"));
         }
 
-        private async IAsyncEnumerable<BookSearchResult> SearchAsync(string bookName, string? author)
+        private async IAsyncEnumerable<BookSearchResult> SearchAsync(string bookName, string? author, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken)
         {
             var seenUrls = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             if (!string.IsNullOrWhiteSpace(author))
             {
-                await foreach (var result in SearchSingleQueryAsync($"{bookName} {author}", seenUrls))
+                await foreach (var result in SearchSingleQueryAsync($"{bookName} {author}", seenUrls, cancellationToken))
                 {
                     yield return result;
                 }
             }
 
-            await foreach (var result in SearchSingleQueryAsync(bookName, seenUrls))
+            await foreach (var result in SearchSingleQueryAsync(bookName, seenUrls, cancellationToken))
             {
                 yield return result;
             }
         }
 
-        private async IAsyncEnumerable<BookSearchResult> SearchSingleQueryAsync(string query, HashSet<string> seenUrls)
+        private async IAsyncEnumerable<BookSearchResult> SearchSingleQueryAsync(string query, HashSet<string> seenUrls, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken)
         {
             var htmlEncodedName = Uri.EscapeDataString(query);
             var searchUrl = new Uri(baseUri, $"/search?q={htmlEncodedName}").ToString();
-            var searchPage = await LoadPageAsync(searchUrl);
+            var searchPage = await LoadPageAsync(searchUrl, cancellationToken);
             var foundBookLinks = searchPage
                 .QuerySelectorAll("a[type=\"book\"], #left_less a[href*=\"/prehled-knihy/\"], #left_less a[href*=\"/knihy/\"]")
                 .OfType<IHtmlAnchorElement>();
@@ -203,12 +199,11 @@ namespace DotCast.Infrastructure.BookInfoProvider.DatabazeKnih
             }
         }
 
-        private async Task<IDocument> LoadPageAsync(string url)
+        private async Task<IDocument> LoadPageAsync(string url, CancellationToken cancellationToken)
         {
-            var config = Configuration.Default.WithDefaultLoader();
-            var context = BrowsingContext.New(config);
-            var document = await context.OpenAsync(url);
-            return document;
+            var html = await httpClient.GetStringAsync(url, cancellationToken);
+            var context = BrowsingContext.New(Configuration.Default);
+            return await context.OpenAsync(request => request.Content(html).Address(url), cancellationToken);
         }
 
         private static BookSchema? ExtractBookSchema(IDocument page)
