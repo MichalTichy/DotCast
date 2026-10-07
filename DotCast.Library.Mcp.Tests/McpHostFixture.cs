@@ -65,6 +65,8 @@ public sealed class McpHostFixture : IAsyncLifetime
         builder.Host.UseWolverine(o => {
             o.Discovery.DisableConventionalDiscovery();
             o.Discovery.IncludeType<SearchAudioBooksHandler>();
+            o.Discovery.IncludeType<DotCast.Library.Handlers.AudioBooksRetrievalRequestHandler>();
+            o.Discovery.IncludeType<DotCast.Library.Handlers.AudioBookDetailRequestHandler>();
             o.Discovery.IncludeType<GetAudioBookMetadataHandler>();
             o.Discovery.IncludeType<DotCast.BookInfoProvider.AudiobookInfoSuggestionsRequestHandler>();
             o.Discovery.IncludeType<UpdateAudioBookMetadataHandler>();

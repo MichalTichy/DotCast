@@ -1,105 +1,58 @@
 @page "/Admin"
 @inherits AppPage
-
+@using DotCast.App.Services
 <section class="admin-page">
-    <header class="page-hero compact">
-        <p class="cinema-eyebrow">Admin</p>
-        <h1>Maintenance dashboard</h1>
-        <p>Run library-wide processing actions and monitor active work.</p>
-    </header>
-
-    <nav class="cinema-tabs" aria-label="Admin sections">
-        <button type="button" class="@(ActiveTab == "maintenance" ? "is-active" : "")" @onclick='() => ShowTab("maintenance")'>Maintenance</button>
-        <button type="button" class="@(ActiveTab == "playbacks" ? "is-active" : "")" @onclick='() => ShowTab("playbacks")'>Active playbacks</button>
+    <header class="page-hero compact"><p class="cinema-eyebrow">@Ux.Text("Admin")</p><h1>@Ux.Text("MaintenanceDashboard")</h1></header>
+    <nav class="cinema-tabs" role="tablist" aria-label="@Ux.Text("AdminSections")">
+        @foreach (var tab in new[] { "maintenance", "playbacks" }) { <button id="@("admin-tab-" + tab)" role="tab" aria-selected="@((ActiveTab == tab).ToString().ToLowerInvariant())" aria-controls="admin-panel" tabindex="@(ActiveTab == tab ? 0 : -1)" class="@(ActiveTab == tab ? "is-active" : "")" @onclick="() => ShowTab(tab)">@Ux.Text("Tab_" + tab)</button> }
     </nav>
-
-    <main class="settings-grid">
+    <main id="admin-panel" class="settings-grid" role="tabpanel" aria-labelledby="@("admin-tab-" + ActiveTab)">
         @if (ActiveTab == "maintenance")
         {
-            <section class="cinema-panel wide-panel">
-                <div class="section-heading">
-                    <div>
-                        <p class="cinema-eyebrow">Processing status</p>
-                        <h2>@(IsProcessingRunning ? "Processing is running" : "Processing is idle")</h2>
-                        <p>@CountOfRunningProcessings active job(s).</p>
-                    </div>
-                </div>
-            </section>
-
-            <section class="cinema-panel wide-panel">
-                <p class="cinema-eyebrow">Library operations</p>
-                <h2>Maintenance actions</h2>
-                <div class="admin-action-grid">
-                    <button id="restore-button" class="primary-action" @onclick="RestoreAudioBooksFromStorage" disabled="@IsProcessingRunning">
-                        Restore Audiobooks
-                    </button>
-                    <button id="reprocess-no-unzip" class="secondary-action as-button" @onclick="async () => await ReprocessAudioBooksFromStorage(false)" disabled="@IsProcessingRunning">
-                        Reprocess without unzip
-                    </button>
-                    <button id="reprocess-unzip" class="secondary-action as-button" @onclick="async () => await ReprocessAudioBooksFromStorage(true)" disabled="@IsProcessingRunning">
-                        Reprocess with unzip
-                    </button>
-                    <button id="apply-strong-suggestions" class="secondary-action as-button" @onclick="ApplyStrongSuggestions" disabled="@(IsProcessingRunning || IsApplyingSuggestions)">
-                        @(IsApplyingSuggestions ? "Applying suggestions..." : "Apply strong suggestions")
-                    </button>
-                </div>
-                @if (IsProcessingRunning)
-                {
-                    <p class="inline-status">Maintenance actions are disabled while processing is running.</p>
-                }
-                @if (!string.IsNullOrWhiteSpace(SuggestionUpdateMessage))
-                {
-                    <p class="inline-status">@SuggestionUpdateMessage</p>
-                }
-            </section>
+            <section class="cinema-panel wide-panel"><h2>@Ux.Text(IsProcessingRunning ? "ProcessingRunning" : "ProcessingIdle")</h2><p role="status">@Ux.Format("ActiveJobs", ProcessingMonitor.RecentJobs.Count(job => job.Succeeded is null))</p></section>
+            <section class="cinema-panel wide-panel"><h2>@Ux.Text("MaintenanceActions")</h2><div class="maintenance-actions">
+                @foreach (var operation in new[] { "restore", "reprocess", "unzip" }) { <article><h3>@Ux.Text("Operation_" + operation)</h3><p>@Ux.Text("OperationHelp_" + operation)</p><button class="secondary-action" @onclick="() => ReviewOperation(operation)" disabled="@(IsBusy || IsProcessingRunning)">@Ux.Text("ReviewOperation")</button></article> }
+            </div></section>
+            @if (ProcessingMonitor.RecentJobs.Count > 0)
+            {
+                <section class="cinema-panel wide-panel"><h2>@Ux.Text("RecentProcessing")</h2><p>@Ux.Text("ProcessingHistoryHelp")</p><ul class="processing-jobs">
+                    @foreach (var job in ProcessingMonitor.RecentJobs) { <li><strong>@BookTitle(job.AudioBookId)</strong><span>@Ux.Text(job.Succeeded is null ? "JobRunning" : job.Succeeded.Value ? "JobCompleted" : "JobFailed")</span><time>@Timestamp(job.TimestampUtc)</time></li> }
+                </ul></section>
+            }
         }
         else
         {
-            <section class="cinema-panel wide-panel">
-                <div class="section-heading">
-                    <div>
-                        <p class="cinema-eyebrow">Playback monitoring</p>
-                        <h2>Active playbacks</h2>
-                        <p>Records stay here until they are manually marked finished.</p>
-                    </div>
-                    <button type="button" class="secondary-action as-button" @onclick="LoadActivePlaybacks" disabled="@IsLoadingActivePlaybacks">
-                        @(IsLoadingActivePlaybacks ? "Refreshing..." : "Refresh")
-                    </button>
+            <section class="cinema-panel wide-panel"><div class="section-heading"><h2>@Ux.Text("Tab_playbacks")</h2><button class="secondary-action" @onclick="LoadActivePlaybacks" disabled="@IsLoadingActivePlaybacks">@Ux.Text(IsLoadingActivePlaybacks ? "Refreshing" : "Refresh")</button></div><p>@Ux.Text("PlaybackHelp")</p>
+                <div class="browse-toolbar"><label>@Ux.Text("User")<select class="form-control" @bind="UserFilter"><option value="">@Ux.Text("AllUsers")</option>@foreach (var user in ActivePlaybacks.DistinctBy(p => p.UserId).OrderBy(p => p.UserName)) { <option value="@user.UserId">@user.UserName</option> }</select></label>
+                    <label>@Ux.Text("Status")<select class="form-control" @bind="StatusFilter"><option value="">@Ux.Text("AllStatuses")</option>@foreach (var status in Enum.GetValues<DotCast.SharedKernel.Models.PlaybackStatus>().Where(s => s != DotCast.SharedKernel.Models.PlaybackStatus.Finished)) { <option value="@status">@PlaybackLabel(status)</option> }</select></label>
+                    <label><input type="checkbox" @bind="RecentFirst" /> @Ux.Text("RecentFirst")</label>
                 </div>
-
-                @if (IsLoadingActivePlaybacks)
-                {
-                    <p class="inline-status">Loading playback activity...</p>
-                }
-                else if (ActivePlaybacks.Count == 0)
-                {
-                    <p class="inline-status">No active playback records found.</p>
-                }
-                else
-                {
-                    <div class="admin-playback-list" role="table" aria-label="Active playback records">
-                        <div class="admin-playback-row admin-playback-header" role="row">
-                            <span role="columnheader">Audiobook</span>
-                            <span role="columnheader">User</span>
-                            <span role="columnheader">Status</span>
-                            <span role="columnheader">Last RSS</span>
-                            <span role="columnheader">Last file</span>
-                            <span role="columnheader">Final file</span>
-                        </div>
-                        @foreach (var playback in ActivePlaybacks)
-                        {
-                            <article class="admin-playback-row" role="row">
-                                <strong role="cell">@playback.AudioBookName</strong>
-                                <span role="cell">@playback.UserName</span>
-                                <span role="cell"><span class="status-chip @PlaybackStatusClass(playback.Status)">@playback.Status</span></span>
-                                <span role="cell">@playback.LastRssGeneratedAt.ToLocalTime().ToString("g")</span>
-                                <span role="cell">@(playback.LastFileDownloadedAt?.ToLocalTime().ToString("g") ?? "-")</span>
-                                <span role="cell">@(playback.HasDownloadedFinalFile ? "Yes" : "No")</span>
-                            </article>
-                        }
-                    </div>
-                }
+                <p role="status">@(IsLoadingActivePlaybacks ? Ux.Text("LoadingPlaybacks") : Ux.Format("PlaybackCount", FilteredPlaybacks.Count()))</p>
+                <div class="playback-cards">
+                    @foreach (var playback in FilteredPlaybacks)
+                    {
+                        <article class="playback-card"><h3>@playback.AudioBookName</h3><dl>
+                            <div><dt>@Ux.Text("User")</dt><dd>@playback.UserName</dd></div><div><dt>@Ux.Text("Status")</dt><dd>@PlaybackLabel(playback.Status)</dd></div>
+                            <div><dt>@Ux.Text("LastFeed")</dt><dd>@Timestamp(playback.LastRssGeneratedAt)</dd></div><div><dt>@Ux.Text("LastDownload")</dt><dd>@Timestamp(playback.LastFileDownloadedAt)</dd></div>
+                            <div><dt>@Ux.Text("FinalDownloaded")</dt><dd>@Ux.Text(playback.HasDownloadedFinalFile ? "Yes" : "No")</dd></div>
+                        </dl><button class="secondary-action" @onclick="() => PendingPlayback = playback" disabled="@IsBusy">@Ux.Text("MarkFinished")</button></article>
+                    }
+                </div>
             </section>
         }
+        @if (Message != null) { <p role="status" class="inline-status wide-panel">@Message</p> }
     </main>
 </section>
+@if (PendingOperation != null)
+{
+    <UxDialog Label="@Ux.Text("ReviewOperation")" Dismiss="() => PendingOperation = null">
+        <h2>@Ux.Text("Operation_" + PendingOperation)</h2><p>@Ux.Text("OperationHelp_" + PendingOperation)</p><p>@Ux.Format(MaintenanceBooks.Count == 1 ? "MaintenanceScopeOne" : "MaintenanceScope", MaintenanceBooks.Count)</p>
+        <details><summary>@Ux.Text("AffectedBooks")</summary><ul>@foreach (var book in MaintenanceBooks) { <li>@(book.Title ?? Ux.Text("UnnamedStoredBook")) <small>(@book.Id)</small></li> }</ul></details>
+        <p>@Ux.Text("MaintenanceReviewHelp")</p><div class="drawer-actions"><button class="secondary-action" autofocus @onclick="() => PendingOperation = null" disabled="@IsBusy">@Ux.Text("Cancel")</button><button class="primary-action" @onclick="RunOperation" disabled="@(IsBusy || IsProcessingRunning || MaintenanceBooks.Count == 0)">@Ux.Text("RunOperation")</button></div>
+        @if (Message != null) { <p role="status">@Message</p> }
+    </UxDialog>
+}
+@if (PendingPlayback != null)
+{
+    <UxDialog Label="@Ux.Text("MarkFinished")" Dismiss="() => PendingPlayback = null"><h2>@Ux.Text("MarkFinished")</h2><p>@Ux.Format("ConfirmPlayback", PendingPlayback.AudioBookName, PendingPlayback.UserName)</p><p>@Ux.Text("FinishPlaybackHelp")</p><div class="drawer-actions"><button class="secondary-action" autofocus disabled="@IsBusy" @onclick="() => PendingPlayback = null">@Ux.Text("Cancel")</button><button class="primary-action" disabled="@IsBusy" @onclick="MarkFinished">@Ux.Text("MarkFinished")</button></div>@if (Message != null) { <p role="status">@Message</p> }</UxDialog>
+}

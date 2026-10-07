@@ -20,6 +20,7 @@ namespace DotCast.Library.Handlers
                 {
                     Id = message.AudioBookInfo.Id,
                     AudioBookInfo = message.AudioBookInfo,
+                    AddedAtUtc = DateTime.UtcNow,
                     LibraryId = user.UsersLibraryName
                 });
             }

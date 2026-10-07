@@ -7,6 +7,7 @@ using Marten.Linq;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using DotCast.Infrastructure.CurrentUserProvider;
+using DotCast.Infrastructure.UserManagement.Abstractions;
 using DotCast.Infrastructure.IoC;
 using DotCast.Infrastructure.Persistence.Marten.Repository.Document;
 using DotCast.Infrastructure.Persistence.Marten.SessionFactory;
@@ -16,12 +17,17 @@ using DotCast.Storage;
 
 namespace DotCast.Library
 {
-    public class AudioBookRepository(ISessionFactoryWithAlternateTenantSettings sessionFactory, ICurrentUserProvider<UserInfo> userProvider) : MartenRepository<AudioBook>(sessionFactory)
+    public class AudioBookRepository(ISessionFactoryWithAlternateTenantSettings sessionFactory, ICurrentUserProvider<UserInfo> userProvider, IUserManager<UserInfo> userManager) : MartenRepository<AudioBook>(sessionFactory)
     {
+        private async Task<UserInfo> GetCurrentAccessAsync()
+        {
+            var current = await userProvider.GetCurrentUserRequiredAsync();
+            return await userManager.GetUserAsync(current.Id) ?? throw new UnauthorizedAccessException();
+        }
         public override async Task<IMartenQueryable<AudioBook>> PreprocessQueryAsync(IMartenQueryable<AudioBook> queryable)
         {
             var query = await base.PreprocessQueryAsync(queryable);
-            var user = await userProvider.GetCurrentUserRequiredAsync();
+            var user = await GetCurrentAccessAsync();
 
             return query.Where(x => user.AvailableLibraries.Contains(x.LibraryId)).As<IMartenQueryable<AudioBook>>();
         }
@@ -32,7 +38,7 @@ namespace DotCast.Library
 
             if (book != null)
             {
-                var user = await userProvider.GetCurrentUserRequiredAsync();
+                var user = await GetCurrentAccessAsync();
                 if (!user.AvailableLibraries.Contains(book.LibraryId))
                 {
                     return null;

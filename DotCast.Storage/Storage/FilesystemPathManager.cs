@@ -41,7 +41,7 @@ namespace DotCast.Storage.Storage
 
         public bool IsArchive(string filePath)
         {
-            return filePath.EndsWith(".zip");
+            return filePath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase);
         }
     }
 }

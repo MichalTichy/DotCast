@@ -19,7 +19,7 @@ namespace DotCast.Storage.Handlers
             var currentFiles = storage.GetStorageEntry(message.AudioBookId)?.Files.Select(t => Path.GetFileName(t.LocalPath)).ToArray();
             foreach (var messageFile in message.Files)
             {
-                var isArchive = messageFile.EndsWith(".zip");
+                var isArchive = messageFile.EndsWith(".zip", StringComparison.OrdinalIgnoreCase);
                 var url = apiInformationProvider.GetFileUrl(message.AudioBookId, messageFile, isArchive, true);
                 var exists = currentFiles != null && currentFiles.Contains(messageFile);
                 result.Add(new PreuploadFileInformation(messageFile, url, exists));

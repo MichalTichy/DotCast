@@ -1,92 +1,60 @@
-// Function to upload file using the pre-signed URL
-
-class UploadHelpers {
-    static dotNetHelper;
-    static helpers = {};
-
-    static setDotNetHelper(value) {
-        UploadHelpers.dotNetHelper = value;
-    }
-
-    static register(componentId, dotNetHelper, filePickerId, progressContainerId) {
-        UploadHelpers.helpers[componentId] = dotNetHelper;
-        const filePicker = document.getElementById(filePickerId);
-        if (!filePicker) {
-            return;
-        }
-
-        filePicker.addEventListener('change', async function (e) {
-            const files = e.target.files;
-            const fileNames = Array.from(files).map(file => file.name);
-            const progressContainer = document.getElementById(progressContainerId);
-
-            try {
-                const presignedUrls = await dotNetHelper.invokeMethodAsync('GeneratePresignedUrls', fileNames);
-
-                for (let file of files) {
-                    const progressBar = document.createElement("progress");
-                    progressBar.id = `${componentId}_progress_${cssEscape(file.name)}`;
-                    progressBar.value = 0;
-                    progressBar.max = 100;
-                    progressContainer.appendChild(progressBar);
-
-                    const presignedUrl = presignedUrls[file.name];
-                    if (presignedUrl) {
-                        await uploadFile(file, presignedUrl, progressBar.id);
-                    } else {
-                        console.error("No pre-signed URL for " + file.name);
-                    }
-                }
-            } catch (error) {
-                console.error("Error generating or retrieving pre-signed URLs: ", error);
+window.UploadHelpers = {
+    registrations: new Map(),
+    register(id, helper, pickerId, progressId, text) {
+        const picker = document.getElementById(pickerId);
+        const container = document.getElementById(progressId);
+        if (!picker || !container) return;
+        const change = async () => {
+            const files = Array.from(picker.files);
+            if (!files.length) return;
+            container.replaceChildren();
+            const status = document.createElement('p'); status.setAttribute('role', 'status'); container.append(status);
+            if (files.some(file => !file.size)) { status.textContent = text.empty; picker.value = ''; return; }
+            if (new Set(files.map(file => file.name)).size !== files.length) { status.textContent = text.duplicate; picker.value = ''; return; }
+            picker.disabled = true; status.textContent = text.preparing;
+            let completed = 0;
+            const finish = async () => {
+                if (++completed !== files.length) return;
+                status.textContent = text.processing; picker.disabled = false; picker.value = '';
+                await helper.invokeMethodAsync('UploadCompleted');
+            };
+            let urls;
+            try { urls = await helper.invokeMethodAsync('GeneratePresignedUrls', files.map(file => file.name)); }
+            catch { status.textContent = text.failed; picker.disabled = false; picker.value = ''; return; }
+            status.textContent = '';
+            for (const file of files) {
+                const row = document.createElement('div'); row.className = 'upload-file-row';
+                const label = document.createElement('span'); label.textContent = file.name;
+                const progress = document.createElement('progress'); progress.max = 100; progress.value = 0; progress.setAttribute('aria-label', file.name);
+                const message = document.createElement('span');
+                const retry = document.createElement('button'); retry.type = 'button'; retry.className = 'secondary-action'; retry.textContent = text.retry; retry.hidden = true;
+                row.append(label, progress, message, retry); container.append(row);
+                const transfer = async url => {
+                    retry.hidden = true; message.textContent = ''; progress.value = 0;
+                    try { if (!url) throw new Error(); await uploadFile(file, url, progress); message.textContent = text.uploaded; await finish(); }
+                    catch { message.textContent = text.failed; retry.hidden = false; }
+                };
+                retry.onclick = async () => {
+                    retry.disabled = true;
+                    try { const replacement = await helper.invokeMethodAsync('GeneratePresignedUrls', [file.name]); await transfer(replacement[file.name]); }
+                    catch { message.textContent = text.failed; }
+                    finally { retry.disabled = false; }
+                };
+                await transfer(urls[file.name]);
             }
-        });
-    }
-}
-
-window.UploadHelpers = UploadHelpers;
-function cssEscape(value) {
-    if (window.CSS && window.CSS.escape) {
-        return window.CSS.escape(value);
-    }
-
-    return value.replace(/[^a-zA-Z0-9_-]/g, "_");
-}
-
-async function uploadFile(file, presignedUrl, progressElementId) {
+        };
+        picker.addEventListener('change', change);
+        this.registrations.set(id, { picker, change });
+    },
+    unregister(id) { const entry = this.registrations.get(id); if (entry) entry.picker.removeEventListener('change', entry.change); this.registrations.delete(id); }
+};
+function uploadFile(file, url, progress) {
     return new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open("PUT", presignedUrl);
-
-        const formData = new FormData();
-        //formData.append('file', file);
-
-        // Append the file to the form data under the key 'request' or whatever the server expects
-        formData.append("request", file, file.name);
-
-        // Update progress bar
-        xhr.upload.onprogress = function (event) {
-            if (event.lengthComputable) {
-                const progress = (event.loaded / event.total) * 100;
-                const progressElement = document.getElementById(progressElementId ?? `progress_${file.name}`);
-                if (progressElement) {
-                    progressElement.value = progress;
-                }
-            }
-        };
-
-        xhr.onload = function () {
-            if (xhr.status == 200) {
-                resolve("Upload successful!");
-            } else {
-                reject("Upload failed!");
-            }
-        };
-
-        xhr.onerror = function () {
-            reject("Error in upload!");
-        };
-        
-        xhr.send(formData);
+        const xhr = new XMLHttpRequest(); xhr.open('PUT', url);
+        const body = new FormData(); body.append('request', file, file.name);
+        xhr.upload.onprogress = event => { if (event.lengthComputable) progress.value = event.loaded / event.total * 100; };
+        xhr.onload = () => { if (xhr.status >= 200 && xhr.status < 300) { progress.value = 100; resolve(); } else reject(new Error()); };
+        xhr.onerror = () => reject(new Error()); xhr.onabort = () => reject(new Error());
+        xhr.send(body);
     });
 }

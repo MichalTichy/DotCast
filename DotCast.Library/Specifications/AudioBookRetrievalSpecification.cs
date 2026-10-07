@@ -19,9 +19,7 @@ namespace DotCast.Library.Specifications
                 filtered = filtered.Where(x =>
                     Contains(x.AudioBookInfo.Name, searchText) ||
                     Contains(x.AudioBookInfo.AuthorName, searchText) ||
-                    Contains(x.AudioBookInfo.SeriesName, searchText) ||
-                    Contains(x.AudioBookInfo.Description, searchText) ||
-                    x.AudioBookInfo.Categories.Any(category => Contains(category.Name, searchText)));
+                    Contains(x.AudioBookInfo.SeriesName, searchText));
             }
 
             if (Filter.Authors.Count > 0)
