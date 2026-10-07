@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="Account" xml:space="preserve"><value>Account</value></data>
+  <data name="AccountHelp" xml:space="preserve"><value>Manage your library code and connections.</value></data>
+  <data name="Active" xml:space="preserve"><value>Active</value></data>
+  <data name="ActiveFilters" xml:space="preserve"><value>Active filters</value></data>
+  <data name="ActiveJobs" xml:space="preserve"><value>Active jobs: {0}</value></data>
+  <data name="AddBook" xml:space="preserve"><value>Add a single audiobook</value></data>
+  <data name="AddBookHelp" xml:space="preserve"><value>Choose a title, upload the files, then review and save metadata.</value></data>
+  <data name="AddCategory" xml:space="preserve"><value>Add category</value></data>
+  <data name="AddPodcast" xml:space="preserve"><value>Add to podcast app</value></data>
+  <data name="AdjustFilters" xml:space="preserve"><value>Adjust filters or clear the current search.</value></data>
+  <data name="Admin" xml:space="preserve"><value>Admin</value></data>
+  <data name="AdminSections" xml:space="preserve"><value>Admin sections</value></data>
+  <data name="AffectedBooks" xml:space="preserve"><value>View affected books</value></data>
+  <data name="AllChangesSaved" xml:space="preserve"><value>All changes saved</value></data>
+  <data name="AllStatuses" xml:space="preserve"><value>All activity</value></data>
+  <data name="AllUsers" xml:space="preserve"><value>All users</value></data>
+  <data name="AlreadyConnected" xml:space="preserve"><value>These libraries are already connected.</value></data>
+  <data name="Author" xml:space="preserve"><value>Author</value></data>
+  <data name="Authors" xml:space="preserve"><value>Authors</value></data>
+  <data name="BackLibrary" xml:space="preserve"><value>Back to library</value></data>
+  <data name="BelowSixty" xml:space="preserve"><value>Below 60%</value></data>
+  <data name="BookExists" xml:space="preserve"><value>This audiobook already exists. Open it to add files, or choose another name.</value></data>
+  <data name="BookName" xml:space="preserve"><value>Audiobook name</value></data>
+  <data name="BookUnavailable" xml:space="preserve"><value>This audiobook is unavailable or you do not have access.</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Categories" xml:space="preserve"><value>Categories</value></data>
+  <data name="ChapterOrderDraft" xml:space="preserve"><value>Chapter order changed in the draft. Save to keep it, or undo.</value></data>
+  <data name="ChapterOrderHelp" xml:space="preserve"><value>The chapter sequence controls playback order. Reorder or sort the draft, then Save to keep it.</value></data>
+  <data name="CheckingName" xml:space="preserve"><value>Checking the name…</value></data>
+  <data name="ChooseAuthor" xml:space="preserve"><value>Choose an author</value></data>
+  <data name="ChooseCategory" xml:space="preserve"><value>Choose a category</value></data>
+  <data name="Clear" xml:space="preserve"><value>Clear</value></data>
+  <data name="ClearFilters" xml:space="preserve"><value>Clear filters</value></data>
+  <data name="Close" xml:space="preserve"><value>Close</value></data>
+  <data name="CodeCopied" xml:space="preserve"><value>Library code copied.</value></data>
+  <data name="CodeHelp" xml:space="preserve"><value>Give this code to a trusted DotCast user to connect both libraries. Both users receive access.</value></data>
+  <data name="CodeNotFound" xml:space="preserve"><value>No user matches this library code. Check the code and try again.</value></data>
+  <data name="ConfirmDelete" xml:space="preserve"><value>Permanently delete “{0}” and all stored files? This cannot be restored from the filesystem.</value></data>
+  <data name="ConfirmDisconnect" xml:space="preserve"><value>Disconnect libraries with {0}? Access will be removed for both users.</value></data>
+  <data name="ConfirmPlayback" xml:space="preserve"><value>Mark “{0}” finished for {1}?</value></data>
+  <data name="ConfirmUpload" xml:space="preserve"><value>Upload these files now? Matching normalized filenames and archives will be replaced. This cannot be undone by discarding edits.</value></data>
+  <data name="ConnectLibraries" xml:space="preserve"><value>Connect libraries</value></data>
+  <data name="ConnectWith" xml:space="preserve"><value>Connect libraries with {0}?</value></data>
+  <data name="ConnectedLibraries" xml:space="preserve"><value>Connected libraries</value></data>
+  <data name="CopyCode" xml:space="preserve"><value>Copy library code</value></data>
+  <data name="CopyCodeManually" xml:space="preserve"><value>Copy the library code shown above.</value></data>
+  <data name="CopyFeed" xml:space="preserve"><value>Copy feed link</value></data>
+  <data name="CopyManually" xml:space="preserve"><value>Copy the link from the field above.</value></data>
+  <data name="Delete" xml:space="preserve"><value>Delete audiobook</value></data>
+  <data name="DeleteFailed" xml:space="preserve"><value>The audiobook could not be deleted. Try again.</value></data>
+  <data name="Deleting" xml:space="preserve"><value>Deleting…</value></data>
+  <data name="Description" xml:space="preserve"><value>Description</value></data>
+  <data name="DiscardLeave" xml:space="preserve"><value>Discard and leave</value></data>
+  <data name="Disconnect" xml:space="preserve"><value>Disconnect libraries</value></data>
+  <data name="DisconnectFailed" xml:space="preserve"><value>The libraries could not be disconnected. Try again.</value></data>
+  <data name="DownloadFailed" xml:space="preserve"><value>The archive link could not be prepared. Try again.</value></data>
+  <data name="DownloadZip" xml:space="preserve"><value>Download audiobook ZIP</value></data>
+  <data name="DuplicateFiles" xml:space="preserve"><value>Choose files with distinct filenames in one upload.</value></data>
+  <data name="Duration" xml:space="preserve"><value>Duration</value></data>
+  <data name="DurationValue" xml:space="preserve"><value>{0}h {1}m</value></data>
+  <data name="Edit" xml:space="preserve"><value>Edit</value></data>
+  <data name="EditBook" xml:space="preserve"><value>Edit audiobook</value></data>
+  <data name="EditSections" xml:space="preserve"><value>Edit sections</value></data>
+  <data name="EmptyFiles" xml:space="preserve"><value>Empty files cannot be uploaded. Choose files with content.</value></data>
+  <data name="EnterBookName" xml:space="preserve"><value>Enter audiobook name</value></data>
+  <data name="EnterNameToUpload" xml:space="preserve"><value>Enter an available audiobook name to enable upload.</value></data>
+  <data name="FeedCopied" xml:space="preserve"><value>Feed link copied. Paste it into your podcast app.</value></data>
+  <data name="FeedFailed" xml:space="preserve"><value>The feed link could not be prepared. Try again.</value></data>
+  <data name="FeedUrl" xml:space="preserve"><value>Personal podcast feed link</value></data>
+  <data name="Filters" xml:space="preserve"><value>Filters</value></data>
+  <data name="FinalDownloaded" xml:space="preserve"><value>Final chapter downloaded</value></data>
+  <data name="FinishPlaybackHelp" xml:space="preserve"><value>This manually closes the activity record. It does not change audiobook files or verify listening progress.</value></data>
+  <data name="InvalidNumbers" xml:space="preserve"><value>Use a rating from 0 to 100 and a nonnegative series position.</value></data>
+  <data name="JobCompleted" xml:space="preserve"><value>Completed</value></data>
+  <data name="JobFailed" xml:space="preserve"><value>Failed</value></data>
+  <data name="JobRunning" xml:space="preserve"><value>Processing</value></data>
+  <data name="JumpAuthor" xml:space="preserve"><value>Jump to author</value></data>
+  <data name="KeepEditing" xml:space="preserve"><value>Keep editing</value></data>
+  <data name="LastDownload" xml:space="preserve"><value>Last download</value></data>
+  <data name="LastFeed" xml:space="preserve"><value>Last feed request</value></data>
+  <data name="LeaveDraftHelp" xml:space="preserve"><value>Save your changes before leaving, discard the draft, or keep editing.</value></data>
+  <data name="LibrariesConnected" xml:space="preserve"><value>Libraries connected. Both users now have access.</value></data>
+  <data name="LibrariesDisconnected" xml:space="preserve"><value>Libraries disconnected. Access was removed in both directions.</value></data>
+  <data name="LibraryFilters" xml:space="preserve"><value>Library filters</value></data>
+  <data name="LibraryTotals" xml:space="preserve"><value>Library totals</value></data>
+  <data name="LoadFailed" xml:space="preserve"><value>Audiobooks could not be loaded. Try again.</value></data>
+  <data name="LoadingBooks" xml:space="preserve"><value>Loading audiobooks…</value></data>
+  <data name="LoadingPlaybacks" xml:space="preserve"><value>Loading playback activity…</value></data>
+  <data name="Logout" xml:space="preserve"><value>Log out</value></data>
+  <data name="MaintenanceActions" xml:space="preserve"><value>Maintenance actions</value></data>
+  <data name="MaintenanceDashboard" xml:space="preserve"><value>Maintenance dashboard</value></data>
+  <data name="MaintenanceFailed" xml:space="preserve"><value>The operation could not be queued. Try again.</value></data>
+  <data name="MaintenancePreviewFailed" xml:space="preserve"><value>The affected books could not be loaded. Try again.</value></data>
+  <data name="MaintenanceQueued" xml:space="preserve"><value>Queued an operation for {0} stored audiobooks. Processing results will appear below.</value></data>
+  <data name="MaintenanceQueuedOne" xml:space="preserve"><value>Queued an operation for 1 stored audiobook. Processing results will appear below.</value></data>
+  <data name="MaintenanceReviewHelp" xml:space="preserve"><value>Review the scope before running. Changes to files or metadata cannot be undone here. Jobs run in the background; watch the processing results below.</value></data>
+  <data name="MaintenanceScope" xml:space="preserve"><value>This operation affects {0} stored audiobooks across all libraries.</value></data>
+  <data name="MaintenanceScopeOne" xml:space="preserve"><value>This operation affects 1 stored audiobook across all libraries.</value></data>
+  <data name="ManyTitles" xml:space="preserve"><value>{0} titles</value></data>
+  <data name="MarkFinished" xml:space="preserve"><value>Mark finished</value></data>
+  <data name="MaximumDuration" xml:space="preserve"><value>Maximum duration</value></data>
+  <data name="MinimumDuration" xml:space="preserve"><value>Minimum duration</value></data>
+  <data name="MoveDown" xml:space="preserve"><value>Move {0} down</value></data>
+  <data name="MoveUp" xml:space="preserve"><value>Move {0} up</value></data>
+  <data name="Name" xml:space="preserve"><value>Name</value></data>
+  <data name="NameCheckFailed" xml:space="preserve"><value>The name could not be checked. Use a name without path characters, or try again.</value></data>
+  <data name="NameRequired" xml:space="preserve"><value>Enter an audiobook name.</value></data>
+  <data name="Never" xml:space="preserve"><value>Never</value></data>
+  <data name="NewBook" xml:space="preserve"><value>New audiobook</value></data>
+  <data name="No" xml:space="preserve"><value>No</value></data>
+  <data name="NoBooks" xml:space="preserve"><value>No audiobooks found</value></data>
+  <data name="NoConnections" xml:space="preserve"><value>No connected libraries yet.</value></data>
+  <data name="NoDurations" xml:space="preserve"><value>Durations are not available yet.</value></data>
+  <data name="OneTitle" xml:space="preserve"><value>{0} title</value></data>
+  <data name="OpenExisting" xml:space="preserve"><value>Open existing audiobook</value></data>
+  <data name="OperationHelp_reprocess" xml:space="preserve"><value>Run normalization, audio conversion, metadata reading and ZIP creation on extracted files for every stored audiobook. Metadata and generated archives can change.</value></data>
+  <data name="OperationHelp_restore" xml:space="preserve"><value>Read metadata from every stored audiobook and add or update its library record. Existing metadata can be replaced. Archives are not extracted.</value></data>
+  <data name="OperationHelp_unzip" xml:space="preserve"><value>Extract each available ZIP first, then run the full processing pipeline for every stored audiobook. Extracted files, metadata and generated archives can be replaced.</value></data>
+  <data name="Operation_reprocess" xml:space="preserve"><value>Reprocess extracted audio</value></data>
+  <data name="Operation_restore" xml:space="preserve"><value>Restore from stored files</value></data>
+  <data name="Operation_unzip" xml:space="preserve"><value>Extract archives and reprocess</value></data>
+  <data name="OtherCode" xml:space="preserve"><value>Other user’s library code</value></data>
+  <data name="OwnLibraryCode" xml:space="preserve"><value>This is your own code. Enter another user’s code.</value></data>
+  <data name="PlaybackCount" xml:space="preserve"><value>Active records shown: {0}</value></data>
+  <data name="PlaybackFinishFailed" xml:space="preserve"><value>Playback could not be marked finished. Try again.</value></data>
+  <data name="PlaybackFinished" xml:space="preserve"><value>Playback marked finished.</value></data>
+  <data name="PlaybackHelp" xml:space="preserve"><value>These records track feed requests and file downloads, not actual listening progress. Downloading the final chapter does not prove completion. Mark finished to remove a record from this list.</value></data>
+  <data name="PlaybackLoadFailed" xml:space="preserve"><value>Playback activity could not be loaded. Try Refresh.</value></data>
+  <data name="Playback_CloseToFinished" xml:space="preserve"><value>Final chapter or archive downloaded</value></data>
+  <data name="Playback_Finished" xml:space="preserve"><value>Finished</value></data>
+  <data name="Playback_InProgress" xml:space="preserve"><value>Downloading files</value></data>
+  <data name="Playback_InfoRetrieved" xml:space="preserve"><value>Feed requested</value></data>
+  <data name="PodcastInstructions" xml:space="preserve"><value>In your podcast app, choose Add a show by URL (or Add RSS feed), then paste the feed link below. Keep this personal link private.</value></data>
+  <data name="PodcastInstructionsTitle" xml:space="preserve"><value>Listen in your podcast app</value></data>
+  <data name="ProcessingCheckFailed" xml:space="preserve"><value>Processing status could not be checked. Return to the library to find the audiobook.</value></data>
+  <data name="ProcessingHistoryHelp" xml:space="preserve"><value>Shows the latest 200 book outcomes since this app instance started. Failed jobs need administrator investigation.</value></data>
+  <data name="ProcessingIdle" xml:space="preserve"><value>Processing is idle</value></data>
+  <data name="ProcessingOpenEditor" xml:space="preserve"><value>The editor will open when the audiobook is ready.</value></data>
+  <data name="ProcessingRunning" xml:space="preserve"><value>Processing is running</value></data>
+  <data name="ProcessingTakingLonger" xml:space="preserve"><value>Processing is taking longer than expected. Check the library or ask an admin to inspect processing status.</value></data>
+  <data name="Rating" xml:space="preserve"><value>Provider rating</value></data>
+  <data name="RatingHelp" xml:space="preserve"><value>0 means unrated. Rated books use a score from 1 to 100.</value></data>
+  <data name="RatingValue" xml:space="preserve"><value>Provider rating: {0}%</value></data>
+  <data name="RecentDateHelp" xml:space="preserve"><value>New imports have an added date. Older records without a date appear after them.</value></data>
+  <data name="RecentFirst" xml:space="preserve"><value>Most recent activity first</value></data>
+  <data name="RecentProcessing" xml:space="preserve"><value>Recent processing</value></data>
+  <data name="Refresh" xml:space="preserve"><value>Refresh</value></data>
+  <data name="Refreshing" xml:space="preserve"><value>Refreshing…</value></data>
+  <data name="RemoveCategory" xml:space="preserve"><value>Remove category {0}</value></data>
+  <data name="ReplacementHelp" xml:space="preserve"><value>New filenames add files. Matching normalized filenames replace existing files; a ZIP replaces the stored archive and extraction can overwrite matching chapters. Uploads are saved immediately and cannot be undone by discarding the metadata draft.</value></data>
+  <data name="Retry" xml:space="preserve"><value>Retry</value></data>
+  <data name="ReviewConnection" xml:space="preserve"><value>Review connection</value></data>
+  <data name="ReviewOperation" xml:space="preserve"><value>Review affected books</value></data>
+  <data name="RunOperation" xml:space="preserve"><value>Run reviewed operation</value></data>
+  <data name="Save" xml:space="preserve"><value>Save</value></data>
+  <data name="SaveBeforeUpload" xml:space="preserve"><value>Save your metadata changes before uploading files.</value></data>
+  <data name="SaveExit" xml:space="preserve"><value>Save and exit</value></data>
+  <data name="SaveFailed" xml:space="preserve"><value>Changes could not be saved. Your draft is still here. Try again.</value></data>
+  <data name="SaveLeave" xml:space="preserve"><value>Save and leave</value></data>
+  <data name="Saved" xml:space="preserve"><value>Saved</value></data>
+  <data name="Saving" xml:space="preserve"><value>Saving…</value></data>
+  <data name="SearchAuthors" xml:space="preserve"><value>Search authors</value></data>
+  <data name="SearchCategories" xml:space="preserve"><value>Search categories</value></data>
+  <data name="SearchLibrary" xml:space="preserve"><value>Search library</value></data>
+  <data name="SearchPlaceholder" xml:space="preserve"><value>Search titles, authors, series</value></data>
+  <data name="SelectUploadFiles" xml:space="preserve"><value>Select one or more files. Upload starts immediately.</value></data>
+  <data name="Series" xml:space="preserve"><value>Series name</value></data>
+  <data name="SeriesOrder" xml:space="preserve"><value>Order in series</value></data>
+  <data name="ShareFailed" xml:space="preserve"><value>The libraries could not be connected. Try again.</value></data>
+  <data name="ShareLookupFailed" xml:space="preserve"><value>The code could not be checked. Try again.</value></data>
+  <data name="SharingHelp" xml:space="preserve"><value>Connections are mutual. Both users can browse, listen to, edit and delete audiobooks in each other’s libraries. Disconnecting removes access in both directions.</value></data>
+  <data name="ShowRail" xml:space="preserve"><value>Show rail</value></data>
+  <data name="SignedIn" xml:space="preserve"><value>Signed in to DotCast</value></data>
+  <data name="Sort" xml:space="preserve"><value>Sort by</value></data>
+  <data name="SortName" xml:space="preserve"><value>Sort chapters by name</value></data>
+  <data name="Sort_author" xml:space="preserve"><value>Author and series</value></data>
+  <data name="Sort_duration" xml:space="preserve"><value>Shortest duration</value></data>
+  <data name="Sort_rating" xml:space="preserve"><value>Highest rating</value></data>
+  <data name="Sort_recent" xml:space="preserve"><value>Recently added</value></data>
+  <data name="Sort_title" xml:space="preserve"><value>Title</value></data>
+  <data name="Status" xml:space="preserve"><value>Activity</value></data>
+  <data name="StorageDetails" xml:space="preserve"><value>Storage details</value></data>
+  <data name="Synopsis" xml:space="preserve"><value>Synopsis</value></data>
+  <data name="Tab_chapters" xml:space="preserve"><value>Chapters</value></data>
+  <data name="Tab_files" xml:space="preserve"><value>Files</value></data>
+  <data name="Tab_maintenance" xml:space="preserve"><value>Maintenance</value></data>
+  <data name="Tab_metadata" xml:space="preserve"><value>Metadata</value></data>
+  <data name="Tab_playbacks" xml:space="preserve"><value>Active playbacks</value></data>
+  <data name="Titles" xml:space="preserve"><value>Titles</value></data>
+  <data name="TotalDuration" xml:space="preserve"><value>Total library duration</value></data>
+  <data name="UndoOrder" xml:space="preserve"><value>Undo last reorder</value></data>
+  <data name="UnknownAuthor" xml:space="preserve"><value>Unknown author</value></data>
+  <data name="UnnamedStoredBook" xml:space="preserve"><value>Unnamed stored audiobook</value></data>
+  <data name="Unrated" xml:space="preserve"><value>Unrated</value></data>
+  <data name="UnsavedChanges" xml:space="preserve"><value>Unsaved changes</value></data>
+  <data name="UploadBookFiles" xml:space="preserve"><value>Choose audiobook files</value></data>
+  <data name="UploadCancelled" xml:space="preserve"><value>Upload cancelled.</value></data>
+  <data name="UploadDraftRetained" xml:space="preserve"><value>Files were processed. Your metadata draft has been kept; reopen the audiobook after saving or discarding it to refresh the chapter list.</value></data>
+  <data name="UploadFailed" xml:space="preserve"><value>Upload failed. Check the file and try again.</value></data>
+  <data name="UploadFiles" xml:space="preserve"><value>Choose files to upload</value></data>
+  <data name="UploadHelp" xml:space="preserve"><value>Use MP3 or M4A audio files, or a ZIP containing one audiobook. Cover images and M3U playlists can be included. M4A files are converted to MP3 chapters.</value></data>
+  <data name="UploadLimits" xml:space="preserve"><value>The app does not set a file-size limit. Your server or proxy may impose one. Keep this page open until every upload completes. Processing starts after all selected files arrive.</value></data>
+  <data name="UploadOrder" xml:space="preserve"><value>An included M3U playlist controls chapter order when it lists all audio files. Otherwise unique embedded track numbers are used, then filename order. Use zero-padded filenames such as 01, 02, 03 and review Chapters after processing.</value></data>
+  <data name="UploadPreparing" xml:space="preserve"><value>Preparing upload…</value></data>
+  <data name="UploadProcessing" xml:space="preserve"><value>All files uploaded. Audiobook processing has started.</value></data>
+  <data name="UploadProcessingFailed" xml:space="preserve"><value>Files were uploaded, but processing failed. Ask an admin to inspect the processing result.</value></data>
+  <data name="UploadReady" xml:space="preserve"><value>Processing completed. Metadata and chapters have been refreshed.</value></data>
+  <data name="UploadReview" xml:space="preserve"><value>Files are uploaded. Review the imported metadata and Save to keep your title and edits.</value></data>
+  <data name="Uploaded" xml:space="preserve"><value>Uploaded</value></data>
+  <data name="User" xml:space="preserve"><value>User</value></data>
+  <data name="View" xml:space="preserve"><value>View</value></data>
+  <data name="ViewAll" xml:space="preserve"><value>View all</value></data>
+  <data name="View_grid" xml:space="preserve"><value>Grid</value></data>
+  <data name="View_list" xml:space="preserve"><value>Compact list</value></data>
+  <data name="View_rails" xml:space="preserve"><value>Author rails</value></data>
+  <data name="Yes" xml:space="preserve"><value>Yes</value></data>
+  <data name="YourCode" xml:space="preserve"><value>Your library code</value></data>
+  <data name="YourLibrary" xml:space="preserve"><value>Your library</value></data>
+</root>

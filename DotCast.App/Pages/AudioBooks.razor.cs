@@ -68,12 +68,59 @@ namespace DotCast.App.Pages
             MaxDurationMinutes);
 
         private bool HasActiveFilters => CurrentFilter.HasActiveFilters;
-        private AudioBook? FeaturedAudioBook => Data.OrderByDescending(book => book.Rating).FirstOrDefault();
+        private bool FiltersOpen { get; set; }
+        private string Sort { get; set; } = "author";
+        private string View { get; set; } = "rails";
+        private readonly HashSet<string> ExpandedAuthors = [];
+        private string? LoadMessage { get; set; }
+        private string? FeedUrl { get; set; }
+        private string? ActionMessage { get; set; }
+        private int loadVersion;
+        private bool restoreBrowsingContext = true;
+        private string LibraryUrl => new Uri(NavigationManager.Uri).PathAndQuery;
+        private int ActiveFilterCount => SelectedAuthors.Count + SelectedCategories.Count + (string.IsNullOrWhiteSpace(SearchText) ? 0 : 1) + (MinRating != null || MaxRating != null ? 1 : 0) + (HasDurationFilter ? 1 : 0);
+        private IEnumerable<AudioBook> SortedBooks => Sort switch
+        {
+            "title" => Data.OrderBy(b => b.AudioBookInfo.Name),
+            "rating" => Data.OrderByDescending(b => b.Rating).ThenBy(b => b.AudioBookInfo.Name),
+            "duration" => Data.OrderBy(b => b.AudioBookInfo.Duration).ThenBy(b => b.AudioBookInfo.Name),
+            "recent" => Data.OrderByDescending(b => b.AddedAtUtc).ThenBy(b => b.AudioBookInfo.Name),
+            _ => Data.OrderBy(b => b.AudioBookInfo.AuthorName).ThenBy(b => b.AudioBookInfo.SeriesName)
+                .ThenBy(b => b.AudioBookInfo.OrderInSeries).ThenBy(b => b.AudioBookInfo.Name)
+        };
+        private static string AuthorAnchor(string author) => "author-" + Uri.EscapeDataString(author);
+        private Task JumpToAuthor(ChangeEventArgs e) => Js.InvokeVoidAsync("DotCastUi.jump", e.Value?.ToString()).AsTask();
+        private void ToggleFullAuthor(string author) { if (!ExpandedAuthors.Add(author)) ExpandedAuthors.Remove(author); UpdateUrlFromFilter(); }
+        private void ToggleFilters() { FiltersOpen = !FiltersOpen; UpdateUrlFromFilter(); }
+        private void ChangeSort(ChangeEventArgs e) { Sort = e.Value?.ToString() ?? "author"; UpdateUrlFromFilter(); }
+        private void ChangeView(ChangeEventArgs e) { View = e.Value?.ToString() ?? "rails"; UpdateUrlFromFilter(); }
+        private void ClearSearch() { SearchText = null; UpdateUrlFromFilter(); }
+        private void ClearDuration() { MinDurationMinutes = MaxDurationMinutes = null; UpdateUrlFromFilter(); }
+        private async Task EditBookAsync(AudioBook book)
+        {
+            await Js.InvokeVoidAsync("DotCastUi.saveLibrary", LibraryUrl);
+            CloseDetails();
+            NavigationManager.NavigateTo($"/AudioBook/{Uri.EscapeDataString(book.Id)}/edit?returnUrl={Uri.EscapeDataString(LibraryUrl)}");
+        }
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            if (restoreBrowsingContext && !IsLoading && Data.Count > 0)
+            {
+                restoreBrowsingContext = false;
+                await Js.InvokeVoidAsync("DotCastUi.restoreLibrary", LibraryUrl);
+            }
+        }
+        private async Task PrepareFeedAsync(AudioBook book)
+        {
+            try { FeedUrl = await LibraryApiInfoProvider.GetFeedUrlAsync(book.Id); ActionMessage = null; }
+            catch (Exception) { ActionMessage = Ux.Text("FeedFailed"); }
+        }
 
         public async Task CopyRssAsync(AudioBook info)
         {
-            var url = await LibraryApiInfoProvider.GetFeedUrlAsync(info.Id);
-            await Js.InvokeVoidAsync("copyToClipboard", url);
+            await PrepareFeedAsync(info);
+            if (FeedUrl is not null)
+                ActionMessage = await Js.InvokeAsync<bool>("DotCastUi.copy", FeedUrl) ? Ux.Text("FeedCopied") : Ux.Text("CopyManually");
         }
 
         public async Task Download(AudioBook info)
@@ -92,9 +139,7 @@ namespace DotCast.App.Pages
                 return;
             }
 
-            var confirmed = await Js.InvokeAsync<bool>(
-                "confirm",
-                $"Permanently delete \"{audioBook.AudioBookInfo.Name}\" and all stored files? This cannot be restored from filesystem.");
+            var confirmed = await Js.InvokeAsync<bool>("confirm", Ux.Format("ConfirmDelete", audioBook.AudioBookInfo.Name));
 
             if (!confirmed)
             {
@@ -111,9 +156,9 @@ namespace DotCast.App.Pages
                 CloseDetails();
                 await Task.WhenAll(LoadStatistics(), LoadFacets(), LoadData());
             }
-            catch (Exception exception) when (!PageCancellationTokenSource.IsCancellationRequested)
+            catch (Exception) when (!PageCancellationTokenSource.IsCancellationRequested)
             {
-                DeleteMessage = $"Delete failed: {exception.Message}";
+                DeleteMessage = Ux.Text("DeleteFailed");
             }
             finally
             {
@@ -139,8 +184,9 @@ namespace DotCast.App.Pages
 
         private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs args)
         {
+            if (NavigationManager.ToAbsoluteUri(args.Location).AbsolutePath != "/") return;
             ReadFilterFromUrl();
-            _ = LoadData();
+            _ = InvokeAsync(LoadData);
         }
 
         private async Task LoadStatistics()
@@ -160,15 +206,23 @@ namespace DotCast.App.Pages
 
         private async Task LoadData()
         {
+            var version = ++loadVersion;
             IsLoading = true;
+            LoadMessage = null;
             await SaveStateHasChangedAsync();
-
-            Data = await Messenger.RequestAsync<AudioBooksRetrievalRequest, IReadOnlyList<AudioBook>>(
-                new AudioBooksRetrievalRequest(CurrentFilter),
-                PageCancellationTokenSource.Token);
-
-            IsLoading = false;
-            await SaveStateHasChangedAsync();
+            try
+            {
+                var data = await Messenger.RequestAsync<AudioBooksRetrievalRequest, IReadOnlyList<AudioBook>>(
+                    new AudioBooksRetrievalRequest(CurrentFilter), PageCancellationTokenSource.Token);
+                if (version == loadVersion) Data = data;
+            }
+            catch (Exception) when (!PageCancellationTokenSource.IsCancellationRequested)
+            { if (version == loadVersion) LoadMessage = Ux.Text("LoadFailed"); }
+            finally
+            {
+                if (version == loadVersion && !PageCancellationTokenSource.IsCancellationRequested)
+                { IsLoading = false; await SaveStateHasChangedAsync(); }
+            }
         }
 
         private void SearchTextChanged(string text)
@@ -226,6 +280,8 @@ namespace DotCast.App.Pages
         {
             SelectedAudioBook = audioBook;
             DeleteMessage = null;
+            FeedUrl = null;
+            ActionMessage = null;
         }
 
         private void CloseDetails()
@@ -235,10 +291,15 @@ namespace DotCast.App.Pages
 
         private void UpdateUrlFromFilter()
         {
+            typingTimer?.Dispose();
             var query = new List<string>();
+            AddQuery(query, "filters", FiltersOpen ? "1" : null);
+            foreach (var author in ExpandedAuthors.Order()) AddQuery(query, "expanded", author);
+            AddQuery(query, "sort", Sort == "author" ? null : Sort);
+            AddQuery(query, "view", View == "rails" ? null : View);
             AddQuery(query, "q", SearchText);
-            AddQuery(query, "authors", SelectedAuthors);
-            AddQuery(query, "categories", SelectedCategories);
+            foreach (var author in SelectedAuthors.Order()) AddQuery(query, "author", author);
+            foreach (var category in SelectedCategories.Order()) AddQuery(query, "category", category);
             AddQuery(query, "minRating", MinRating?.ToString());
             AddQuery(query, "maxRating", MaxRating?.ToString());
             AddQuery(query, "minDuration", MinDurationMinutes?.ToString());
@@ -252,10 +313,17 @@ namespace DotCast.App.Pages
         {
             var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
             var query = QueryHelpers.ParseQuery(uri.Query);
+            FiltersOpen = query.TryGetValue("filters", out var filtersOpen) && filtersOpen == "1";
+            ExpandedAuthors.Clear();
+            if (query.TryGetValue("expanded", out var expanded)) foreach (var author in expanded) if (author != null) ExpandedAuthors.Add(author);
+            Sort = query.TryGetValue("sort", out var sort) && new[] { "author", "title", "rating", "duration", "recent" }.Contains(sort.ToString()) ? sort.ToString() : "author";
+            View = query.TryGetValue("view", out var view) && new[] { "rails", "grid", "list" }.Contains(view.ToString()) ? view.ToString() : "rails";
 
             SearchText = query.TryGetValue("q", out var searchText) ? searchText.ToString() : null;
             ReplaceValues(SelectedAuthors, query.TryGetValue("authors", out var authors) ? authors.ToString() : null);
             ReplaceValues(SelectedCategories, query.TryGetValue("categories", out var categories) ? categories.ToString() : null);
+            if (query.TryGetValue("author", out var authorValues)) { SelectedAuthors.Clear(); foreach (var author in authorValues) if (!string.IsNullOrWhiteSpace(author)) SelectedAuthors.Add(author); }
+            if (query.TryGetValue("category", out var categoryValues)) { SelectedCategories.Clear(); foreach (var category in categoryValues) if (!string.IsNullOrWhiteSpace(category)) SelectedCategories.Add(category); }
             MinRating = query.TryGetValue("minRating", out var minRating) && int.TryParse(minRating, out var min) ? min : null;
             MaxRating = query.TryGetValue("maxRating", out var maxRating) && int.TryParse(maxRating, out var max) ? max : null;
             MinDurationMinutes = query.TryGetValue("minDuration", out var minDuration) && int.TryParse(minDuration, out var minDurationValue) ? minDurationValue : null;
@@ -330,12 +398,6 @@ namespace DotCast.App.Pages
             {
                 query.Add($"{key}={Uri.EscapeDataString(value.Trim())}");
             }
-        }
-
-        private static void AddQuery(List<string> query, string key, IEnumerable<string> values)
-        {
-            var value = string.Join(",", values.OrderBy(value => value));
-            AddQuery(query, key, value);
         }
 
         private static int RoundDownToStep(int value, int step)

@@ -1,67 +1,18 @@
 @page "/UserProfile"
 @using DotCast.App.API
 @inherits AppPage
-
 <section class="account-page">
-    <header class="page-hero compact">
-        <p class="cinema-eyebrow">Account</p>
-        <h1>@UserName</h1>
-        <p>Manage your library code and sharing access.</p>
-    </header>
-
+    <header class="page-hero compact"><p class="cinema-eyebrow">@Ux.Text("Account")</p><h1>@UserName</h1><p>@Ux.Text("AccountHelp")</p></header>
     <main class="settings-grid">
         <DotCast.App.Components.ApiKey.ApiKey />
-        <section class="cinema-panel account-card">
-            <div class="avatar-large">@UserName.FirstOrDefault().ToString().ToUpperInvariant()</div>
-            <div>
-                <h2>@UserName</h2>
-                <p>Signed in to DotCast</p>
-                <button class="danger-action" @onclick="() => NavigationManager.NavigateTo(LogoutEndpoint.Address, forceLoad: true)">Logout</button>
-            </div>
-        </section>
-
-        <section class="cinema-panel">
-            <p class="cinema-eyebrow">Library code</p>
-            <h2>@LibraryName</h2>
-            <p>Share this code with another DotCast user to grant library access.</p>
-        </section>
-
-        <section class="cinema-panel wide-panel">
-            <div class="section-heading">
-                <div>
-                    <p class="cinema-eyebrow">Sharing</p>
-                    <h2>Shared libraries</h2>
-                </div>
-            </div>
-
-            <div class="share-form">
-                <input id="share-input" type="text" @bind="NewShare" placeholder="Enter library code" />
-                <button class="primary-action" @onclick="ShareAsync">Share</button>
-            </div>
-            @if (!string.IsNullOrWhiteSpace(ShareMessage))
-            {
-                <p class="inline-status">@ShareMessage</p>
-            }
-
-            @if (SharedLibrariesWith.Count == 0)
-            {
-                <p>No shared libraries yet.</p>
-            }
-            else
-            {
-                <div class="shared-list">
-                    @foreach (var shareInfo in SharedLibrariesWith)
-                    {
-                        <article>
-                            <div>
-                                <strong>@shareInfo.UserName</strong>
-                                <span>@shareInfo.LibraryCode</span>
-                            </div>
-                            <button class="danger-action" @onclick="() => UnShareAsync(shareInfo)">Unshare</button>
-                        </article>
-                    }
-                </div>
-            }
+        <section class="cinema-panel account-card"><div class="avatar-large">@UserName.FirstOrDefault().ToString().ToUpperInvariant()</div><div><h2>@UserName</h2><p>@Ux.Text("SignedIn")</p><button class="danger-action" @onclick="() => NavigationManager.NavigateTo(LogoutEndpoint.Address, forceLoad: true)">@Ux.Text("Logout")</button></div></section>
+        <section class="cinema-panel"><p class="cinema-eyebrow">@Ux.Text("YourCode")</p><h2>@LibraryName</h2><p>@Ux.Text("CodeHelp")</p><button class="secondary-action" @onclick="CopyCode">@Ux.Text("CopyCode")</button></section>
+        <section class="cinema-panel wide-panel"><h2>@Ux.Text("ConnectedLibraries")</h2><p>@Ux.Text("SharingHelp")</p>
+            <label for="share-input">@Ux.Text("OtherCode")</label><div class="share-form"><input id="share-input" class="form-control" value="@NewShare" @oninput="CodeChanged" disabled="@IsBusy" /><button class="primary-action" @onclick="PreviewShare" disabled="@(IsBusy || string.IsNullOrWhiteSpace(NewShare))">@Ux.Text("ReviewConnection")</button></div>
+            @if (Candidate != null) { <section class="inline-status"><h3>@Ux.Format("ConnectWith", Candidate.UserName)</h3><p>@Ux.Text("SharingHelp")</p><div class="drawer-actions"><button class="primary-action" @onclick="Connect" disabled="@IsBusy">@Ux.Text("ConnectLibraries")</button><button class="secondary-action" @onclick="() => Candidate = null" disabled="@IsBusy">@Ux.Text("Cancel")</button></div></section> }
+            <p role="status" aria-live="polite">@ShareMessage</p>
+            @if (SharedLibrariesWith.Count == 0) { <p>@Ux.Text("NoConnections")</p> }
+            else { <div class="shared-list">@foreach (var share in SharedLibrariesWith) { <article><div><strong>@share.UserName</strong><span>@share.LibraryCode</span></div><button class="danger-action" @onclick="() => Disconnect(share)" disabled="@IsBusy">@Ux.Text("Disconnect")</button></article> }</div> }
         </section>
     </main>
 </section>

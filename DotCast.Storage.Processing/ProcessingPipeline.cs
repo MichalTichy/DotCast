@@ -19,7 +19,7 @@ namespace DotCast.Storage.Processing
 
         public IReadOnlyCollection<IProcessingStep> Steps => new ReadOnlyCollection<IProcessingStep>(steps.ToList());
 
-        public async Task Process(StorageEntryWithFiles source, ICollection<string> modifiedFiles)
+        public async Task<bool> Process(StorageEntryWithFiles source, ICollection<string> modifiedFiles)
         {
             var lockKey = source.Id;
             var semaphore = Locks.GetOrAdd(lockKey, k => new SemaphoreSlim(1, 1));
@@ -39,10 +39,12 @@ namespace DotCast.Storage.Processing
                 {
                     modifications = await step.Process(source.Id, modifications);
                 }
+                return true;
             }
             catch (Exception e)
             {
                 logger.LogError(e, $"Processing for {source.Id} failed.");
+                return false;
             }
             finally
             {
@@ -55,13 +57,25 @@ namespace DotCast.Storage.Processing
 
         public async Task Handle(AudioBookReadyForProcessing message)
         {
-            var entry = storage.GetStorageEntry(message.AudioBookId);
-            Guard.Against.Null(entry, message.AudioBookId);
-
-            await Process(entry, message.ModifiedFiles);
-
-            var audioBook = await storage.ExtractMetadataAsync(message.AudioBookId);
-            await messenger.PublishAsync(new AudioBookStorageMetadataUpdated(audioBook));
+            await messenger.PublishAsync(new ProcessingJobChanged(message.AudioBookId, null, DateTime.UtcNow));
+            try
+            {
+                var entry = storage.GetStorageEntry(message.AudioBookId);
+                Guard.Against.Null(entry, message.AudioBookId);
+                if (!await Process(entry, message.ModifiedFiles))
+                {
+                    await messenger.PublishAsync(new ProcessingJobChanged(message.AudioBookId, false, DateTime.UtcNow));
+                    return;
+                }
+                var audioBook = await storage.ExtractMetadataAsync(message.AudioBookId);
+                await messenger.ExecuteAsync(new AudioBookStorageMetadataUpdated(audioBook));
+                await messenger.PublishAsync(new ProcessingJobChanged(message.AudioBookId, true, DateTime.UtcNow));
+            }
+            catch
+            {
+                await messenger.PublishAsync(new ProcessingJobChanged(message.AudioBookId, false, DateTime.UtcNow));
+                throw;
+            }
         }
     }
 }

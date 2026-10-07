@@ -9,6 +9,8 @@ namespace DotCast.SharedKernel.Models
 
         public int Rating { get; set; }
 
+        public DateTime? AddedAtUtc { get; set; }
+
         public required string LibraryId { get; set; }
     }
 }

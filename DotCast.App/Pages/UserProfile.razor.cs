@@ -1,190 +1,83 @@
-using Blazorise;
-using DotCast.App.Services;
 using DotCast.App.Shared;
 using DotCast.Infrastructure.AppUser;
-using DotCast.Infrastructure.Messaging.Base;
-using DotCast.SharedKernel.Messages;
-using DotCast.SharedKernel.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
-using DotCast.Infrastructure.CurrentUserProvider;
+using Microsoft.JSInterop;
 
-namespace DotCast.App.Pages
+namespace DotCast.App.Pages;
+
+[Authorize]
+public partial class UserProfile : AppPage
 {
-    [Microsoft.AspNetCore.Authorization.Authorize]
-    public partial class UserProfile : AppPage
+    [Inject] public required UserManager UserManager { get; set; }
+    [Inject] public required IJSRuntime Js { get; set; }
+    [SupplyParameterFromQuery] public string? Connection { get; set; }
+    private string UserName = "";
+    private string LibraryName = "";
+    private ICollection<ShareInfo> SharedLibrariesWith = [];
+    private string NewShare = "";
+    private string? ShareMessage;
+    private ShareInfo? Candidate;
+    private bool IsBusy;
+    protected override async Task OnInitializedAsync()
     {
-        public string UserName { get; set; } = string.Empty;
-        public string LibraryName { get; set; } = string.Empty;
-        public ICollection<ShareInfo> SharedLibrariesWith { get; set; } = Array.Empty<ShareInfo>();
-        public string NewShare { get; set; } = string.Empty;
-        public string? ShareMessage { get; set; }
-
-        [Inject]
-        public required ICurrentUserProvider<UserInfo> UserProvider { get; set; }
-
-        [Inject]
-        public required UserManager UserManager { get; set; }
-
-        public bool IsProcessingRunning { get; set; }
-        public bool IsAdmin { get; set; }
-        public string AudioBookName { get; set; } = null!;
-        private const int TypingDelay = 1000; // Delay in millisecond
-
-        private Modal uploadModalRef = null!;
-        private Modal uploadMultipleModalRef = null!;
-
-        private Timer? typingTimer;
-        private string? newAudioBookId;
-        public bool ReadyForUpload => !string.IsNullOrWhiteSpace(newAudioBookId);
-
-        [Inject]
-        public required IMessagePublisher Messenger { get; set; }
-
-        protected override async Task OnInitializedAsync()
-        {
-            await base.OnInitializedAsync();
-            var user = await UserProvider.GetCurrentUserRequiredAsync();
-            UserName = user.Name!;
-            LibraryName = user.UsersLibraryName;
-            IsAdmin = user.IsAdmin;
-
-            _ = Task.Run(LoadSharingInfo);
-        }
-
-        protected override void OnAfterRender(bool firstRender)
-        {
-            if (firstRender)
-            {
-                _ = Task.Run(async () =>
-                {
-                    var cancellationToken = PageCancellationTokenSource.Token;
-                    while (!cancellationToken.IsCancellationRequested)
-                    {
-                        await UpdateProcessingInfo();
-                        await Task.Delay(250, cancellationToken);
-                    }
-                });
-            }
-
-            base.OnAfterRender(firstRender);
-        }
-
-        private async Task UpdateProcessingInfo()
-        {
-            IsProcessingRunning = ProcessingMonitor.IsProcessingRunning;
-            await SaveStateHasChangedAsync();
-        }
-
-        private async Task LoadSharingInfo()
-        {
-            var user = await UserProvider.GetCurrentUserRequiredAsync();
-
-            var users = await UserManager.MathUserByLibraryCodeAsync(user.SharedLibraries);
-            SharedLibrariesWith = users.Select(t => new ShareInfo(t.Id, t.UserName!, t.UsersLibraryName)).ToList();
-            await SaveStateHasChangedAsync();
-        }
-
-        private async Task RestoreAudioBooksFromStorage()
-        {
-            if (IsProcessingRunning)
-            {
-                return;
-            }
-
-            var restoreFromFileSystemRequest = new RestoreFromFileSystemRequest();
-            await Messenger.PublishAsync(restoreFromFileSystemRequest);
-        }
-
-        private async Task ReprocessAudioBooksFromStorage(bool unzipFirst)
-        {
-            if (IsProcessingRunning)
-            {
-                return;
-            }
-
-            var restoreFromFileSystemRequest = new ReprocessAllAudioBooksRequest(unzipFirst);
-            await Messenger.PublishAsync(restoreFromFileSystemRequest);
-        }
-
-        private void BookNameTextChanged(string text)
-        {
-            typingTimer?.Dispose();
-            typingTimer = new Timer(state => _ = InitNewBookId(text), null, TypingDelay, Timeout.Infinite);
-        }
-
-        private async Task InitNewBookId(string text)
-        {
-            try
-            {
-                AudioBookName = text;
-                var request = new NewAudioBookIdRequest(text);
-                newAudioBookId = await Messenger.RequestAsync<NewAudioBookIdRequest, string>(request, PageCancellationTokenSource.Token);
-                await InvokeAsync(StateHasChanged);
-            }
-            catch (Exception)
-            {
-                newAudioBookId = null;
-            }
-        }
-
-        private async Task<Dictionary<string, string>> GetPresignedUrls(string audioBookId, ICollection<string> files)
-        {
-            var request = new AudioBookUploadStartRequest(audioBookId, files);
-            var result = await Messenger.RequestAsync<AudioBookUploadStartRequest, IReadOnlyCollection<PreuploadFileInformation>>(request, PageCancellationTokenSource.Token);
-
-            return result.ToDictionary(t => t.FileName, t => t.UploadUrl);
-        }
-
-        private async Task<Dictionary<string, string>> GetPresignedUrls(ICollection<string> files)
-        {
-            var urls = new Dictionary<string, string>();
-            foreach (var file in files)
-            {
-                var name = Path.GetFileNameWithoutExtension(file);
-                var idRequest = new NewAudioBookIdRequest(name);
-                var audioBookId = await Messenger.RequestAsync<NewAudioBookIdRequest, string>(idRequest);
-
-                var request = new AudioBookUploadStartRequest(audioBookId, new[] { file });
-                var result = await Messenger.RequestAsync<AudioBookUploadStartRequest, IReadOnlyCollection<PreuploadFileInformation>>(request, PageCancellationTokenSource.Token);
-
-                var fileResult = result.Single();
-                urls.Add(fileResult.FileName, fileResult.UploadUrl);
-            }
-
-            return urls;
-        }
-
-        public async Task ShareAsync()
-        {
-            var currentUser = await CurrentUserProvider.GetCurrentUserRequiredAsync();
-            try
-            {
-                await UserManager.ShareLibraryAsync(currentUser.Id, NewShare);
-                ShareMessage = "Library shared.";
-                NewShare = string.Empty;
-                await LoadSharingInfo();
-            }
-            catch (ArgumentException e)
-            {
-                ShareMessage = e.Message;
-            }
-        }
-
-        public async Task UnShareAsync(ShareInfo shareInfo)
-        {
-            var currentUser = await CurrentUserProvider.GetCurrentUserRequiredAsync();
-            try
-            {
-                await UserManager.UnShareLibraryAsync(currentUser.Id, shareInfo.LibraryCode);
-                ShareMessage = "Library access removed.";
-                await LoadSharingInfo();
-            }
-            catch (ArgumentException e)
-            {
-                ShareMessage = e.Message;
-            }
-        }
-
-        public record ShareInfo(string UserId, string UserName, string LibraryCode);
+        var user = await CurrentUserProvider.GetCurrentUserRequiredAsync();
+        UserName = user.Name ?? user.UserName ?? ""; LibraryName = user.UsersLibraryName;
+        ShareMessage = Connection == "connected" ? Ux.Text("LibrariesConnected") : Connection == "disconnected" ? Ux.Text("LibrariesDisconnected") : null;
+        await LoadSharingInfo();
     }
+    private async Task LoadSharingInfo()
+    {
+        var user = await CurrentUserProvider.GetCurrentUserRequiredAsync();
+        user = await UserManager.GetUserAsync(user.Id) ?? user;
+        var users = await UserManager.MathUserByLibraryCodeAsync(user.SharedLibraries);
+        SharedLibrariesWith = users.Select(user => new ShareInfo(user.Id, user.Name ?? user.UserName ?? "", user.UsersLibraryName)).ToList();
+    }
+    private void CodeChanged(ChangeEventArgs e) { NewShare = e.Value?.ToString() ?? ""; Candidate = null; ShareMessage = null; }
+    private async Task PreviewShare()
+    {
+        if (IsBusy) return;
+        IsBusy = true; Candidate = null; ShareMessage = null;
+        try
+        {
+            var code = NewShare.Trim();
+            if (code == LibraryName) { ShareMessage = Ux.Text("OwnLibraryCode"); return; }
+            if (SharedLibrariesWith.Any(share => share.LibraryCode == code)) { ShareMessage = Ux.Text("AlreadyConnected"); return; }
+            var users = await UserManager.MathUserByLibraryCodeAsync([code]);
+            var user = users.SingleOrDefault();
+            if (user is null) { ShareMessage = Ux.Text("CodeNotFound"); return; }
+            Candidate = new(user.Id, user.Name ?? user.UserName ?? "", user.UsersLibraryName);
+        }
+        catch (Exception) { ShareMessage = Ux.Text("ShareLookupFailed"); }
+        finally { IsBusy = false; }
+    }
+    private async Task Connect()
+    {
+        if (Candidate is null || IsBusy) return;
+        IsBusy = true;
+        try
+        {
+            var current = await CurrentUserProvider.GetCurrentUserRequiredAsync();
+            await UserManager.ShareLibraryAsync(current.Id, Candidate.LibraryCode);
+            Candidate = null; NewShare = ""; ShareMessage = Ux.Text("LibrariesConnected"); await LoadSharingInfo();
+            NavigationManager.NavigateTo("/api/session/refresh?connection=connected", forceLoad: true);
+        }
+        catch (Exception) { ShareMessage = Ux.Text("ShareFailed"); }
+        finally { IsBusy = false; }
+    }
+    private async Task Disconnect(ShareInfo share)
+    {
+        if (IsBusy || !await Js.InvokeAsync<bool>("confirm", Ux.Format("ConfirmDisconnect", share.UserName))) return;
+        IsBusy = true;
+        try
+        {
+            var current = await CurrentUserProvider.GetCurrentUserRequiredAsync();
+            await UserManager.UnShareLibraryAsync(current.Id, share.LibraryCode);
+            ShareMessage = Ux.Text("LibrariesDisconnected"); await LoadSharingInfo();
+            NavigationManager.NavigateTo("/api/session/refresh?connection=disconnected", forceLoad: true);
+        }
+        catch (Exception) { ShareMessage = Ux.Text("DisconnectFailed"); }
+        finally { IsBusy = false; }
+    }
+    private async Task CopyCode() => ShareMessage = await Js.InvokeAsync<bool>("DotCastUi.copy", LibraryName) ? Ux.Text("CodeCopied") : Ux.Text("CopyCodeManually");
 }
