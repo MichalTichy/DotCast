@@ -2,8 +2,10 @@ using DotCast.Infrastructure.AppUser;
 using DotCast.Infrastructure.Messaging.Base;
 using DotCast.Infrastructure.Persistence.Marten.Repository.Document;
 using DotCast.Infrastructure.UserManagement.Abstractions;
+using DotCast.Library.Playback;
 using DotCast.SharedKernel.Messages;
 using DotCast.SharedKernel.Models;
+using Microsoft.Extensions.Options;
 
 namespace DotCast.Library.Handlers
 {
@@ -81,10 +83,40 @@ namespace DotCast.Library.Handlers
         }
     }
 
+    public class AudioBookPlaybackMarkedUnfinishedHandler(INoTenancyRepository<AudioBookPlayback> playbackRepository)
+        : IMessageHandler<AudioBookPlaybackMarkedUnfinished>
+    {
+        public async Task Handle(AudioBookPlaybackMarkedUnfinished message)
+        {
+            var playback = await playbackRepository.GetByIdAsync(AudioBookPlayback.BuildId(message.AudioBookId, message.UserId));
+            if (playback == null)
+            {
+                return;
+            }
+
+            playback.MarkUnfinished();
+            await playbackRepository.UpdateAsync(playback);
+        }
+    }
+
+    public class AudioBookPlaybackNotFinishedConfirmedHandler(INoTenancyRepository<AudioBookPlayback> playbackRepository)
+        : IMessageHandler<AudioBookPlaybackNotFinishedConfirmed>
+    {
+        public async Task Handle(AudioBookPlaybackNotFinishedConfirmed message)
+        {
+            var playback = await playbackRepository.GetByIdAsync(AudioBookPlayback.BuildId(message.AudioBookId, message.UserId))
+                           ?? AudioBookPlayback.Create(message.AudioBookId, message.UserId);
+
+            playback.ConfirmNotFinished(message.Timestamp);
+            await playbackRepository.StoreAsync(playback);
+        }
+    }
+
     public class ActivePlaybacksRequestHandler(
         INoTenancyReadOnlyRepository<AudioBookPlayback> playbackRepository,
         INoTenancyReadOnlyRepository<AudioBook> audioBookRepository,
-        IUserManager<UserInfo> userManager)
+        IUserManager<UserInfo> userManager,
+        IOptions<FinishedListeningOptions> finishedListeningOptions)
         : IMessageHandler<ActivePlaybacksRequest, IReadOnlyList<ActivePlaybackInfo>>
     {
         public async Task<IReadOnlyList<ActivePlaybackInfo>> Handle(ActivePlaybacksRequest message)
@@ -96,6 +128,7 @@ namespace DotCast.Library.Handlers
                 .ThenByDescending(p => p.LastRssGeneratedAt)
                 .ToList();
 
+            var now = DateTime.UtcNow;
             var result = new List<ActivePlaybackInfo>(active.Count);
             foreach (var playback in active)
             {
@@ -111,25 +144,13 @@ namespace DotCast.Library.Handlers
                     playback.LastRssGeneratedAt,
                     playback.LastFileDownloadedAt,
                     playback.HasDownloadedFinalFile,
-                    playback.FinishedAt));
+                    playback.FinishedAt,
+                    playback.RssPollDayCount,
+                    playback.NotFinishedConfirmedAt,
+                    FinishedListeningEstimator.Evaluate(playback, now, finishedListeningOptions.Value)));
             }
 
             return result;
-        }
-    }
-
-    internal static class AudioBookPlaybackRepositoryExtensions
-    {
-        public static async Task StoreAsync(this INoTenancyRepository<AudioBookPlayback> repository, AudioBookPlayback playback)
-        {
-            var existing = await repository.GetByIdAsync(playback.Id);
-            if (existing == null)
-            {
-                await repository.AddAsync(playback);
-                return;
-            }
-
-            await repository.UpdateAsync(playback);
         }
     }
 }

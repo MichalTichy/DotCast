@@ -9,5 +9,8 @@ namespace DotCast.SharedKernel.Models
         DateTime LastRssGeneratedAt,
         DateTime? LastFileDownloadedAt,
         bool HasDownloadedFinalFile,
-        DateTime? FinishedAt);
+        DateTime? FinishedAt,
+        int RssPollDayCount,
+        DateTime? NotFinishedConfirmedAt,
+        LikelyFinishedEvaluation LikelyFinished);
 }

@@ -2,6 +2,7 @@ using Blazorise;
 using Blazorise.Bootstrap;
 using Blazorise.Icons.FontAwesome;
 using Microsoft.AspNetCore.Components.Server.Circuits;
+using DotCast.App.Services;
 using DotCast.Infrastructure.Blazor.ClaimsManagement;
 using DotCast.Infrastructure.IoC;
 
@@ -14,6 +15,7 @@ namespace DotCast.App.Installers
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddScoped<CircuitHandler, UserCircuitHandler>();
+            services.AddScoped<BooksToRateService>();
 
             services
                 .AddBlazorise(options =>

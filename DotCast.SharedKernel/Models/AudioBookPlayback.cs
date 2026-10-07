@@ -15,6 +15,11 @@ namespace DotCast.SharedKernel.Models
         public DateTime? LastArchiveReadAt { get; set; }
         public bool HasDownloadedFinalFile { get; set; }
         public DateTime? FinishedAt { get; set; }
+        public int RssPollDayCount { get; set; }
+        public DateOnly? LastRssPollDay { get; set; }
+        public DateTime? NotFinishedConfirmedAt { get; set; }
+
+        public DateTime LastActivityAt => Max(LastRssGeneratedAt, LastFileDownloadedAt ?? DateTime.MinValue);
 
         public static string BuildId(string audioBookId, string userId) => $"{audioBookId}:{userId}";
 
@@ -41,6 +46,13 @@ namespace DotCast.SharedKernel.Models
             }
 
             LastRssGeneratedAt = timestampUtc;
+
+            var day = DateOnly.FromDateTime(timestampUtc);
+            if (LastRssPollDay != day)
+            {
+                LastRssPollDay = day;
+                RssPollDayCount++;
+            }
         }
 
         public void RegisterFileDownloaded(DateTime timestampUtc, bool isFinalFile)
@@ -92,5 +104,25 @@ namespace DotCast.SharedKernel.Models
             Status = PlaybackStatus.Finished;
             FinishedAt = timestampUtc;
         }
+
+        public void MarkUnfinished()
+        {
+            if (Status != PlaybackStatus.Finished)
+            {
+                return;
+            }
+
+            Status = HasDownloadedFinalFile ? PlaybackStatus.CloseToFinished : PlaybackStatus.InProgress;
+            FinishedAt = null;
+        }
+
+        public void ConfirmNotFinished(DateTime timestampUtc)
+        {
+            NotFinishedConfirmedAt = timestampUtc;
+            FinishedAt = null;
+            Status = PlaybackStatus.InProgress;
+        }
+
+        private static DateTime Max(DateTime first, DateTime second) => first > second ? first : second;
     }
 }

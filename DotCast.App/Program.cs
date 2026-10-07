@@ -59,6 +59,8 @@ namespace DotCast.App
                 options.PublishMessage<FileRead>().ToLocalQueue(playbackEvents);
                 options.PublishMessage<ArchiveRead>().ToLocalQueue(playbackEvents);
                 options.PublishMessage<AudioBookPlaybackMarkedFinished>().ToLocalQueue(playbackEvents);
+                options.PublishMessage<AudioBookPlaybackMarkedUnfinished>().ToLocalQueue(playbackEvents);
+                options.PublishMessage<AudioBookPlaybackNotFinishedConfirmed>().ToLocalQueue(playbackEvents);
             });
 
             builder.Host.UseSystemd();

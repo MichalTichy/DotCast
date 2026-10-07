@@ -85,6 +85,8 @@
                             <span role="columnheader">Last RSS</span>
                             <span role="columnheader">Last file</span>
                             <span role="columnheader">Final file</span>
+                            <span role="columnheader">RSS days</span>
+                            <span role="columnheader">Likely finished</span>
                         </div>
                         @foreach (var playback in ActivePlaybacks)
                         {
@@ -95,6 +97,8 @@
                                 <span role="cell">@playback.LastRssGeneratedAt.ToLocalTime().ToString("g")</span>
                                 <span role="cell">@(playback.LastFileDownloadedAt?.ToLocalTime().ToString("g") ?? "-")</span>
                                 <span role="cell">@(playback.HasDownloadedFinalFile ? "Yes" : "No")</span>
+                                <span role="cell">@(playback.RssPollDayCount == 0 ? "-" : playback.RssPollDayCount.ToString())</span>
+                                <span role="cell" title="@(playback.NotFinishedConfirmedAt is { } notFinishedAt ? $"Not finished confirmed {notFinishedAt.ToLocalTime():g}" : null)">@(playback.LikelyFinished.IsLikelyFinished ? playback.LikelyFinished.Reason : "No")</span>
                             </article>
                         }
                     </div>

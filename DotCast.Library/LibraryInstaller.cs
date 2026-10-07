@@ -1,4 +1,5 @@
 using DotCast.Infrastructure.AppUser;
+using DotCast.Library.Playback;
 using DotCast.Library.RSS;
 using DotCast.Library.Storage;
 using DotCast.SharedKernel.Models;
@@ -49,6 +50,9 @@ namespace DotCast.Library
         {
             services.AddTransient<IStorageConfiguration, AudioBookStorageConfiguration>();
             services.AddTransient<IStorageConfiguration, AudioBookPlaybackStorageConfiguration>();
+            services.AddTransient<IStorageConfiguration, UserAudioBookStorageConfiguration>();
+            services.Configure<FinishedListeningOptions>(configuration.GetSection(nameof(FinishedListeningOptions)));
+            services.AddScoped<IAudioBookUserContextProvider, AudioBookUserContextProvider>();
             services.AddTransient<ILibraryApiInformationProvider, LibraryApiInformationProvider>();
             services.AddScoped<AudioBookRssGenerator>();
 

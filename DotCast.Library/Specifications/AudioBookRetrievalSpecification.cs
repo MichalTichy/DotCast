@@ -1,17 +1,23 @@
+using DotCast.Library.Playback;
 using DotCast.SharedKernel.Models;
 using Marten;
 using DotCast.Infrastructure.Persistence.Specifications;
-using System.Globalization;
-using System.Text;
 
 namespace DotCast.Library.Specifications
 {
-    internal record AudioBookRetrievalSpecification(AudioBookLibraryFilter Filter) : IListSpecification<AudioBook>
+    /// <param name="UserContext">Current user's playbacks and ratings; required for listening state and personal rating filters.</param>
+    internal record AudioBookRetrievalSpecification(AudioBookLibraryFilter Filter, AudioBookUserContext? UserContext = null) : IListSpecification<AudioBook>
     {
         public async Task<IReadOnlyList<AudioBook>> ApplyAsync(IQueryable<AudioBook> queryable, CancellationToken cancellationToken = default)
         {
             var data = await queryable.ToListAsync(cancellationToken);
+            return Apply(data);
+        }
+
+        public IReadOnlyList<AudioBook> Apply(IEnumerable<AudioBook> data)
+        {
             IEnumerable<AudioBook> filtered = data;
+            var userContext = UserContext ?? AudioBookUserContext.Empty;
 
             if (!string.IsNullOrWhiteSpace(Filter.SearchText))
             {
@@ -41,12 +47,12 @@ namespace DotCast.Library.Specifications
 
             if (Filter.MinRating.HasValue)
             {
-                filtered = filtered.Where(x => x.Rating >= Filter.MinRating.Value);
+                filtered = filtered.Where(x => userContext.GetDisplayedRating(x).ToPercent() >= Filter.MinRating.Value);
             }
 
             if (Filter.MaxRating.HasValue)
             {
-                filtered = filtered.Where(x => x.Rating <= Filter.MaxRating.Value);
+                filtered = filtered.Where(x => userContext.GetDisplayedRating(x).ToPercent() <= Filter.MaxRating.Value);
             }
 
             if (Filter.MinDurationMinutes.HasValue)
@@ -57,6 +63,11 @@ namespace DotCast.Library.Specifications
             if (Filter.MaxDurationMinutes.HasValue)
             {
                 filtered = filtered.Where(x => x.AudioBookInfo.Duration.TotalMinutes <= Filter.MaxDurationMinutes.Value);
+            }
+
+            if (Filter.ListeningState != ListeningStateFilter.Any)
+            {
+                filtered = filtered.Where(x => ListeningStateResolver.Matches(userContext.GetListeningState(x.Id), Filter.ListeningState));
             }
 
             return filtered
@@ -70,29 +81,13 @@ namespace DotCast.Library.Specifications
         private static bool Contains(string? value, string filter)
         {
             return !string.IsNullOrWhiteSpace(value) &&
-                   NormalizeForSearch(value).Contains(NormalizeForSearch(filter), StringComparison.InvariantCultureIgnoreCase);
+                   TextNormalizer.NormalizeForSearch(value).Contains(TextNormalizer.NormalizeForSearch(filter), StringComparison.InvariantCultureIgnoreCase);
         }
 
         private static bool MatchesAny(string? value, IReadOnlyCollection<string> filters)
         {
             return !string.IsNullOrWhiteSpace(value) &&
-                   filters.Any(filter => string.Equals(NormalizeForSearch(value), NormalizeForSearch(filter), StringComparison.InvariantCultureIgnoreCase));
-        }
-
-        private static string NormalizeForSearch(string value)
-        {
-            var normalized = value.Trim().Normalize(NormalizationForm.FormD);
-            var builder = new StringBuilder(normalized.Length);
-
-            foreach (var character in normalized)
-            {
-                if (CharUnicodeInfo.GetUnicodeCategory(character) != UnicodeCategory.NonSpacingMark)
-                {
-                    builder.Append(character);
-                }
-            }
-
-            return builder.ToString().Normalize(NormalizationForm.FormC);
+                   filters.Any(filter => string.Equals(TextNormalizer.NormalizeForSearch(value), TextNormalizer.NormalizeForSearch(filter), StringComparison.InvariantCultureIgnoreCase));
         }
     }
 }

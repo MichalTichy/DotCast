@@ -1,8 +1,12 @@
 @using Blazorise
 @using DotCast.Infrastructure.AppUser
 @using DotCast.Infrastructure.CurrentUserProvider
+@using DotCast.App.Services
 @inherits LayoutComponentBase
+@implements IDisposable
 @inject ICurrentUserProvider<UserInfo> CurrentUserProvider
+@inject BooksToRateService BooksToRate
+@inject ILogger<MainLayout> Logger
 
 <PageTitle>DotCast</PageTitle>
 
@@ -31,6 +35,14 @@
                         <Icon Name="IconName.User" />
                         <span>Account</span>
                     </NavLink>
+                    @if (BooksToRate.Count > 0)
+                    {
+                        <button type="button" class="app-nav-link app-nav-button" @onclick="OpenBooksToRateAsync">
+                            <Icon Name="IconName.Star" />
+                            <span>To rate</span>
+                            <span class="app-nav-count">@BooksToRate.Count</span>
+                        </button>
+                    }
                     @if (IsAdmin)
                     {
                         <NavLink href="/Admin" class="app-nav-link">
@@ -59,6 +71,10 @@
                     <NavLink href="/" Match="NavLinkMatch.All">Library</NavLink>
                     <NavLink href="/NewAudioBook">New</NavLink>
                     <NavLink href="/UserProfile">Account</NavLink>
+                    @if (BooksToRate.Count > 0)
+                    {
+                        <button type="button" class="app-mobile-nav-button" @onclick="OpenBooksToRateAsync">To rate (@BooksToRate.Count)</button>
+                    }
                     @if (IsAdmin)
                     {
                         <NavLink href="/Admin">Admin</NavLink>
@@ -70,6 +86,11 @@
         <main class="app-main">
             @Body
         </main>
+
+        @if (IsAuthenticated)
+        {
+            <BooksToRateDialog />
+        }
     </div>
 </ThemeProvider>
 
@@ -157,5 +178,34 @@
         IsAuthenticated = user is not null;
         IsAdmin = user?.IsAdmin == true;
         UserName = user?.Name ?? "User";
+
+        if (IsAuthenticated)
+        {
+            BooksToRate.Changed += OnBooksToRateChanged;
+            try
+            {
+                // Offer books that look finished whenever the user arrives (one Blazor circuit = one visit).
+                await BooksToRate.OpenAsync();
+            }
+            catch (Exception exception)
+            {
+                Logger.LogWarning(exception, "Unable to load books to rate");
+            }
+        }
+    }
+
+    private async Task OpenBooksToRateAsync()
+    {
+        await BooksToRate.OpenAsync();
+    }
+
+    private void OnBooksToRateChanged()
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        BooksToRate.Changed -= OnBooksToRateChanged;
     }
 }

@@ -1,0 +1,129 @@
+@using DotCast.App.Services
+@using DotCast.SharedKernel.Models
+@implements IDisposable
+@inject BooksToRateService BooksToRate
+
+@if (BooksToRate.IsOpen && Current is not null)
+{
+    <div class="quick-drawer-backdrop" @onclick="Close"></div>
+    <section class="rate-dialog" role="dialog" aria-modal="true" aria-labelledby="rate-dialog-title">
+        <header class="rate-dialog-header">
+            <p class="cinema-eyebrow">Rate what you listened to · @(index + 1) / @queue.Count</p>
+            <button type="button" class="drawer-close" @onclick="Close">Close</button>
+        </header>
+
+        <div class="rate-dialog-book @(string.IsNullOrWhiteSpace(Current.ImageUrl) ? "" : "has-cover")">
+            @if (!string.IsNullOrWhiteSpace(Current.ImageUrl))
+            {
+                <img src="@Current.ImageUrl" alt="@Current.Name cover" />
+            }
+            <div>
+                <h2 id="rate-dialog-title">Looks like you've finished <em>@Current.Name</em></h2>
+                @if (!string.IsNullOrWhiteSpace(Current.Description))
+                {
+                    <p class="rate-dialog-description">@Current.Description</p>
+                }
+            </div>
+        </div>
+
+        <p class="rate-dialog-question">How did you like it?</p>
+        <RatingInput Value="null" ValueChanged="RateAsync" Disabled="@isSaving" AriaLabel="@($"Rate {Current.Name}")" />
+
+        <div class="drawer-actions rate-dialog-actions">
+            <button type="button" class="secondary-action" @onclick="NotFinishedAsync" disabled="@isSaving">I didn't finish it</button>
+            <button type="button" class="text-button" @onclick="Next" disabled="@isSaving">Skip</button>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(errorMessage))
+        {
+            <p class="inline-status danger">@errorMessage</p>
+        }
+    </section>
+}
+
+@code {
+    private List<BookToRateItem> queue = [];
+    private int index;
+    private bool wasOpen;
+    private bool isSaving;
+    private string? errorMessage;
+
+    private BookToRateItem? Current => index < queue.Count ? queue[index] : null;
+
+    protected override void OnInitialized()
+    {
+        BooksToRate.Changed += OnChanged;
+    }
+
+    private void OnChanged()
+    {
+        // Take a snapshot when the dialog opens so answering a book does not reshuffle the walk-through.
+        if (BooksToRate.IsOpen && !wasOpen)
+        {
+            queue = BooksToRate.Items.ToList();
+            index = 0;
+            errorMessage = null;
+        }
+
+        wasOpen = BooksToRate.IsOpen;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private async Task RateAsync(int? rating)
+    {
+        if (Current is null || rating is null)
+        {
+            return;
+        }
+
+        await SaveAndContinueAsync(() => BooksToRate.RateAsync(Current.AudioBookId, rating.Value));
+    }
+
+    private async Task NotFinishedAsync()
+    {
+        if (Current is null)
+        {
+            return;
+        }
+
+        await SaveAndContinueAsync(() => BooksToRate.ConfirmNotFinishedAsync(Current.AudioBookId));
+    }
+
+    private async Task SaveAndContinueAsync(Func<Task> action)
+    {
+        isSaving = true;
+        errorMessage = null;
+        try
+        {
+            await action();
+            Next();
+        }
+        catch (Exception exception)
+        {
+            errorMessage = $"Saving failed: {exception.Message}";
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private void Next()
+    {
+        index++;
+        if (Current is null)
+        {
+            Close();
+        }
+    }
+
+    private void Close()
+    {
+        BooksToRate.Close();
+    }
+
+    public void Dispose()
+    {
+        BooksToRate.Changed -= OnChanged;
+    }
+}

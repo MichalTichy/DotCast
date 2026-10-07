@@ -1,0 +1,40 @@
+@using DotCast.SharedKernel.Models
+
+<div class="rating-input @(Compact ? "rating-input-compact" : "")" role="radiogroup" aria-label="@AriaLabel">
+    @for (var rating = UserAudioBook.MinRating; rating <= UserAudioBook.MaxRating; rating++)
+    {
+        var current = rating;
+        <button type="button"
+                role="radio"
+                aria-checked="@(Value == current ? "true" : "false")"
+                class="rating-point @(Value >= current ? "is-filled" : "") @(Value == current ? "is-selected" : "")"
+                title="@(Value == current ? "Click again to clear the rating" : $"Rate {current}/10")"
+                disabled="@Disabled"
+                @onclick="() => SelectAsync(current)">
+            @current
+        </button>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public int? Value { get; set; }
+
+    [Parameter]
+    public EventCallback<int?> ValueChanged { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    [Parameter]
+    public bool Compact { get; set; }
+
+    [Parameter]
+    public string AriaLabel { get; set; } = "Your rating";
+
+    private async Task SelectAsync(int rating)
+    {
+        var newValue = Value == rating ? (int?)null : rating;
+        await ValueChanged.InvokeAsync(newValue);
+    }
+}

@@ -1,8 +1,9 @@
 @page "/"
 @inherits AppPage
+@using DotCast.SharedKernel.Models
 
 @{
-    var featured = FeaturedAudioBook;
+    var featured = Featured?.AudioBook;
     var authorGroups = Data
         .GroupBy(book => string.IsNullOrWhiteSpace(book.AudioBookInfo.AuthorName) ? "Unknown author" : book.AudioBookInfo.AuthorName)
         .OrderBy(group => group.Key)
@@ -14,9 +15,17 @@
         <div>
             <h1>Your library</h1>
         </div>
-        <Field Class="library-search">
-            <TextInput Placeholder="Search titles, authors, series" Value="@SearchText" ValueChanged="SearchTextChanged" />
-        </Field>
+        <div class="library-topbar-actions">
+            @if (BooksToRate.Count > 0)
+            {
+                <button type="button" class="primary-action" @onclick="OpenBooksToRateAsync">
+                    To rate (@BooksToRate.Count)
+                </button>
+            }
+            <Field Class="library-search">
+                <TextInput Placeholder="Search titles, authors, series" Value="@SearchText" ValueChanged="SearchTextChanged" />
+            </Field>
+        </div>
     </header>
 
     <div class="library-layout">
@@ -28,6 +37,21 @@
                     <button type="button" class="text-button" @onclick="ClearFilters">Clear</button>
                 }
             </div>
+
+            <details class="filter-collapse" open="@(ListeningState != ListeningStateFilter.Any)">
+                <summary>
+                    <span>Listening</span>
+                    @if (ListeningState != ListeningStateFilter.Any)
+                    {
+                        <small>Active</small>
+                    }
+                </summary>
+                <div class="filter-section">
+                    <button type="button" class="filter-pill @(ListeningState == ListeningStateFilter.Unplayed ? "is-active" : "")" @onclick="() => SetListeningState(ListeningStateFilter.Unplayed)">Unplayed</button>
+                    <button type="button" class="filter-pill @(ListeningState == ListeningStateFilter.InProgress ? "is-active" : "")" @onclick="() => SetListeningState(ListeningStateFilter.InProgress)">In progress</button>
+                    <button type="button" class="filter-pill @(ListeningState == ListeningStateFilter.Finished ? "is-active" : "")" @onclick="() => SetListeningState(ListeningStateFilter.Finished)">Listened</button>
+                </div>
+            </details>
 
             <details class="filter-collapse">
                 <summary>
@@ -131,16 +155,20 @@
                         }
                     </button>
                     <div class="featured-copy">
-                        <p class="cinema-eyebrow">Featured audiobook</p>
+                        <p class="cinema-eyebrow">@FeaturedEyebrow</p>
                         <h2>@featured.AudioBookInfo.Name</h2>
                         <p>@featured.AudioBookInfo.AuthorName</p>
                         <div class="media-meta-row">
-                            <span>@featured.Rating %</span>
+                            <span>@RatingText(featured)</span>
                             <span>@($"{featured.AudioBookInfo.Duration.TotalHours:F0}:{featured.AudioBookInfo.Duration.Minutes:D2}")</span>
                             @if (!string.IsNullOrWhiteSpace(featured.AudioBookInfo.SeriesName))
                             {
                                 <span>@featured.AudioBookInfo.SeriesName @featured.AudioBookInfo.OrderInSeries</span>
                             }
+                        </div>
+                        <div class="drawer-actions featured-actions">
+                            <button type="button" class="secondary-action" @onclick="() => ShowDetails(featured)">Details</button>
+                            <button type="button" class="text-button" @onclick="() => SetInterestAsync(featured, false)" disabled="@IsSavingUserAction">Not interested</button>
                         </div>
                     </div>
                 </section>
@@ -193,6 +221,7 @@
                                 <div class="poster-row">
                                     @foreach (var audioBook in series.OrderBy(book => book.AudioBookInfo.OrderInSeries).ThenBy(book => book.AudioBookInfo.Name))
                                     {
+                                        var state = GetState(audioBook);
                                         <article class="poster-card">
                                             <button type="button" class="poster-button" @onclick="() => ShowDetails(audioBook)">
                                                 @if (!string.IsNullOrWhiteSpace(audioBook.AudioBookInfo.ImageUrl))
@@ -203,10 +232,14 @@
                                                 {
                                                     <span>@audioBook.AudioBookInfo.Name</span>
                                                 }
+                                                @if (state.ListeningState != SharedKernel.Models.ListeningState.Unplayed)
+                                                {
+                                                    <span class="listening-badge @(state.ListeningState == SharedKernel.Models.ListeningState.Finished ? "is-finished" : "is-progress")">@ListeningBadge(state)</span>
+                                                }
                                             </button>
                                             <div class="poster-info">
                                                 <h3>@audioBook.AudioBookInfo.Name</h3>
-                                                <p>@audioBook.Rating % - @($"{audioBook.AudioBookInfo.Duration.TotalHours:F0}:{audioBook.AudioBookInfo.Duration.Minutes:D2}")</p>
+                                                <p><span class="@(state.DisplayedRating.IsPersonal ? "personal-rating" : "")">@state.DisplayedRating</span> - @($"{audioBook.AudioBookInfo.Duration.TotalHours:F0}:{audioBook.AudioBookInfo.Duration.Minutes:D2}")</p>
                                                 @if (audioBook.AudioBookInfo.Categories.Count > 0)
                                                 {
                                                     <div class="poster-tags" aria-label="@($"{audioBook.AudioBookInfo.Name} categories")">
@@ -245,7 +278,7 @@
                 <h2>@SelectedAudioBook.AudioBookInfo.Name</h2>
                 <p>@SelectedAudioBook.AudioBookInfo.AuthorName</p>
                 <div class="media-meta-row">
-                    <span>@SelectedAudioBook.Rating %</span>
+                    <span class="@(GetState(SelectedAudioBook).DisplayedRating.IsPersonal ? "personal-rating" : "")">@RatingText(SelectedAudioBook)</span>
                     <span>@($"{SelectedAudioBook.AudioBookInfo.Duration.TotalHours:F0}:{SelectedAudioBook.AudioBookInfo.Duration.Minutes:D2}")</span>
                     @if (!string.IsNullOrWhiteSpace(SelectedAudioBook.AudioBookInfo.SeriesName))
                     {
@@ -261,6 +294,33 @@
                 <span>@category.Name</span>
             }
         </div>
+
+        @{
+            var selectedState = GetState(SelectedAudioBook);
+        }
+        <section class="drawer-user-panel" aria-label="Your listening">
+            <div class="drawer-user-heading">
+                <h3>Your rating</h3>
+                @if (!selectedState.Rating.HasValue)
+                {
+                    <small>General rating: @SelectedAudioBook.Rating %</small>
+                }
+            </div>
+            <RatingInput Value="@selectedState.Rating" ValueChanged="RateSelectedAsync" Disabled="@IsSavingUserAction" Compact />
+            <div class="drawer-actions">
+                <button type="button" class="@(selectedState.ListeningState == SharedKernel.Models.ListeningState.Finished ? "primary-action" : "secondary-action")" @onclick="ToggleListenedAsync" disabled="@IsSavingUserAction">
+                    @(selectedState.ListeningState == SharedKernel.Models.ListeningState.Finished ? "Listened ✓" : "Mark as listened")
+                </button>
+                @if (selectedState.NotInterested)
+                {
+                    <button type="button" class="text-button" @onclick="() => SetInterestAsync(SelectedAudioBook, true)" disabled="@IsSavingUserAction">Interested again</button>
+                }
+            </div>
+            @if (!string.IsNullOrWhiteSpace(UserActionMessage))
+            {
+                <p class="inline-status danger">@UserActionMessage</p>
+            }
+        </section>
 
         <p class="drawer-description">@SelectedAudioBook.AudioBookInfo.Description</p>
 

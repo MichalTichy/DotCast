@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="DotCast.Library.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Marten" Version="8.29.2" />
     <PackageReference Include="WolverineFx" Version="5.30.0" />
   </ItemGroup>
