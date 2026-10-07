@@ -10,6 +10,8 @@ The key allows all four MCP tools under the account's normal library access. It 
 
 Account API keys are owned by `DotCast.Infrastructure.ApiKeys`, independently of MCP. It supplies key storage, management handlers and the authentication scheme; MCP consumes that scheme. Key management runs through the existing authenticated Blazor profile and application handlers. There is no separate token-management HTTP API.
 
+Metadata updates use the existing infrastructure repository's `GetAndUpdateAsync` operation. The handler checks library ownership before applying the patch, and the repository handles the transaction and concurrency retry. API key generation uses an atomic repository upsert.
+
 ## Connect Codex
 
 Use the actual DotCast HTTPS address followed by `/mcp`. For the repository's Aspire development profile:
@@ -69,4 +71,4 @@ dotnet test DotCast.Library.Mcp.Tests/DotCast.Library.Mcp.Tests.csproj
 
 Tests use Docker with disposable PostgreSQL containers and a real HTTP MCP client. They cover key replacement/revocation, account boundaries, all four tools, request limits and concurrent metadata changes.
 Provider tests also cover concurrent requests, result ordering and limits, cancellation, timeout/failure fallback and both Goodreads search layouts.
-The API key suite runs without MCP and verifies credentials, authentication on an ordinary HTTP endpoint, regeneration/revocation and compatibility with existing stored keys.
+The API key suite runs without MCP and verifies credentials, authentication on an ordinary HTTP endpoint and regeneration/revocation.

@@ -5,6 +5,7 @@ public interface IRepository<T> : IReadOnlyRepository<T> where T : IItemWithId
     Task AddAsync(ICollection<T> entities, CancellationToken cancellationToken = default, string? tenantId = null);
     Task<T> AddAsync(T entity, CancellationToken cancellationToken = default, string? tenantId = null);
     Task UpdateAsync(T entity, CancellationToken cancellationToken = default, string? tenantId = null);
+    Task UpsertAsync(T entity, CancellationToken cancellationToken = default, string? tenantId = null);
     Task<TResult> GetAndUpdateAsync<TResult>(string id, Func<T, Task<TResult>> updateMethod, CancellationToken cancellationToken = default, string? tenantId = null);
     Task DeleteAsync(T entity, CancellationToken cancellationToken = default, string? tenantId = null);
     Task DeleteByIdAsync(string id, CancellationToken cancellationToken = default, string? tenantId = null);

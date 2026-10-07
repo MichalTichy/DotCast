@@ -6,6 +6,7 @@ This plan supersedes the original scoped-token implementation after the user's r
 - [x] Remove the token-management controller, browser fetch module and separate token project.
 - [x] Add one account-keyed digest document, atomic generate/replace and own-account revoke operations.
 - [x] Keep account key storage, management and authentication in `DotCast.Infrastructure.ApiKeys`; MCP consumes the scheme and uses existing user/library access.
+- [x] Use infrastructure repositories for metadata updates and atomic key upserts; remove the custom metadata writer and unreleased-draft compatibility binder.
 - [x] Reduce the profile to generate/regenerate/revoke and one-time key display.
 - [x] Test key lifecycle, account boundaries, the four tools and request limits.
 - [x] Verify the simplified profile in a disposable database and update the PR.

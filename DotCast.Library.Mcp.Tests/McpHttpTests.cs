@@ -6,7 +6,9 @@ using System.Text.Json;
 using DotCast.Infrastructure.CurrentTenancyProvider;
 using DotCast.Infrastructure.Persistence.Repositories;
 using DotCast.Infrastructure.ApiKeys;
-using DotCast.Library.Mcp.Persistence;
+using DotCast.Library.Mcp.UseCases;
+using DotCast.Infrastructure.Blazor.ClaimsManagement;
+using DotCast.SharedKernel.Models;
 using Marten;
 using Microsoft.Extensions.DependencyInjection;
 using ModelContextProtocol.Client;
@@ -42,6 +44,10 @@ public sealed class McpHttpTests(McpHostFixture fixture) : IClassFixture<McpHost
         Assert.Equal("Maintained by MCP", write.StructuredContent!.Value.GetProperty("description").GetString());
         AssertError(await client.CallToolAsync("update_audiobook_metadata", new Dictionary<string, object?> {
             ["id"] = "shared-book", ["changes"] = new { title = "Should not save" } }), "not_found");
+        AssertError(await client.CallToolAsync("update_audiobook_metadata", new Dictionary<string, object?> {
+            ["id"] = "foreign-book", ["changes"] = new { title = "Should not save" } }), "not_found");
+        AssertError(await client.CallToolAsync("update_audiobook_metadata", new Dictionary<string, object?> {
+            ["id"] = "missing-book", ["changes"] = new { title = "Should not save" } }), "not_found");
         AssertError(await client.CallToolAsync("update_audiobook_metadata", new Dictionary<string, object?> {
             ["id"] = "own-book", ["changes"] = new { libraryId = "foreign" } }), "invalid_input");
     }
@@ -151,10 +157,12 @@ public sealed class McpHttpTests(McpHostFixture fixture) : IClassFixture<McpHost
         var store = fixture.App.Services.GetRequiredService<IDocumentStore>();
         await using (var session = store.LightweightSession(CurrentTenancyProviderNoTenancy.NoTenancyName))
         { session.Store(MetadataPatchTests.Book("concurrent", "own")); await session.SaveChangesAsync(); }
-        var writer = new TransactionalAudioBookMetadataWriter(store, new CurrentTenancyProviderNoTenancy());
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(15));
         await Task.WhenAll(
-            writer.UpdateAsync("concurrent", "own", MetadataPatchTests.Patch("""{"title":"Updated title"}"""), CancellationToken.None),
-            writer.UpdateAsync("concurrent", "own", MetadataPatchTests.Patch("""{"description":"Updated description"}"""), CancellationToken.None));
+            fixture.RunAsAsync("owner", messenger => messenger.RequestAsync<UpdateAudioBookMetadata, DotCast.Library.Mcp.Models.AudioBookMetadata>(
+                new("concurrent", MetadataPatchTests.Patch("""{"title":"Updated title"}""")), timeout.Token)),
+            fixture.RunAsAsync("owner", messenger => messenger.RequestAsync<UpdateAudioBookMetadata, DotCast.Library.Mcp.Models.AudioBookMetadata>(
+                new("concurrent", MetadataPatchTests.Patch("""{"description":"Updated description"}""")), timeout.Token)));
         await using var read = store.QuerySession(CurrentTenancyProviderNoTenancy.NoTenancyName);
         var book = await read.LoadAsync<DotCast.SharedKernel.Models.AudioBook>("concurrent");
         Assert.Equal("Updated title", book!.AudioBookInfo.Name);
@@ -162,6 +170,42 @@ public sealed class McpHttpTests(McpHostFixture fixture) : IClassFixture<McpHost
         await using var cleanup = store.LightweightSession(CurrentTenancyProviderNoTenancy.NoTenancyName);
         cleanup.Delete(book);
         await cleanup.SaveChangesAsync();
+    }
+    [Fact]
+    public async Task RepositoryRetriesConflictingUpdatesAndStillSupportsDetachedUpdates()
+    {
+        var store = fixture.App.Services.GetRequiredService<IDocumentStore>();
+        await using (var session = store.LightweightSession(CurrentTenancyProviderNoTenancy.NoTenancyName))
+        { session.Store(MetadataPatchTests.Book("repository-concurrent", "own")); await session.SaveChangesAsync(); }
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+        var loaded = 0;
+        var bothLoaded = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        async Task PatchAsync(Action<AudioBook> patch)
+        {
+            using var scope = fixture.App.Services.CreateScope();
+            scope.ServiceProvider.GetRequiredService<IUserClaimsProvider>().User = fixture.Owners.Users["owner"].GetClaimsIdentity();
+            var repository = scope.ServiceProvider.GetRequiredService<IRepository<AudioBook>>();
+            await repository.GetAndUpdateAsync("repository-concurrent", async book => {
+                // Force both writers to load the same version, so one must retry.
+                var attempt = Interlocked.Increment(ref loaded);
+                if (attempt == 2) bothLoaded.TrySetResult();
+                if (attempt <= 2) await bothLoaded.Task.WaitAsync(timeout.Token);
+                patch(book);
+            }, timeout.Token);
+        }
+        await Task.WhenAll(PatchAsync(book => book.AudioBookInfo.Name = "Retried title"),
+            PatchAsync(book => book.AudioBookInfo.Description = "Retried description"));
+        Assert.True(loaded >= 3);
+        using var readScope = fixture.App.Services.CreateScope();
+        readScope.ServiceProvider.GetRequiredService<IUserClaimsProvider>().User = fixture.Owners.Users["owner"].GetClaimsIdentity();
+        var books = readScope.ServiceProvider.GetRequiredService<IRepository<AudioBook>>();
+        var result = (await books.GetByIdAsync("repository-concurrent"))!;
+        Assert.Equal("Retried title", result.AudioBookInfo.Name);
+        Assert.Equal("Retried description", result.AudioBookInfo.Description);
+        result.AudioBookInfo.Name = "Detached title";
+        await books.UpdateAsync(result, timeout.Token);
+        Assert.Equal("Detached title", (await books.GetByIdAsync(result.Id))!.AudioBookInfo.Name);
+        await books.DeleteByIdAsync(result.Id);
     }
     private static string Text(CallToolResult result) => string.Join(" ", result.Content.OfType<TextContentBlock>().Select(t => t.Text));
     private static void AssertError(CallToolResult result, string code)

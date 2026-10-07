@@ -44,9 +44,22 @@ public class MartenRepository<T>(ISessionFactoryWithAlternateTenantSettings sess
         await using var uow = new UnitOfWorkProvider();
         await using var session = await sessionFactory.OpenSessionAsync(tenantId, uow.Get());
 
+        // Detached documents without a version need the current version in this session.
+        if (entity is not IVersioned && entity is not IRevisioned &&
+            session.DocumentStore.Options.FindOrResolveDocumentType(typeof(T)).UseOptimisticConcurrency)
+            await session.LoadAsync<T>(entity.Id, cancellationToken);
         session.Update(entity);
         await SaveChangesAsync(session, cancellationToken);
 
+        await uow.CommitAsync();
+    }
+
+    public virtual async Task UpsertAsync(T entity, CancellationToken cancellationToken = default, string? tenantId = null)
+    {
+        await using var uow = new UnitOfWorkProvider();
+        await using var session = await sessionFactory.OpenSessionAsync(tenantId, uow.Get());
+        session.Store(entity);
+        await SaveChangesAsync(session, cancellationToken);
         await uow.CommitAsync();
     }
 
@@ -80,7 +93,7 @@ public class MartenRepository<T>(ISessionFactoryWithAlternateTenantSettings sess
 				entity = await session.LoadAsync<T>(id, cancellationToken);
 				if (entity == null)
                 {
-                    throw new Exception($"Document with id {id} was not found!");
+                    throw new KeyNotFoundException($"Document with id {id} was not found!");
                 }
 				var updateResult = await updateMethod(entity);
 

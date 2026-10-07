@@ -56,9 +56,9 @@ public sealed class McpHostFixture : IAsyncLifetime
         builder.Services.AddLibraryMcp();
         builder.Services.RemoveAll<IApiKeyOwnerResolver>();
         builder.Services.AddSingleton<IApiKeyOwnerResolver>(Owners);
-        builder.Services.AddScoped<DotCast.Library.Mcp.Persistence.ITransactionalAudioBookMetadataWriter, DotCast.Library.Mcp.Persistence.TransactionalAudioBookMetadataWriter>();
         builder.Services.AddTransient<DotCast.Infrastructure.Persistence.Marten.StorageConfiguration.IStorageConfiguration, DotCast.Library.Storage.AudioBookStorageConfiguration>();
         builder.Services.AddScoped<DotCast.Infrastructure.Persistence.Repositories.IReadOnlyRepository<DotCast.SharedKernel.Models.AudioBook>, AudioBookRepository>();
+        builder.Services.AddScoped<DotCast.Infrastructure.Persistence.Repositories.IRepository<DotCast.SharedKernel.Models.AudioBook>, AudioBookRepository>();
         builder.Services.AddNpgsqlDataSource(database.GetConnectionString());
         builder.Services.AddMartenPostgresPersistence();
         builder.Services.AddTransient<IMessagePublisher, WolverineMessagePublisher>();

@@ -2,10 +2,11 @@ using DotCast.Infrastructure.Messaging.Base;
 using DotCast.Infrastructure.AppUser;
 using DotCast.Infrastructure.CurrentUserProvider;
 using DotCast.Library.Mcp.Models;
-using DotCast.Library.Mcp.Persistence;
+using DotCast.Infrastructure.Persistence.Repositories;
+using DotCast.SharedKernel.Models;
 using Microsoft.Extensions.Logging;
 namespace DotCast.Library.Mcp.UseCases;
-public sealed class UpdateAudioBookMetadataHandler(ITransactionalAudioBookMetadataWriter writer, ICurrentUserProvider<UserInfo> users,
+public sealed class UpdateAudioBookMetadataHandler(IRepository<AudioBook> books, ICurrentUserProvider<UserInfo> users,
     IMessagePublisher messenger, ILogger<UpdateAudioBookMetadataHandler> logger)
 {
     public async Task<AudioBookMetadata> Handle(UpdateAudioBookMetadata request, CancellationToken cancellationToken)
@@ -13,7 +14,11 @@ public sealed class UpdateAudioBookMetadataHandler(ITransactionalAudioBookMetada
         var user = await users.GetCurrentUserRequiredAsync();
         if (string.IsNullOrWhiteSpace(request.Id) || request.Id.Length > 200) throw new ArgumentException("invalid_input");
         request.Patch.Validate();
-        var metadata = await writer.UpdateAsync(request.Id, user.UsersLibraryName, request.Patch, cancellationToken);
+        var metadata = await books.GetAndUpdateAsync(request.Id, book => {
+            if (book.LibraryId != user.UsersLibraryName) throw new KeyNotFoundException("not_found");
+            request.Patch.Apply(book);
+            return Task.FromResult(AudioBookMetadata.From(book));
+        }, cancellationToken);
         var fields = request.Patch.Changes.Keys.Order().ToArray();
         logger.LogInformation("MCP account {OwnerId} updated audiobook {BookId} fields {Fields}",
             user.Id, request.Id, string.Join(",", fields));
