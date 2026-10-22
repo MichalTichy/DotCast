@@ -1,3 +1,5 @@
+@using DotCast.SharedKernel.Models
+
 <article class="poster-card">
     <button type="button" class="poster-button" aria-label="@Book.AudioBookInfo.Name" @onclick="Open">
         @if (!string.IsNullOrWhiteSpace(Book.AudioBookInfo.ImageUrl))
@@ -5,11 +7,15 @@
             <img src="@Book.AudioBookInfo.ImageUrl" alt="" loading="lazy" />
         }
         else { <span>@Book.AudioBookInfo.Name</span> }
+        @if (UserState?.ListeningState is ListeningState.Finished or ListeningState.InProgress)
+        {
+            <span class="listening-badge @(UserState.ListeningState == ListeningState.Finished ? "is-finished" : "is-progress")">@Ux.Text(UserState.ListeningState == ListeningState.Finished ? "Listened" : "InProgress")</span>
+        }
     </button>
     <div class="poster-info">
         <h3><button type="button" class="book-title" @onclick="Open">@Book.AudioBookInfo.Name</button></h3>
         <p>@Book.AudioBookInfo.AuthorName</p>
-        <p>@Ux.Rating(Book.Rating) · @Ux.Duration(Book.AudioBookInfo.Duration)</p>
+        <p><span class="@(Rating.IsPersonal ? "personal-rating" : "")">@(Rating.IsPersonal ? Rating.ToString() : Ux.Rating(Book.Rating))</span> · @Ux.Duration(Book.AudioBookInfo.Duration)</p>
         @if (!string.IsNullOrWhiteSpace(Book.AudioBookInfo.SeriesName))
         {
             <small>@Book.AudioBookInfo.SeriesName @Book.AudioBookInfo.OrderInSeries</small>

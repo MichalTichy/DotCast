@@ -1,7 +1,9 @@
 @page "/"
 @inherits AppPage
+@using DotCast.SharedKernel.Models
 
 @{
+    var featured = Featured?.AudioBook;
     var authorGroups = Data
         .GroupBy(book => string.IsNullOrWhiteSpace(book.AudioBookInfo.AuthorName) ? Ux.Text("UnknownAuthor") : book.AudioBookInfo.AuthorName)
         .OrderBy(group => group.Key)
@@ -13,10 +15,18 @@
         <div>
             <h1>@Ux.Text("YourLibrary")</h1>
         </div>
-        <Field Class="library-search">
-            <label for="library-search">@Ux.Text("SearchLibrary")</label>
-            <TextInput ElementId="library-search" Placeholder="@Ux.Text("SearchPlaceholder")" Value="@SearchText" ValueChanged="SearchTextChanged" />
-        </Field>
+        <div class="library-topbar-actions">
+            @if (BooksToRate.Count > 0)
+            {
+                <button type="button" class="primary-action" @onclick="OpenBooksToRateAsync">
+                    To rate (@BooksToRate.Count)
+                </button>
+            }
+            <Field Class="library-search">
+                <label for="library-search">@Ux.Text("SearchLibrary")</label>
+                <TextInput ElementId="library-search" Placeholder="@Ux.Text("SearchPlaceholder")" Value="@SearchText" ValueChanged="SearchTextChanged" />
+            </Field>
+        </div>
     </header>
 
     <button class="secondary-action mobile-filter-toggle" aria-expanded="@FiltersOpen.ToString().ToLowerInvariant()" aria-controls="library-filters" @onclick="ToggleFilters">@Ux.Text("Filters") (@ActiveFilterCount)</button>
@@ -29,6 +39,21 @@
                     <button type="button" class="text-button" @onclick="ClearFilters">@Ux.Text("Clear")</button>
                 }
             </div>
+
+            <details class="filter-collapse" open="@(ListeningState != ListeningStateFilter.Any)">
+                <summary>
+                    <span>Listening</span>
+                    @if (ListeningState != ListeningStateFilter.Any)
+                    {
+                        <small>Active</small>
+                    }
+                </summary>
+                <div class="filter-section">
+                    <button type="button" class="filter-pill @(ListeningState == ListeningStateFilter.Unplayed ? "is-active" : "")" @onclick="() => SetListeningState(ListeningStateFilter.Unplayed)">Unplayed</button>
+                    <button type="button" class="filter-pill @(ListeningState == ListeningStateFilter.InProgress ? "is-active" : "")" @onclick="() => SetListeningState(ListeningStateFilter.InProgress)">In progress</button>
+                    <button type="button" class="filter-pill @(ListeningState == ListeningStateFilter.Finished ? "is-active" : "")" @onclick="() => SetListeningState(ListeningStateFilter.Finished)">Listened</button>
+                </div>
+            </details>
 
             <details class="filter-collapse">
                 <summary>
@@ -151,7 +176,40 @@
                     @foreach (var category in SelectedCategories) { <button class="filter-pill" @onclick="() => ToggleCategory(category)">@category ×</button> }
                     @if (MinRating != null || MaxRating != null) { <button class="filter-pill" @onclick="() => SetRatingRange(null, null)">@Ux.Text("Rating") ×</button> }
                     @if (HasDurationFilter) { <button class="filter-pill" @onclick="ClearDuration">@DurationFilterSummary ×</button> }
+                    @if (ListeningState != ListeningStateFilter.Any) { <button class="filter-pill" @onclick="() => SetListeningState(ListeningStateFilter.Any)">@Ux.Text("Listening") ×</button> }
                 </div>
+            }
+            @if (featured is not null)
+            {
+                <section class="featured-strip">
+                    <button type="button" class="featured-poster" @onclick="() => ShowDetails(featured)">
+                        @if (!string.IsNullOrWhiteSpace(featured.AudioBookInfo.ImageUrl))
+                        {
+                            <img src="@featured.AudioBookInfo.ImageUrl" alt="@featured.AudioBookInfo.Name cover" />
+                        }
+                        else
+                        {
+                            <span>@featured.AudioBookInfo.Name</span>
+                        }
+                    </button>
+                    <div class="featured-copy">
+                        <p class="cinema-eyebrow">@FeaturedEyebrow</p>
+                        <h2>@featured.AudioBookInfo.Name</h2>
+                        <p>@featured.AudioBookInfo.AuthorName</p>
+                        <div class="media-meta-row">
+                            <span>@RatingText(featured)</span>
+                            <span>@Ux.Duration(featured.AudioBookInfo.Duration)</span>
+                            @if (!string.IsNullOrWhiteSpace(featured.AudioBookInfo.SeriesName))
+                            {
+                                <span>@featured.AudioBookInfo.SeriesName @featured.AudioBookInfo.OrderInSeries</span>
+                            }
+                        </div>
+                        <div class="drawer-actions featured-actions">
+                            <button type="button" class="secondary-action" @onclick="() => ShowDetails(featured)">Details</button>
+                            <button type="button" class="text-button" @onclick="() => SetInterestAsync(featured, false)" disabled="@IsSavingUserAction">Not interested</button>
+                        </div>
+                    </div>
+                </section>
             }
             @if (!string.IsNullOrWhiteSpace(LoadMessage)) { <p role="alert" class="inline-status danger">@LoadMessage <button class="text-button" @onclick="LoadData">@Ux.Text("Retry")</button></p> }
             @if (Sort == "recent") { <p class="filter-empty">@Ux.Text("RecentDateHelp")</p> }
@@ -164,7 +222,7 @@
             else if (View != "rails" || Sort != "author")
             {
                 <div class="book-collection @(View == "list" ? "book-list" : "book-grid")">
-                    @foreach (var book in SortedBooks) { <BookCard @key="book.Id" Book="book" Selected="ShowDetails" /> }
+                    @foreach (var book in SortedBooks) { <BookCard @key="book.Id" Book="book" UserState="GetState(book)" Selected="ShowDetails" /> }
                 </div>
             }
             else
@@ -182,7 +240,7 @@
                                 @if (series.Key != StandaloneSeriesName) { <div class="series-splitter"><span>@series.Key</span></div> }
                                 <div class="@(ExpandedAuthors.Contains(author.Key) ? "book-collection book-grid" : "poster-row")" data-rail="@(author.Key + ":" + series.Key)">
                                     @foreach (var book in series.OrderBy(book => book.AudioBookInfo.OrderInSeries).ThenBy(book => book.AudioBookInfo.Name))
-                                    { <BookCard @key="book.Id" Book="book" Selected="ShowDetails" /> }
+                                    { <BookCard @key="book.Id" Book="book" UserState="GetState(book)" Selected="ShowDetails" /> }
                                 </div>
                             </div>
                         }
@@ -207,9 +265,36 @@
         <div class="drawer-hero">
             @if (!string.IsNullOrWhiteSpace(SelectedAudioBook.AudioBookInfo.ImageUrl)) { <img src="@SelectedAudioBook.AudioBookInfo.ImageUrl" alt="" /> }
             <div><h2>@SelectedAudioBook.AudioBookInfo.Name</h2><p>@SelectedAudioBook.AudioBookInfo.AuthorName</p>
-                <div class="media-meta-row"><span>@Ux.Rating(SelectedAudioBook.Rating)</span><span>@Ux.Duration(SelectedAudioBook.AudioBookInfo.Duration)</span></div>
+                <div class="media-meta-row"><span class="@(GetState(SelectedAudioBook).DisplayedRating.IsPersonal ? "personal-rating" : "")">@RatingText(SelectedAudioBook)</span><span>@Ux.Duration(SelectedAudioBook.AudioBookInfo.Duration)</span></div>
             </div>
         </div>
+        @{
+            var selectedState = GetState(SelectedAudioBook);
+        }
+        <section class="drawer-user-panel" aria-label="Your listening">
+            <div class="drawer-user-heading">
+                <h3>Your rating</h3>
+                @if (!selectedState.Rating.HasValue)
+                {
+                    <small>General rating: @SelectedAudioBook.Rating %</small>
+                }
+            </div>
+            <RatingInput Value="@selectedState.Rating" ValueChanged="RateSelectedAsync" Disabled="@IsSavingUserAction" Compact />
+            <div class="drawer-actions">
+                <button type="button" class="@(selectedState.ListeningState == SharedKernel.Models.ListeningState.Finished ? "primary-action" : "secondary-action")" @onclick="ToggleListenedAsync" disabled="@IsSavingUserAction">
+                    @(selectedState.ListeningState == SharedKernel.Models.ListeningState.Finished ? "Listened ✓" : "Mark as listened")
+                </button>
+                @if (selectedState.NotInterested)
+                {
+                    <button type="button" class="text-button" @onclick="() => SetInterestAsync(SelectedAudioBook, true)" disabled="@IsSavingUserAction">Interested again</button>
+                }
+            </div>
+            @if (!string.IsNullOrWhiteSpace(UserActionMessage))
+            {
+                <p class="inline-status danger">@UserActionMessage</p>
+            }
+        </section>
+
         <div class="drawer-actions">
             <button class="primary-action" @onclick="() => PrepareFeedAsync(SelectedAudioBook)">@Ux.Text("AddPodcast")</button>
             @if (SelectedAudioBook.AudioBookInfo.HasArchive) { <button class="secondary-action" @onclick="() => Download(SelectedAudioBook)">@Ux.Text("DownloadZip")</button> }

@@ -49,6 +49,9 @@ public sealed class McpHostFixture : IAsyncLifetime
         builder.Services.AddScoped<IUserClaimsProvider, UserClaimsProvider>();
         builder.Services.AddScoped<IHttpContextUserInfoSetter, HttpContextUserInfoSetter>();
         builder.Services.AddScoped<ICurrentUserProvider<UserInfo>, BlazorUserInfoProvider<UserInfo, UserRole>>();
+        builder.Services.AddScoped<ICurrentUserIdProvider>(sp => (ICurrentUserIdProvider)sp.GetRequiredService<ICurrentUserProvider<UserInfo>>());
+        builder.Services.AddScoped<DotCast.Library.Playback.IAudioBookUserContextProvider, DotCast.Library.Playback.AudioBookUserContextProvider>();
+        builder.Services.Configure<DotCast.Library.Playback.FinishedListeningOptions>(_ => { });
         builder.Services.AddSingleton<ICurrentTenancyProvider, CurrentTenancyProviderNoTenancy>();
         builder.Services.AddSingleton<DotCast.Infrastructure.BookInfoProvider.Base.IBookInfoProvider, TestBookInfoProvider>();
         new ApiKeysInstaller().Install(builder.Services, builder.Configuration, false);
@@ -56,6 +59,8 @@ public sealed class McpHostFixture : IAsyncLifetime
         builder.Services.RemoveAll<IApiKeyOwnerResolver>();
         builder.Services.AddSingleton<IApiKeyOwnerResolver>(Owners);
         builder.Services.AddTransient<DotCast.Infrastructure.Persistence.Marten.StorageConfiguration.IStorageConfiguration, DotCast.Library.Storage.AudioBookStorageConfiguration>();
+        builder.Services.AddTransient<DotCast.Infrastructure.Persistence.Marten.StorageConfiguration.IStorageConfiguration, DotCast.Library.Storage.AudioBookPlaybackStorageConfiguration>();
+        builder.Services.AddTransient<DotCast.Infrastructure.Persistence.Marten.StorageConfiguration.IStorageConfiguration, DotCast.Library.Storage.UserAudioBookStorageConfiguration>();
         builder.Services.AddScoped<DotCast.Infrastructure.Persistence.Repositories.IReadOnlyRepository<DotCast.SharedKernel.Models.AudioBook>, AudioBookRepository>();
         builder.Services.AddScoped<DotCast.Infrastructure.Persistence.Repositories.IRepository<DotCast.SharedKernel.Models.AudioBook>, AudioBookRepository>();
         builder.Services.AddNpgsqlDataSource(database.GetConnectionString());
@@ -65,6 +70,18 @@ public sealed class McpHostFixture : IAsyncLifetime
             o.Discovery.DisableConventionalDiscovery();
             o.Discovery.IncludeType<SearchAudioBooksHandler>();
             o.Discovery.IncludeType<DotCast.Library.Handlers.AudioBooksRetrievalRequestHandler>();
+            o.Discovery.IncludeType<DotCast.Library.Handlers.AudioBookLibraryRequestHandler>();
+            o.Discovery.IncludeType<DotCast.Library.Handlers.BooksToRateRequestHandler>();
+            o.Discovery.IncludeType<DotCast.Library.Handlers.RateAudioBookRequestHandler>();
+            o.Discovery.IncludeType<DotCast.Library.Handlers.SetAudioBookListenedRequestHandler>();
+            o.Discovery.IncludeType<DotCast.Library.Handlers.AudioBookNotFinishedRequestHandler>();
+            o.Discovery.IncludeType<DotCast.Library.Handlers.AudioBookPlaybackMarkedFinishedHandler>();
+            o.Discovery.IncludeType<DotCast.Library.Handlers.AudioBookPlaybackMarkedUnfinishedHandler>();
+            o.Discovery.IncludeType<DotCast.Library.Handlers.AudioBookPlaybackNotFinishedConfirmedHandler>();
+            o.LocalQueue("playback-events").Sequential();
+            o.PublishMessage<DotCast.SharedKernel.Messages.AudioBookPlaybackMarkedFinished>().ToLocalQueue("playback-events");
+            o.PublishMessage<DotCast.SharedKernel.Messages.AudioBookPlaybackMarkedUnfinished>().ToLocalQueue("playback-events");
+            o.PublishMessage<DotCast.SharedKernel.Messages.AudioBookPlaybackNotFinishedConfirmed>().ToLocalQueue("playback-events");
             o.Discovery.IncludeType<DotCast.Library.Handlers.AudioBookDetailRequestHandler>();
             o.Discovery.IncludeType<GetAudioBookMetadataHandler>();
             o.Discovery.IncludeType<DotCast.BookInfoProvider.AudiobookInfoSuggestionsRequestHandler>();

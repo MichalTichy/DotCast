@@ -222,4 +222,9 @@
   <data name="Yes" xml:space="preserve"><value>Yes</value></data>
   <data name="YourCode" xml:space="preserve"><value>Your library code</value></data>
   <data name="YourLibrary" xml:space="preserve"><value>Your library</value></data>
+  <data name="Listened" xml:space="preserve"><value>✓ Listened</value></data>
+  <data name="InProgress" xml:space="preserve"><value>◐ In progress</value></data>
+  <data name="Listening" xml:space="preserve"><value>Listening</value></data>
+  <data name="RssPollDays" xml:space="preserve"><value>RSS poll days</value></data>
+  <data name="LikelyFinished" xml:space="preserve"><value>Likely finished</value></data>
 </root>

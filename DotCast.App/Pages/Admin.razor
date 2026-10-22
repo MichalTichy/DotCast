@@ -35,6 +35,8 @@
                             <div><dt>@Ux.Text("User")</dt><dd>@playback.UserName</dd></div><div><dt>@Ux.Text("Status")</dt><dd>@PlaybackLabel(playback.Status)</dd></div>
                             <div><dt>@Ux.Text("LastFeed")</dt><dd>@Timestamp(playback.LastRssGeneratedAt)</dd></div><div><dt>@Ux.Text("LastDownload")</dt><dd>@Timestamp(playback.LastFileDownloadedAt)</dd></div>
                             <div><dt>@Ux.Text("FinalDownloaded")</dt><dd>@Ux.Text(playback.HasDownloadedFinalFile ? "Yes" : "No")</dd></div>
+                            <div><dt>@Ux.Text("RssPollDays")</dt><dd>@playback.RssPollDayCount</dd></div>
+                            <div><dt>@Ux.Text("LikelyFinished")</dt><dd>@(playback.LikelyFinished.IsLikelyFinished ? playback.LikelyFinished.Reason : Ux.Text("No"))</dd></div>
                         </dl><button class="secondary-action" @onclick="() => PendingPlayback = playback" disabled="@IsBusy">@Ux.Text("MarkFinished")</button></article>
                     }
                 </div>

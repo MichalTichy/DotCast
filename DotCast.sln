@@ -129,6 +129,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotCast.Infrastructure.ApiK
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotCast.Infrastructure.ApiKeys.Tests", "DotCast.Infrastructure.ApiKeys.Tests\DotCast.Infrastructure.ApiKeys.Tests.csproj", "{214D9913-4753-4560-9834-E4F876314C59}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotCast.Library.Tests", "DotCast.Library.Tests\DotCast.Library.Tests.csproj", "{B9D8D90F-AB08-489E-A3F0-905CC52F5B66}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -751,6 +753,18 @@ Global
 		{214D9913-4753-4560-9834-E4F876314C59}.Release|x64.Build.0 = Release|Any CPU
 		{214D9913-4753-4560-9834-E4F876314C59}.Release|x86.ActiveCfg = Release|Any CPU
 		{214D9913-4753-4560-9834-E4F876314C59}.Release|x86.Build.0 = Release|Any CPU
+		{B9D8D90F-AB08-489E-A3F0-905CC52F5B66}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B9D8D90F-AB08-489E-A3F0-905CC52F5B66}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B9D8D90F-AB08-489E-A3F0-905CC52F5B66}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B9D8D90F-AB08-489E-A3F0-905CC52F5B66}.Debug|x64.Build.0 = Debug|Any CPU
+		{B9D8D90F-AB08-489E-A3F0-905CC52F5B66}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B9D8D90F-AB08-489E-A3F0-905CC52F5B66}.Debug|x86.Build.0 = Debug|Any CPU
+		{B9D8D90F-AB08-489E-A3F0-905CC52F5B66}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B9D8D90F-AB08-489E-A3F0-905CC52F5B66}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B9D8D90F-AB08-489E-A3F0-905CC52F5B66}.Release|x64.ActiveCfg = Release|Any CPU
+		{B9D8D90F-AB08-489E-A3F0-905CC52F5B66}.Release|x64.Build.0 = Release|Any CPU
+		{B9D8D90F-AB08-489E-A3F0-905CC52F5B66}.Release|x86.ActiveCfg = Release|Any CPU
+		{B9D8D90F-AB08-489E-A3F0-905CC52F5B66}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
