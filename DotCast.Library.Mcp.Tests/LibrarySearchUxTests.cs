@@ -10,6 +10,54 @@ namespace DotCast.Library.Mcp.Tests;
 public class LibrarySearchUxTests(McpHostFixture fixture) : IClassFixture<McpHostFixture>
 {
     [Fact]
+    public async Task Rating_candidates_exclude_inaccessible_books_even_with_playback_history()
+    {
+        var visible = MetadataPatchTests.Book("rate-visible", "own");
+        var hidden = MetadataPatchTests.Book("rate-hidden", "foreign");
+        await using (var session = fixture.App.Services.GetRequiredService<IDocumentStore>().LightweightSession(CurrentTenancyProviderNoTenancy.NoTenancyName))
+        {
+            session.Store(visible, hidden);
+            foreach (var book in new[] { visible, hidden })
+            {
+                var playback = AudioBookPlayback.Create(book.Id, "owner");
+                playback.MarkFinished(DateTime.UtcNow);
+                session.Store(playback);
+            }
+            await session.SaveChangesAsync();
+        }
+
+        var candidates = await fixture.RunAsAsync("owner", messenger => messenger.RequestAsync<BooksToRateRequest, IReadOnlyList<BookToRateItem>>(new()));
+
+        Assert.Contains(candidates, item => item.AudioBookId == visible.Id);
+        Assert.DoesNotContain(candidates, item => item.AudioBookId == hidden.Id);
+    }
+
+    [Fact]
+    public async Task Rating_is_committed_with_playback_before_the_library_is_reloaded()
+    {
+        var book = MetadataPatchTests.Book("rating-refresh", "own");
+        book.Rating = 90;
+        await using (var session = fixture.App.Services.GetRequiredService<IDocumentStore>().LightweightSession(CurrentTenancyProviderNoTenancy.NoTenancyName))
+        {
+            session.Store(book);
+            await session.SaveChangesAsync();
+        }
+
+        await fixture.RunAsAsync("owner", async messenger =>
+        {
+            await messenger.ExecuteAsync(new RateAudioBookRequest(book.Id, 3));
+            return true;
+        });
+        var library = await fixture.RunAsAsync("owner", messenger => messenger.RequestAsync<AudioBookLibraryRequest, AudioBookLibrary>(new(new(MinRating: 80))));
+
+        Assert.DoesNotContain(library.AudioBooks, item => item.Id == book.Id);
+        Assert.Equal(3, library.UserStates[book.Id].Rating);
+        Assert.Equal(ListeningState.Finished, library.UserStates[book.Id].ListeningState);
+        var other = await fixture.RunAsAsync("other", messenger => messenger.RequestAsync<AudioBookLibraryRequest, AudioBookLibrary>(new()));
+        Assert.DoesNotContain(book.Id, other.UserStates.Keys);
+    }
+
+    [Fact]
     public async Task Search_matches_titles_without_description_mentions_and_ignores_accents()
     {
         var target = MetadataPatchTests.Book("ux-title", "own");

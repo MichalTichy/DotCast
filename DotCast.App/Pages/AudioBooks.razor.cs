@@ -1,4 +1,5 @@
 using Blazorise;
+using DotCast.App.Services;
 using DotCast.App.Shared;
 using DotCast.Infrastructure.Messaging.Base;
 using DotCast.Library;
@@ -28,10 +29,15 @@ namespace DotCast.App.Pages
         [Inject]
         public required IMessagePublisher Messenger { get; set; }
 
+        [Inject]
+        public required BooksToRateService BooksToRate { get; set; }
+
         public IReadOnlyList<AudioBook> Data { get; set; } = [];
         public AudioBookLibraryFacets Facets { get; set; } = new([], [], []);
         public AudioBooksStatistics AudioBooksStatistics { get; set; } = new(0, 0, TimeSpan.Zero);
         public AudioBook? SelectedAudioBook { get; set; }
+        public FeaturedAudioBook? Featured { get; set; }
+        private IReadOnlyDictionary<string, AudioBookUserState> UserStates { get; set; } = new Dictionary<string, AudioBookUserState>();
 
         private string? SearchText { get; set; }
         private string? AuthorFacetSearchText { get; set; }
@@ -42,9 +48,12 @@ namespace DotCast.App.Pages
         private int? MaxRating { get; set; }
         private int? MinDurationMinutes { get; set; }
         private int? MaxDurationMinutes { get; set; }
+        private ListeningStateFilter ListeningState { get; set; }
         private bool IsLoading { get; set; }
         private bool IsDeleting { get; set; }
         private string? DeleteMessage { get; set; }
+        private string? UserActionMessage { get; set; }
+        private bool IsSavingUserAction { get; set; }
 
         private IEnumerable<string> FilteredAuthors => FilterFacets(Facets.Authors, AuthorFacetSearchText);
         private IEnumerable<string> FilteredCategories => FilterFacets(Facets.Categories, CategoryFacetSearchText);
@@ -65,7 +74,8 @@ namespace DotCast.App.Pages
             MinRating,
             MaxRating,
             MinDurationMinutes,
-            MaxDurationMinutes);
+            MaxDurationMinutes,
+            ListeningState);
 
         private bool HasActiveFilters => CurrentFilter.HasActiveFilters;
         private bool FiltersOpen { get; set; }
@@ -78,11 +88,11 @@ namespace DotCast.App.Pages
         private int loadVersion;
         private bool restoreBrowsingContext = true;
         private string LibraryUrl => new Uri(NavigationManager.Uri).PathAndQuery;
-        private int ActiveFilterCount => SelectedAuthors.Count + SelectedCategories.Count + (string.IsNullOrWhiteSpace(SearchText) ? 0 : 1) + (MinRating != null || MaxRating != null ? 1 : 0) + (HasDurationFilter ? 1 : 0);
+        private int ActiveFilterCount => SelectedAuthors.Count + SelectedCategories.Count + (string.IsNullOrWhiteSpace(SearchText) ? 0 : 1) + (MinRating != null || MaxRating != null ? 1 : 0) + (HasDurationFilter ? 1 : 0) + (ListeningState != ListeningStateFilter.Any ? 1 : 0);
         private IEnumerable<AudioBook> SortedBooks => Sort switch
         {
             "title" => Data.OrderBy(b => b.AudioBookInfo.Name),
-            "rating" => Data.OrderByDescending(b => b.Rating).ThenBy(b => b.AudioBookInfo.Name),
+            "rating" => Data.OrderByDescending(b => GetState(b).DisplayedRating.ToPercent()).ThenBy(b => b.AudioBookInfo.Name),
             "duration" => Data.OrderBy(b => b.AudioBookInfo.Duration).ThenBy(b => b.AudioBookInfo.Name),
             "recent" => Data.OrderByDescending(b => b.AddedAtUtc).ThenBy(b => b.AudioBookInfo.Name),
             _ => Data.OrderBy(b => b.AudioBookInfo.AuthorName).ThenBy(b => b.AudioBookInfo.SeriesName)
@@ -115,6 +125,21 @@ namespace DotCast.App.Pages
             try { FeedUrl = await LibraryApiInfoProvider.GetFeedUrlAsync(book.Id); ActionMessage = null; }
             catch (Exception) { ActionMessage = Ux.Text("FeedFailed"); }
         }
+
+        private AudioBookUserState GetState(AudioBook audioBook)
+        {
+            return UserStates.TryGetValue(audioBook.Id, out var state)
+                ? state
+                : new AudioBookUserState(audioBook.Id, SharedKernel.Models.ListeningState.Unplayed, null, false, DisplayedRating.From(audioBook, null));
+        }
+
+        private string RatingText(AudioBook audioBook) => GetState(audioBook).DisplayedRating.IsPersonal
+            ? GetState(audioBook).DisplayedRating.ToString()
+            : Ux.Rating(audioBook.Rating);
+
+        private string FeaturedEyebrow => Featured?.Reason == FeaturedAudioBookReason.NextInSeries
+            ? $"Continue the series · after {Featured.ContinuesAudioBookName}"
+            : "Recommended for you";
 
         public async Task CopyRssAsync(AudioBook info)
         {
@@ -171,6 +196,8 @@ namespace DotCast.App.Pages
         {
             await base.OnInitializedAsync();
             NavigationManager.LocationChanged += OnLocationChanged;
+            BooksToRate.Changed += OnBooksToRateChanged;
+            BooksToRate.AudioBookChanged += OnAudioBookChanged;
             ReadFilterFromUrl();
             await Task.WhenAll(LoadStatistics(), LoadFacets(), LoadData());
         }
@@ -178,6 +205,8 @@ namespace DotCast.App.Pages
         public override async ValueTask DisposeAsync()
         {
             NavigationManager.LocationChanged -= OnLocationChanged;
+            BooksToRate.Changed -= OnBooksToRateChanged;
+            BooksToRate.AudioBookChanged -= OnAudioBookChanged;
             typingTimer?.Dispose();
             await base.DisposeAsync();
         }
@@ -188,6 +217,13 @@ namespace DotCast.App.Pages
             ReadFilterFromUrl();
             _ = InvokeAsync(LoadData);
         }
+
+        private void OnBooksToRateChanged()
+        {
+            _ = SaveStateHasChangedAsync();
+        }
+
+        private Task OnAudioBookChanged() => InvokeAsync(LoadData);
 
         private async Task LoadStatistics()
         {
@@ -212,9 +248,14 @@ namespace DotCast.App.Pages
             await SaveStateHasChangedAsync();
             try
             {
-                var data = await Messenger.RequestAsync<AudioBooksRetrievalRequest, IReadOnlyList<AudioBook>>(
-                    new AudioBooksRetrievalRequest(CurrentFilter), PageCancellationTokenSource.Token);
-                if (version == loadVersion) Data = data;
+                var library = await Messenger.RequestAsync<AudioBookLibraryRequest, AudioBookLibrary>(
+                    new AudioBookLibraryRequest(CurrentFilter), PageCancellationTokenSource.Token);
+                if (version == loadVersion)
+                {
+                    Data = library.AudioBooks;
+                    UserStates = library.UserStates;
+                    Featured = library.Featured;
+                }
             }
             catch (Exception) when (!PageCancellationTokenSource.IsCancellationRequested)
             { if (version == loadVersion) LoadMessage = Ux.Text("LoadFailed"); }
@@ -222,6 +263,64 @@ namespace DotCast.App.Pages
             {
                 if (version == loadVersion && !PageCancellationTokenSource.IsCancellationRequested)
                 { IsLoading = false; await SaveStateHasChangedAsync(); }
+            }
+        }
+
+        private async Task OpenBooksToRateAsync()
+        {
+            await BooksToRate.OpenAsync(PageCancellationTokenSource.Token);
+        }
+
+        private async Task RateSelectedAsync(int? rating)
+        {
+            if (SelectedAudioBook is not { } audioBook)
+            {
+                return;
+            }
+
+            await RunUserActionAsync(() => rating.HasValue
+                ? Messenger.ExecuteAsync(new RateAudioBookRequest(audioBook.Id, rating.Value), PageCancellationTokenSource.Token)
+                : Messenger.ExecuteAsync(new ClearAudioBookRatingRequest(audioBook.Id), PageCancellationTokenSource.Token));
+        }
+
+        private async Task ToggleListenedAsync()
+        {
+            if (SelectedAudioBook is not { } audioBook)
+            {
+                return;
+            }
+
+            var listened = GetState(audioBook).ListeningState != SharedKernel.Models.ListeningState.Finished;
+            await RunUserActionAsync(() => Messenger.ExecuteAsync(
+                new SetAudioBookListenedRequest(audioBook.Id, listened), PageCancellationTokenSource.Token));
+        }
+
+        private async Task SetInterestAsync(AudioBook audioBook, bool interested)
+        {
+            await RunUserActionAsync(() => Messenger.ExecuteAsync(
+                new SetAudioBookInterestRequest(audioBook.Id, interested), PageCancellationTokenSource.Token));
+        }
+
+        private async Task RunUserActionAsync(Func<Task> action)
+        {
+            if (IsSavingUserAction) return;
+            IsSavingUserAction = true;
+            UserActionMessage = null;
+            await SaveStateHasChangedAsync();
+
+            try
+            {
+                await action();
+                await BooksToRate.RefreshAfterChangeAsync(PageCancellationTokenSource.Token);
+            }
+            catch (Exception exception) when (!PageCancellationTokenSource.IsCancellationRequested)
+            {
+                UserActionMessage = $"Saving failed: {exception.Message}";
+            }
+            finally
+            {
+                IsSavingUserAction = false;
+                await SaveStateHasChangedAsync();
             }
         }
 
@@ -252,6 +351,12 @@ namespace DotCast.App.Pages
             UpdateUrlFromFilter();
         }
 
+        private void SetListeningState(ListeningStateFilter listeningState)
+        {
+            ListeningState = ListeningState == listeningState ? ListeningStateFilter.Any : listeningState;
+            UpdateUrlFromFilter();
+        }
+
         private void SetDurationRange(RangeSliderValue<int> value)
         {
             var start = Math.Min(value.Start, value.End);
@@ -273,6 +378,7 @@ namespace DotCast.App.Pages
             MaxRating = null;
             MinDurationMinutes = null;
             MaxDurationMinutes = null;
+            ListeningState = ListeningStateFilter.Any;
             UpdateUrlFromFilter();
         }
 
@@ -282,6 +388,7 @@ namespace DotCast.App.Pages
             DeleteMessage = null;
             FeedUrl = null;
             ActionMessage = null;
+            UserActionMessage = null;
         }
 
         private void CloseDetails()
@@ -304,6 +411,7 @@ namespace DotCast.App.Pages
             AddQuery(query, "maxRating", MaxRating?.ToString());
             AddQuery(query, "minDuration", MinDurationMinutes?.ToString());
             AddQuery(query, "maxDuration", MaxDurationMinutes?.ToString());
+            AddQuery(query, "listening", ListeningState == ListeningStateFilter.Any ? null : ListeningState.ToString().ToLowerInvariant());
 
             var url = query.Count == 0 ? "/" : $"/?{string.Join("&", query)}";
             NavigationManager.NavigateTo(url, replace: true);
@@ -328,6 +436,9 @@ namespace DotCast.App.Pages
             MaxRating = query.TryGetValue("maxRating", out var maxRating) && int.TryParse(maxRating, out var max) ? max : null;
             MinDurationMinutes = query.TryGetValue("minDuration", out var minDuration) && int.TryParse(minDuration, out var minDurationValue) ? minDurationValue : null;
             MaxDurationMinutes = query.TryGetValue("maxDuration", out var maxDuration) && int.TryParse(maxDuration, out var maxDurationValue) ? maxDurationValue : null;
+            ListeningState = query.TryGetValue("listening", out var listening) && Enum.TryParse<ListeningStateFilter>(listening, true, out var listeningValue)
+                ? listeningValue
+                : ListeningStateFilter.Any;
 
             if (Facets.MaxDurationMinutes > 0)
             {
