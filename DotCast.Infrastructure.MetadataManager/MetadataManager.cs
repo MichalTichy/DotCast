@@ -196,6 +196,14 @@ namespace DotCast.Infrastructure.MetadataManager
                         continue;
                     }
 
+                    // Covers have no audio tags, and malformed images must not block a save.
+                    var extension = Path.GetExtension(localFileInfo.LocalPath).TrimStart('.').ToLowerInvariant();
+                    if (FileTypes.AvailableTypes.TryGetValue($"taglib/{extension}", out var fileType)
+                        && typeof(TagLib.Image.File).IsAssignableFrom(fileType))
+                    {
+                        continue;
+                    }
+
                     using var file = File.Create(localFileInfo.LocalPath);
                     if (file.Properties.MediaTypes != MediaTypes.Audio && file.Properties.MediaTypes != MediaTypes.Video)
                     {
