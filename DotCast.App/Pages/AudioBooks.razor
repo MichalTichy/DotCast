@@ -261,16 +261,29 @@
 @if (SelectedAudioBook is not null)
 {
     <UxDialog Class="quick-drawer" Label="@SelectedAudioBook.AudioBookInfo.Name" Dismiss="CloseDetails">
-        <button type="button" class="drawer-close" autofocus @onclick="CloseDetails">@Ux.Text("Close")</button>
-        <div class="drawer-hero">
+        <div class="drawer-toolbar">
+            <span>@Ux.Text("AudiobookDetails")</span>
+            <button type="button" class="drawer-close" aria-label="@Ux.Text("Close")" autofocus @onclick="CloseDetails">@Ux.Text("Close") <span aria-hidden="true">×</span></button>
+        </div>
+        <div class="drawer-hero @(string.IsNullOrWhiteSpace(SelectedAudioBook.AudioBookInfo.ImageUrl) ? "without-cover" : "")">
             @if (!string.IsNullOrWhiteSpace(SelectedAudioBook.AudioBookInfo.ImageUrl)) { <img src="@SelectedAudioBook.AudioBookInfo.ImageUrl" alt="" /> }
-            <div><h2>@SelectedAudioBook.AudioBookInfo.Name</h2><p>@SelectedAudioBook.AudioBookInfo.AuthorName</p>
+            <div class="drawer-hero-copy"><h2>@SelectedAudioBook.AudioBookInfo.Name</h2><p>@SelectedAudioBook.AudioBookInfo.AuthorName</p>
                 <div class="media-meta-row"><span class="@(GetState(SelectedAudioBook).DisplayedRating.IsPersonal ? "personal-rating" : "")">@RatingText(SelectedAudioBook)</span><span>@Ux.Duration(SelectedAudioBook.AudioBookInfo.Duration)</span></div>
             </div>
         </div>
         @{
             var selectedState = GetState(SelectedAudioBook);
         }
+
+        <div class="drawer-actions drawer-primary-actions">
+            <button class="primary-action" aria-expanded="@(PodcastOptionsOpen ? "true" : "false")" aria-controls="podcast-options" @onclick="() => PodcastOptionsOpen = !PodcastOptionsOpen">@Ux.Text("AddPodcast")</button>
+            @if (SelectedAudioBook.AudioBookInfo.HasArchive) { <button class="secondary-action" @onclick="() => Download(SelectedAudioBook)">@Ux.Text("DownloadZip")</button> }
+        </div>
+        @if (PodcastOptionsOpen)
+        {
+            <PodcastFeedActions @key="SelectedAudioBook.Id" AudioBookId="@SelectedAudioBook.Id" />
+        }
+
         <section class="drawer-user-panel" aria-label="Your listening">
             <div class="drawer-user-heading">
                 <h3>Your rating</h3>
@@ -295,16 +308,14 @@
             }
         </section>
 
-        <div class="drawer-actions">
-            <button class="primary-action" aria-expanded="@(PodcastOptionsOpen ? "true" : "false")" aria-controls="podcast-options" @onclick="() => PodcastOptionsOpen = !PodcastOptionsOpen">@Ux.Text("AddPodcast")</button>
-            @if (SelectedAudioBook.AudioBookInfo.HasArchive) { <button class="secondary-action" @onclick="() => Download(SelectedAudioBook)">@Ux.Text("DownloadZip")</button> }
-        </div>
-        @if (PodcastOptionsOpen)
+        @if (SelectedAudioBook.AudioBookInfo.Categories.Count > 0)
         {
-            <PodcastFeedActions @key="SelectedAudioBook.Id" AudioBookId="@SelectedAudioBook.Id" />
+            <div class="drawer-tags">@foreach (var category in SelectedAudioBook.AudioBookInfo.Categories) { <span>@category.Name</span> }</div>
         }
-        <div class="drawer-tags">@foreach (var category in SelectedAudioBook.AudioBookInfo.Categories) { <span>@category.Name</span> }</div>
-        <details class="synopsis"><summary>@Ux.Text("Synopsis")</summary><p class="drawer-description">@SelectedAudioBook.AudioBookInfo.Description</p></details>
+        @if (!string.IsNullOrWhiteSpace(SelectedAudioBook.AudioBookInfo.Description))
+        {
+            <details class="synopsis"><summary>@Ux.Text("Synopsis")</summary><p class="drawer-description">@SelectedAudioBook.AudioBookInfo.Description</p></details>
+        }
         <div class="drawer-actions drawer-secondary-actions">
             <button class="secondary-action" @onclick="() => EditBookAsync(SelectedAudioBook)">@Ux.Text("Edit")</button>
             <button class="danger-action" @onclick="() => DeleteAudioBook(SelectedAudioBook)" disabled="@IsDeleting">@Ux.Text(IsDeleting ? "Deleting" : "Delete")</button>

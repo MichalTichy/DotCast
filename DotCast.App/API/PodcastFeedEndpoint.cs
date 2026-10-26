@@ -27,6 +27,6 @@ public class PodcastFeedEndpoint(ILibraryApiInformationProvider libraryApiInfoPr
             PodcastPlayer.AntennaPod => $"https://antennapod.org/deeplink/subscribe?url={Uri.EscapeDataString(feedUrl)}",
             _ => throw new ArgumentOutOfRangeException(nameof(player))
         };
-        return Redirect(playerUrl);
+        return Content(playerUrl, "text/plain");
     }
 }

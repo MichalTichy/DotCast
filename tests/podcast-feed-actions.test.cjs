@@ -138,3 +138,89 @@ test('repeated clicks while preparing create only one feed request', async () =>
     await first;
     assert.equal(ui.status.textContent, 'Copied');
 });
+
+function setupPlayer() {
+    const response = deferred();
+    const output = { hidden: true };
+    const link = {
+        textContent: '', focused: false,
+        removeAttribute(name) { delete this[name]; },
+        focus() { this.focused = true; },
+        scrollIntoView() {},
+        click() { throw new Error('App navigation must wait for a real user tap.'); }
+    };
+    const status = { textContent: '' };
+    const buttons = ['Overcast', 'PocketCasts', 'AntennaPod'].map(player => ({
+        disabled: false,
+        dataset: {
+            playerEndpoint: '/api/audiobooks/book/podcast-feed?player=' + player,
+            preparing: 'Preparing', failed: 'Failed', continue: 'Continue to ' + player,
+            ready: 'Tap Continue to ' + player
+        },
+        closest() { return panel; }
+    }));
+    const elements = { '[data-player-output]': output, '[data-player-link]': link, '[data-feed-status]': status };
+    const panel = { querySelector: selector => elements[selector], querySelectorAll: () => buttons };
+    const requests = [];
+    const context = {
+        window: { open() { throw new Error('Opening an app must not create a new tab.'); } },
+        document: { addEventListener() {} },
+        fetch(url, options) { requests.push({ url, options }); return response.promise; }
+    };
+    vm.runInNewContext(source, context);
+    return { response, output, link, status, buttons, requests, prepare: button => context.window.DotCastUi.preparePodcastPlayer(button) };
+}
+
+test('player preparation is lazy and leaves a direct link for a real tap without opening a tab', async () => {
+    const ui = setupPlayer();
+    assert.equal(ui.requests.length, 0);
+    const pending = ui.prepare(ui.buttons[0]);
+    assert.equal(ui.requests.length, 1);
+    assert.equal(ui.output.hidden, true);
+    assert.equal(ui.link.href, undefined);
+    assert.equal(ui.status.textContent, 'Preparing');
+    const playerUrl = 'overcast://x-callback-url/add?url=' + encodeURIComponent(feedUrl);
+    ui.response.resolve({ ok: true, text: async () => playerUrl });
+    await pending;
+    assert.equal(ui.output.hidden, false);
+    assert.equal(ui.link.href, playerUrl);
+    assert.equal(ui.link.textContent, 'Continue to Overcast');
+    assert.equal(ui.link.focused, true);
+    assert.equal(ui.status.textContent, 'Tap Continue to Overcast');
+    assert.equal(ui.requests[0].options.redirect, 'error');
+    assert.equal(ui.requests[0].options.cache, 'no-store');
+});
+
+test('a pending player request prevents another app selection from replacing it out of order', async () => {
+    const ui = setupPlayer();
+    const pending = ui.prepare(ui.buttons[0]);
+    assert.equal(ui.buttons.every(button => button.disabled), true);
+    await ui.prepare(ui.buttons[1]);
+    assert.equal(ui.requests.length, 1);
+    ui.response.resolve({ ok: true, text: async () => 'overcast://x-callback-url/add?url=feed' });
+    await pending;
+    assert.equal(ui.buttons.every(button => !button.disabled), true);
+});
+
+test('a failed player request removes stale launch links and leaves retry available', async () => {
+    const ui = setupPlayer();
+    ui.link.href = 'overcast://old-feed';
+    ui.output.hidden = false;
+    const pending = ui.prepare(ui.buttons[0]);
+    ui.response.resolve({ ok: false, status: 503 });
+    await pending;
+    assert.equal(ui.link.href, undefined);
+    assert.equal(ui.output.hidden, true);
+    assert.equal(ui.status.textContent, 'Failed');
+    assert.equal(ui.buttons.every(button => !button.disabled), true);
+});
+
+test('player preparation reports network and authentication redirect errors without navigating', async () => {
+    const ui = setupPlayer();
+    const pending = ui.prepare(ui.buttons[0]);
+    ui.response.reject(new Error('Failed to fetch'));
+    await pending;
+    assert.equal(ui.output.hidden, true);
+    assert.equal(ui.link.href, undefined);
+    assert.equal(ui.status.textContent, 'Failed');
+});
