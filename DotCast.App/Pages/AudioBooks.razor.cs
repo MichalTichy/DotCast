@@ -84,6 +84,17 @@ namespace DotCast.App.Pages
         private readonly HashSet<string> ExpandedAuthors = [];
         private string? LoadMessage { get; set; }
         private string? FeedUrl { get; set; }
+        private string? OvercastUrl => FeedUrl is null ? null : $"overcast://x-callback-url/add?url={Uri.EscapeDataString(FeedUrl)}";
+        private string? AntennaPodUrl => FeedUrl is null ? null : $"https://antennapod.org/deeplink/subscribe?url={Uri.EscapeDataString(FeedUrl)}";
+        private string? PocketCastsUrl
+        {
+            get
+            {
+                if (FeedUrl is null) return null;
+                var feedUri = new Uri(FeedUrl);
+                return $"pktc://subscribe/{feedUri.Authority}{feedUri.PathAndQuery}";
+            }
+        }
         private string? ActionMessage { get; set; }
         private int loadVersion;
         private bool restoreBrowsingContext = true;

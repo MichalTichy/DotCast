@@ -303,7 +303,12 @@
         {
             <section class="feed-help"><h3>@Ux.Text("PodcastInstructionsTitle")</h3><p>@Ux.Text("PodcastInstructions")</p>
                 <label for="feed-url">@Ux.Text("FeedUrl")</label><input id="feed-url" class="form-control" value="@FeedUrl" readonly />
-                <button class="secondary-action" @onclick="() => CopyRssAsync(SelectedAudioBook)">@Ux.Text("CopyFeed")</button>
+                <div class="feed-actions">
+                    <button class="secondary-action" @onclick="() => CopyRssAsync(SelectedAudioBook)">@Ux.Text("CopyFeed")</button>
+                    <a class="secondary-action" href="@OvercastUrl" rel="noreferrer">@Ux.Format("OpenInPodcastApp", "Overcast")</a>
+                    <a class="secondary-action" href="@PocketCastsUrl" rel="noreferrer">@Ux.Format("OpenInPodcastApp", "Pocket Casts")</a>
+                    <a class="secondary-action" href="@AntennaPodUrl" rel="noreferrer">@Ux.Format("OpenInPodcastApp", "AntennaPod")</a>
+                </div>
             </section>
         }
         <p role="status" aria-live="polite">@ActionMessage</p>
