@@ -42,6 +42,14 @@ window.DotCastUi = {
         try { await navigator.clipboard.writeText(text); return true; }
         catch { return false; }
     },
+    openPodcast(url) {
+        const link = document.createElement('a');
+        link.href = url;
+        link.rel = 'noreferrer';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+    },
     saveLibrary(url) {
         const rails = [...document.querySelectorAll('[data-rail]')].map(element => [element.dataset.rail, element.scrollLeft]);
         const sections = [...document.querySelectorAll('.library-filters details')].map(element => element.open);

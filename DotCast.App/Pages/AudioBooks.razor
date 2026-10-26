@@ -296,14 +296,22 @@
         </section>
 
         <div class="drawer-actions">
-            <button class="primary-action" @onclick="() => PrepareFeedAsync(SelectedAudioBook)">@Ux.Text("AddPodcast")</button>
+            <button class="primary-action" aria-expanded="@(PodcastOptionsOpen ? "true" : "false")" aria-controls="podcast-options" @onclick="() => PodcastOptionsOpen = !PodcastOptionsOpen">@Ux.Text("AddPodcast")</button>
             @if (SelectedAudioBook.AudioBookInfo.HasArchive) { <button class="secondary-action" @onclick="() => Download(SelectedAudioBook)">@Ux.Text("DownloadZip")</button> }
         </div>
-        @if (FeedUrl is not null)
+        @if (PodcastOptionsOpen)
         {
-            <section class="feed-help"><h3>@Ux.Text("PodcastInstructionsTitle")</h3><p>@Ux.Text("PodcastInstructions")</p>
-                <label for="feed-url">@Ux.Text("FeedUrl")</label><input id="feed-url" class="form-control" value="@FeedUrl" readonly />
-                <button class="secondary-action" @onclick="() => CopyRssAsync(SelectedAudioBook)">@Ux.Text("CopyFeed")</button>
+            <section id="podcast-options" class="feed-help"><h3>@Ux.Text("PodcastInstructionsTitle")</h3><p>@Ux.Text("PodcastInstructions")</p>
+                @if (FeedUrl is not null)
+                {
+                    <label for="feed-url">@Ux.Text("FeedUrl")</label><input id="feed-url" class="form-control" value="@FeedUrl" readonly />
+                }
+                <div class="feed-actions">
+                    <button class="secondary-action" @onclick="() => CopyRssAsync(SelectedAudioBook)">@Ux.Text("CopyFeed")</button>
+                    <button class="secondary-action" @onclick="() => OpenPodcastAsync(SelectedAudioBook, PodcastPlayer.Overcast)">@Ux.Format("OpenInPodcastApp", "Overcast")</button>
+                    <button class="secondary-action" @onclick="() => OpenPodcastAsync(SelectedAudioBook, PodcastPlayer.PocketCasts)">@Ux.Format("OpenInPodcastApp", "Pocket Casts")</button>
+                    <button class="secondary-action" @onclick="() => OpenPodcastAsync(SelectedAudioBook, PodcastPlayer.AntennaPod)">@Ux.Format("OpenInPodcastApp", "AntennaPod")</button>
+                </div>
             </section>
         }
         <p role="status" aria-live="polite">@ActionMessage</p>
