@@ -137,6 +137,8 @@
   <data name="Playback_InProgress" xml:space="preserve"><value>Downloading files</value></data>
   <data name="Playback_InfoRetrieved" xml:space="preserve"><value>Feed requested</value></data>
   <data name="OpenInPodcastApp" xml:space="preserve"><value>Open in {0}</value></data>
+  <data name="ContinueInPodcastApp" xml:space="preserve"><value>Continue to {0}</value></data>
+  <data name="PodcastAppReady" xml:space="preserve"><value>Tap Continue to {0} below to open the app. If it does not open, use Copy feed link.</value></data>
   <data name="PodcastInstructions" xml:space="preserve"><value>Copy the feed link into your podcast app, or open an installed app below. To add the link manually, choose Add a show by URL (or Add RSS feed) in your app. Keep this personal link private.</value></data>
   <data name="PodcastInstructionsTitle" xml:space="preserve"><value>Listen in your podcast app</value></data>
   <data name="PreparingFeed" xml:space="preserve"><value>Preparing feed link…</value></data>

@@ -9,9 +9,18 @@
         <button type="button" class="secondary-action" onclick="DotCastUi.copyPodcastFeed(this)"
                 data-feed-endpoint="@FeedEndpoint" data-preparing="@Ux.Text("PreparingFeed")"
                 data-copied="@Ux.Text("FeedCopied")" data-copy-manually="@Ux.Text("CopyManually")" data-failed="@Ux.Text("FeedFailed")">@Ux.Text("CopyFeed")</button>
-        <a class="secondary-action" href="@PlayerEndpoint(PodcastPlayer.Overcast)" target="_blank" rel="noopener noreferrer">@Ux.Format("OpenInPodcastApp", "Overcast")</a>
-        <a class="secondary-action" href="@PlayerEndpoint(PodcastPlayer.PocketCasts)" target="_blank" rel="noopener noreferrer">@Ux.Format("OpenInPodcastApp", "Pocket Casts")</a>
-        <a class="secondary-action" href="@PlayerEndpoint(PodcastPlayer.AntennaPod)" target="_blank" rel="noopener noreferrer">@Ux.Format("OpenInPodcastApp", "AntennaPod")</a>
+        <button type="button" class="secondary-action" onclick="DotCastUi.preparePodcastPlayer(this)"
+                data-player-endpoint="@PlayerEndpoint(PodcastPlayer.Overcast)" data-preparing="@Ux.Text("PreparingFeed")" data-failed="@Ux.Text("FeedFailed")"
+                data-continue="@Ux.Format("ContinueInPodcastApp", "Overcast")" data-ready="@Ux.Format("PodcastAppReady", "Overcast")">@Ux.Format("OpenInPodcastApp", "Overcast")</button>
+        <button type="button" class="secondary-action" onclick="DotCastUi.preparePodcastPlayer(this)"
+                data-player-endpoint="@PlayerEndpoint(PodcastPlayer.PocketCasts)" data-preparing="@Ux.Text("PreparingFeed")" data-failed="@Ux.Text("FeedFailed")"
+                data-continue="@Ux.Format("ContinueInPodcastApp", "Pocket Casts")" data-ready="@Ux.Format("PodcastAppReady", "Pocket Casts")">@Ux.Format("OpenInPodcastApp", "Pocket Casts")</button>
+        <button type="button" class="secondary-action" onclick="DotCastUi.preparePodcastPlayer(this)"
+                data-player-endpoint="@PlayerEndpoint(PodcastPlayer.AntennaPod)" data-preparing="@Ux.Text("PreparingFeed")" data-failed="@Ux.Text("FeedFailed")"
+                data-continue="@Ux.Format("ContinueInPodcastApp", "AntennaPod")" data-ready="@Ux.Format("PodcastAppReady", "AntennaPod")">@Ux.Format("OpenInPodcastApp", "AntennaPod")</button>
     </div>
     <p data-feed-status role="status" aria-live="polite"></p>
+    <div data-player-output hidden>
+        <a class="primary-action" data-player-link rel="noreferrer"></a>
+    </div>
 </section>

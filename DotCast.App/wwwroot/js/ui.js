@@ -85,6 +85,36 @@ window.DotCastUi = {
             button.disabled = false;
         }
     },
+    async preparePodcastPlayer(button) {
+        if (button.disabled) return;
+        const panel = button.closest('[data-podcast-feed]');
+        const output = panel.querySelector('[data-player-output]');
+        const link = panel.querySelector('[data-player-link]');
+        const status = panel.querySelector('[data-feed-status]');
+        const playerButtons = panel.querySelectorAll('[data-player-endpoint]');
+        playerButtons.forEach(control => control.disabled = true);
+        output.hidden = true;
+        link.removeAttribute('href');
+        link.textContent = '';
+        status.textContent = button.dataset.preparing;
+
+        try {
+            const response = await fetch(button.dataset.playerEndpoint, {
+                credentials: 'same-origin', cache: 'no-store', redirect: 'error'
+            });
+            if (!response.ok) throw new Error('Player link request failed.');
+            link.href = await response.text();
+            link.textContent = button.dataset.continue;
+            status.textContent = button.dataset.ready;
+            output.hidden = false;
+            // The next real tap follows the custom scheme without an async hop or popup.
+            link.focus();
+        } catch {
+            status.textContent = button.dataset.failed;
+        } finally {
+            playerButtons.forEach(control => control.disabled = false);
+        }
+    },
     saveLibrary(url) {
         const rails = [...document.querySelectorAll('[data-rail]')].map(element => [element.dataset.rail, element.scrollLeft]);
         const sections = [...document.querySelectorAll('.library-filters details')].map(element => element.open);
