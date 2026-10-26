@@ -108,7 +108,8 @@ window.DotCastUi = {
             status.textContent = button.dataset.ready;
             output.hidden = false;
             // The next real tap follows the custom scheme without an async hop or popup.
-            link.focus();
+            link.focus({ preventScroll: true });
+            link.scrollIntoView({ block: 'nearest' });
         } catch {
             status.textContent = button.dataset.failed;
         } finally {

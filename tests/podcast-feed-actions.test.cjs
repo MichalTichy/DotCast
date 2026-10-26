@@ -146,6 +146,7 @@ function setupPlayer() {
         textContent: '', focused: false,
         removeAttribute(name) { delete this[name]; },
         focus() { this.focused = true; },
+        scrollIntoView() {},
         click() { throw new Error('App navigation must wait for a real user tap.'); }
     };
     const status = { textContent: '' };
