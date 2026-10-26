@@ -139,6 +139,7 @@
   <data name="OpenInPodcastApp" xml:space="preserve"><value>Open in {0}</value></data>
   <data name="PodcastInstructions" xml:space="preserve"><value>Copy the feed link into your podcast app, or open an installed app below. To add the link manually, choose Add a show by URL (or Add RSS feed) in your app. Keep this personal link private.</value></data>
   <data name="PodcastInstructionsTitle" xml:space="preserve"><value>Listen in your podcast app</value></data>
+  <data name="PreparingFeed" xml:space="preserve"><value>Preparing feed link…</value></data>
   <data name="ProcessingCheckFailed" xml:space="preserve"><value>Processing status could not be checked. Return to the library to find the audiobook.</value></data>
   <data name="ProcessingHistoryHelp" xml:space="preserve"><value>Shows the latest 200 book outcomes since this app instance started. Failed jobs need administrator investigation.</value></data>
   <data name="ProcessingIdle" xml:space="preserve"><value>Processing is idle</value></data>

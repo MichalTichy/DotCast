@@ -301,20 +301,8 @@
         </div>
         @if (PodcastOptionsOpen)
         {
-            <section id="podcast-options" class="feed-help"><h3>@Ux.Text("PodcastInstructionsTitle")</h3><p>@Ux.Text("PodcastInstructions")</p>
-                @if (FeedUrl is not null)
-                {
-                    <label for="feed-url">@Ux.Text("FeedUrl")</label><input id="feed-url" class="form-control" value="@FeedUrl" readonly />
-                }
-                <div class="feed-actions">
-                    <button class="secondary-action" @onclick="() => CopyRssAsync(SelectedAudioBook)">@Ux.Text("CopyFeed")</button>
-                    <button class="secondary-action" @onclick="() => OpenPodcastAsync(SelectedAudioBook, PodcastPlayer.Overcast)">@Ux.Format("OpenInPodcastApp", "Overcast")</button>
-                    <button class="secondary-action" @onclick="() => OpenPodcastAsync(SelectedAudioBook, PodcastPlayer.PocketCasts)">@Ux.Format("OpenInPodcastApp", "Pocket Casts")</button>
-                    <button class="secondary-action" @onclick="() => OpenPodcastAsync(SelectedAudioBook, PodcastPlayer.AntennaPod)">@Ux.Format("OpenInPodcastApp", "AntennaPod")</button>
-                </div>
-            </section>
+            <PodcastFeedActions @key="SelectedAudioBook.Id" AudioBookId="@SelectedAudioBook.Id" />
         }
-        <p role="status" aria-live="polite">@ActionMessage</p>
         <div class="drawer-tags">@foreach (var category in SelectedAudioBook.AudioBookInfo.Categories) { <span>@category.Name</span> }</div>
         <details class="synopsis"><summary>@Ux.Text("Synopsis")</summary><p class="drawer-description">@SelectedAudioBook.AudioBookInfo.Description</p></details>
         <div class="drawer-actions drawer-secondary-actions">

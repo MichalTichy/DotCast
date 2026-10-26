@@ -42,13 +42,48 @@ window.DotCastUi = {
         try { await navigator.clipboard.writeText(text); return true; }
         catch { return false; }
     },
-    openPodcast(url) {
-        const link = document.createElement('a');
-        link.href = url;
-        link.rel = 'noreferrer';
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
+    async copyPodcastFeed(button) {
+        if (button.disabled) return;
+        const panel = button.closest('[data-podcast-feed]');
+        const output = panel.querySelector('[data-feed-output]');
+        const input = panel.querySelector('[data-feed-url]');
+        const status = panel.querySelector('[data-feed-status]');
+        button.disabled = true;
+        output.hidden = true;
+        input.value = '';
+        status.textContent = button.dataset.preparing;
+
+        try {
+            const feed = fetch(button.dataset.feedEndpoint, {
+                credentials: 'same-origin', cache: 'no-store', redirect: 'error'
+            }).then(async response => {
+                if (!response.ok) throw new Error('Feed request failed.');
+                return response.text();
+            });
+
+            // WebKit needs write() during the actual click, before the server responds.
+            let clipboardResult = Promise.resolve(false);
+            if (navigator.clipboard?.write && window.ClipboardItem) {
+                const data = feed.then(url => new Blob([url], { type: 'text/plain' }));
+                // write() may reject without consuming the data promise.
+                data.catch(() => {});
+                try {
+                    clipboardResult = navigator.clipboard.write([
+                        new ClipboardItem({ 'text/plain': data })
+                    ]).then(() => true, () => false);
+                } catch { }
+            }
+
+            input.value = await feed;
+            output.hidden = false;
+            const copied = await clipboardResult;
+            status.textContent = copied ? button.dataset.copied : button.dataset.copyManually;
+            if (!copied) { input.focus(); input.select(); input.setSelectionRange(0, input.value.length); }
+        } catch {
+            status.textContent = button.dataset.failed;
+        } finally {
+            button.disabled = false;
+        }
     },
     saveLibrary(url) {
         const rails = [...document.querySelectorAll('[data-rail]')].map(element => [element.dataset.rail, element.scrollLeft]);

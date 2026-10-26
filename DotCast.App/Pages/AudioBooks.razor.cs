@@ -83,9 +83,7 @@ namespace DotCast.App.Pages
         private string View { get; set; } = "rails";
         private readonly HashSet<string> ExpandedAuthors = [];
         private string? LoadMessage { get; set; }
-        private string? FeedUrl { get; set; }
         private bool PodcastOptionsOpen { get; set; }
-        private string? ActionMessage { get; set; }
         private int loadVersion;
         private bool restoreBrowsingContext = true;
         private string LibraryUrl => new Uri(NavigationManager.Uri).PathAndQuery;
@@ -121,28 +119,6 @@ namespace DotCast.App.Pages
                 await Js.InvokeVoidAsync("DotCastUi.restoreLibrary", LibraryUrl);
             }
         }
-        private async Task<string?> PrepareFeedAsync(AudioBook book)
-        {
-            try { ActionMessage = null; return await LibraryApiInfoProvider.GetFeedUrlAsync(book.Id); }
-            catch (Exception) { ActionMessage = Ux.Text("FeedFailed"); return null; }
-        }
-
-        private async Task OpenPodcastAsync(AudioBook book, PodcastPlayer player)
-        {
-            var feedUrl = await PrepareFeedAsync(book);
-            if (feedUrl is null) return;
-
-            var feedUri = new Uri(feedUrl);
-            var playerUrl = player switch
-            {
-                PodcastPlayer.Overcast => $"overcast://x-callback-url/add?url={Uri.EscapeDataString(feedUrl)}",
-                PodcastPlayer.PocketCasts => $"pktc://subscribe/{feedUri.Authority}{feedUri.PathAndQuery}",
-                PodcastPlayer.AntennaPod => $"https://antennapod.org/deeplink/subscribe?url={Uri.EscapeDataString(feedUrl)}",
-                _ => throw new ArgumentOutOfRangeException(nameof(player))
-            };
-            await Js.InvokeVoidAsync("DotCastUi.openPodcast", playerUrl);
-        }
-
         private AudioBookUserState GetState(AudioBook audioBook)
         {
             return UserStates.TryGetValue(audioBook.Id, out var state)
@@ -157,13 +133,6 @@ namespace DotCast.App.Pages
         private string FeaturedEyebrow => Featured?.Reason == FeaturedAudioBookReason.NextInSeries
             ? $"Continue the series · after {Featured.ContinuesAudioBookName}"
             : "Recommended for you";
-
-        public async Task CopyRssAsync(AudioBook info)
-        {
-            FeedUrl = await PrepareFeedAsync(info);
-            if (FeedUrl is not null)
-                ActionMessage = await Js.InvokeAsync<bool>("DotCastUi.copy", FeedUrl) ? Ux.Text("FeedCopied") : Ux.Text("CopyManually");
-        }
 
         public async Task Download(AudioBook info)
         {
@@ -403,9 +372,7 @@ namespace DotCast.App.Pages
         {
             SelectedAudioBook = audioBook;
             DeleteMessage = null;
-            FeedUrl = null;
             PodcastOptionsOpen = false;
-            ActionMessage = null;
             UserActionMessage = null;
         }
 
